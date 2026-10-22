@@ -274,7 +274,7 @@ function man3_ekskul_ensure_menu() {
 	}
 
 	$items = wp_get_nav_menu_items( $menu_id );
-	$found = null;
+	$matches = array();
 	if ( $items ) {
 		foreach ( $items as $item ) {
 			$title = trim( wp_strip_all_tags( $item->title ) );
@@ -286,10 +286,27 @@ function man3_ekskul_ensure_menu() {
 				|| (int) $item->object_id === $page_id
 				|| false !== stripos( $url, '/ekskul' )
 			) {
-				$found = $item;
-				break;
+				$matches[] = $item;
 			}
 		}
+	}
+
+	// Prefer existing page object link; drop custom-link duplicates.
+	$keep = null;
+	foreach ( $matches as $item ) {
+		if ( 'page' === $item->object || (int) $item->object_id === $page_id ) {
+			$keep = $item;
+			break;
+		}
+	}
+	if ( ! $keep && $matches ) {
+		$keep = $matches[0];
+	}
+	foreach ( $matches as $item ) {
+		if ( $keep && (int) $item->ID === (int) $keep->ID ) {
+			continue;
+		}
+		wp_delete_post( (int) $item->ID, true );
 	}
 
 	$args = array(
@@ -298,13 +315,12 @@ function man3_ekskul_ensure_menu() {
 		'menu-item-object-id' => $page_id,
 		'menu-item-type'      => 'post_type',
 		'menu-item-status'    => 'publish',
-		'menu-item-parent-id' => 0,
+		'menu-item-parent-id' => $keep ? (int) $keep->menu_item_parent : 0,
 	);
-	if ( ! $found ) {
+	if ( ! $keep ) {
 		wp_update_nav_menu_item( $menu_id, 0, $args );
 	} else {
-		$args['menu-item-parent-id'] = (int) $found->menu_item_parent;
-		wp_update_nav_menu_item( $menu_id, (int) $found->ID, $args );
+		wp_update_nav_menu_item( $menu_id, (int) $keep->ID, $args );
 	}
 }
 
@@ -354,7 +370,7 @@ function man3_ekskul_get_items( $kategori = 'all' ) {
 			'deskripsi'  => $content,
 			'excerpt'    => wp_trim_words( $content, 28, '…' ),
 			'thumb'      => get_the_post_thumbnail_url( $p, 'large' ),
-			'inisial'    => mb_substr( $ini, 0, 2 ),
+			'inisial'    => substr( $ini, 0, 2 ),
 		);
 	}
 	return $out;
