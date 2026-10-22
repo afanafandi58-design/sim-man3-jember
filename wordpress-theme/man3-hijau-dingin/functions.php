@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.1' );
+define( 'MAN3_HIJAU_VERSION', '1.5.2' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -29,6 +29,11 @@ if ( file_exists( $man3_profil_inc ) ) {
 $man3_pegawai_inc = get_template_directory() . '/inc/data-pegawai.php';
 if ( file_exists( $man3_pegawai_inc ) ) {
 	require_once $man3_pegawai_inc;
+}
+
+$man3_ekskul_inc = get_template_directory() . '/inc/ekskul.php';
+if ( file_exists( $man3_ekskul_inc ) ) {
+	require_once $man3_ekskul_inc;
 }
 
 /**
@@ -200,6 +205,7 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 				array( 'label' => 'Struktur Organisasi', 'href' => home_url( '/struktur-organisasi/' ) ),
 			),
 		),
+		array( 'label' => 'Ekstra Kurikuler', 'href' => home_url( '/ekskul/' ) ),
 		array(
 			'label'    => 'Gallery',
 			'children' => array(
