@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.0' );
+define( 'MAN3_HIJAU_VERSION', '1.5.1' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -123,11 +123,16 @@ class Man3_Hijau_Nav_Walker extends Walker_Nav_Menu {
 		$url   = ! empty( $item->url ) ? $item->url : '#';
 
 		if ( 0 === (int) $depth && $has_children ) {
-			$output .= '<details class="nav-item"><summary>' . esc_html( $title ) . '</summary>';
+			$output .= '<details class="nav-item has-children">';
+			$output .= '<summary aria-haspopup="true">';
+			$output .= '<span class="nav-label">' . esc_html( $title ) . '</span>';
+			$output .= '<span class="nav-caret" aria-hidden="true"></span>';
+			$output .= '</summary>';
 			return;
 		}
 
-		$output .= '<a href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a>';
+		$class = ( 0 === (int) $depth ) ? 'nav-link' : 'nav-sublink';
+		$output .= '<a class="' . esc_attr( $class ) . '" href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a>';
 	}
 
 	public function end_el( &$output, $item, $depth = 0, $args = null ) {
@@ -211,14 +216,15 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 
 	foreach ( $items as $item ) {
 		if ( ! empty( $item['children'] ) ) {
-			echo '<details' . ( $mobile ? '' : ' class="nav-item"' ) . '><summary>' . esc_html( $item['label'] ) . '</summary>';
-			echo $mobile ? '<div>' : '<div class="nav-dropdown">';
+			echo '<details class="nav-item has-children">';
+			echo '<summary aria-haspopup="true"><span class="nav-label">' . esc_html( $item['label'] ) . '</span><span class="nav-caret" aria-hidden="true"></span></summary>';
+			echo $mobile ? '<div class="nav-dropdown">' : '<div class="nav-dropdown">';
 			foreach ( $item['children'] as $child ) {
-				echo '<a href="' . esc_url( $child['href'] ) . '">' . esc_html( $child['label'] ) . '</a>';
+				echo '<a class="nav-sublink" href="' . esc_url( $child['href'] ) . '">' . esc_html( $child['label'] ) . '</a>';
 			}
 			echo '</div></details>';
 		} else {
-			echo '<a href="' . esc_url( $item['href'] ) . '">' . esc_html( $item['label'] ) . '</a>';
+			echo '<a class="nav-link" href="' . esc_url( $item['href'] ) . '">' . esc_html( $item['label'] ) . '</a>';
 		}
 	}
 }
