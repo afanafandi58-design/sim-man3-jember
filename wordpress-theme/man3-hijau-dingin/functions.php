@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.4.0' );
+define( 'MAN3_HIJAU_VERSION', '1.5.0' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -24,6 +24,11 @@ if ( file_exists( $man3_video_inc ) ) {
 $man3_profil_inc = get_template_directory() . '/inc/profil-madrasah.php';
 if ( file_exists( $man3_profil_inc ) ) {
 	require_once $man3_profil_inc;
+}
+
+$man3_pegawai_inc = get_template_directory() . '/inc/data-pegawai.php';
+if ( file_exists( $man3_pegawai_inc ) ) {
+	require_once $man3_pegawai_inc;
 }
 
 /**
@@ -186,9 +191,7 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 		array(
 			'label'    => 'Pendidik dan Kependidikan',
 			'children' => array(
-				array( 'label' => 'Daftar Guru', 'href' => home_url( '/gtk/' ) ),
-				array( 'label' => 'Staff', 'href' => home_url( '/Staff/' ) ),
-				array( 'label' => 'Ekstra Kurikuler', 'href' => home_url( '/ekskul/' ) ),
+				array( 'label' => 'Guru & Staff', 'href' => home_url( '/data-pegawai/' ) ),
 				array( 'label' => 'Struktur Organisasi', 'href' => home_url( '/struktur-organisasi/' ) ),
 			),
 		),
