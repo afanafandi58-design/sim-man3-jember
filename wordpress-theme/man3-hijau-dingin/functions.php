@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.3.0' );
+define( 'MAN3_HIJAU_VERSION', '1.4.0' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -19,6 +19,11 @@ if ( file_exists( $man3_org_inc ) ) {
 $man3_video_inc = get_template_directory() . '/inc/galeri-video.php';
 if ( file_exists( $man3_video_inc ) ) {
 	require_once $man3_video_inc;
+}
+
+$man3_profil_inc = get_template_directory() . '/inc/profil-madrasah.php';
+if ( file_exists( $man3_profil_inc ) ) {
+	require_once $man3_profil_inc;
 }
 
 /**
@@ -163,8 +168,13 @@ function man3_hijau_fallback_quotes() {
  */
 function man3_hijau_fallback_nav( $mobile = false ) {
 	$items = array(
-		array( 'label' => 'Beranda', 'href' => home_url( '/#beranda' ) ),
-		array( 'label' => 'Visi Misi', 'href' => home_url( '/#visi-misi' ) ),
+		array(
+			'label'    => 'Beranda',
+			'children' => array(
+				array( 'label' => 'Profil', 'href' => home_url( '/profil/' ) ),
+				array( 'label' => 'Visi Misi', 'href' => home_url( '/visi-misi-man-3-jember/' ) ),
+			),
+		),
 		array(
 			'label'    => 'Info Madrasah',
 			'children' => array(
