@@ -9,7 +9,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.0.0' );
+define( 'MAN3_HIJAU_VERSION', '1.2.0' );
+
+$man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
+if ( file_exists( $man3_org_inc ) ) {
+	require_once $man3_org_inc;
+}
 
 /**
  * Theme supports & menus.
@@ -169,6 +174,7 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 				array( 'label' => 'Daftar Guru', 'href' => home_url( '/gtk/' ) ),
 				array( 'label' => 'Staff', 'href' => home_url( '/Staff/' ) ),
 				array( 'label' => 'Ekstra Kurikuler', 'href' => home_url( '/ekskul/' ) ),
+				array( 'label' => 'Struktur Organisasi', 'href' => home_url( '/struktur-organisasi/' ) ),
 			),
 		),
 		array(
