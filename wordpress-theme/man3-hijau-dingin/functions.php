@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.3' );
+define( 'MAN3_HIJAU_VERSION', '1.5.4' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -191,7 +191,7 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 		array(
 			'label'    => 'Beranda',
 			'children' => array(
-				array( 'label' => 'Profil', 'href' => home_url( '/profil/' ) ),
+				array( 'label' => 'Profil Madrasah', 'href' => home_url( '/profil/' ) ),
 				array( 'label' => 'Visi Misi', 'href' => home_url( '/visi-misi-man-3-jember/' ) ),
 			),
 		),

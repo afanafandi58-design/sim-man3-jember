@@ -1,7 +1,7 @@
 <?php
 /**
- * Default data Profil Madrasah (seed).
- * Identitas sudah dikoreksi ke MAN 3 Jember (bukan salinan MAN 2 di DOCX).
+ * Default data Profil Madrasah 2026 — agregat publik (tanpa nama/NIP individu).
+ * Sumber: Profil-MAN-3-2026.docx
  *
  * @package Man3_Hijau_Dingin
  */
@@ -11,150 +11,112 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Data default profil.
+ * Data default profil (aman untuk publik).
  *
  * @return array<string,mixed>
  */
 function man3_profil_default_data() {
 	return array(
+		'version'   => '2026',
 		'identitas' => array(
-			'nama'        => 'MAN 3 Jember',
-			'nsm'         => '',
-			'npsn'        => '20580293',
-			'akreditasi'  => 'A',
-			'alamat'      => 'Jl. Ahmad Yani No. 76, Jombang, Kab. Jember, Jawa Timur',
-			'telepon'     => '',
-			'email'       => 'humasmantiger@gmail.com',
-			'website'     => 'https://man3jember.sch.id/',
+			'nama'       => 'Madrasah Aliyah Negeri 3 Jember',
+			'nsm'        => '131135090003',
+			'npsn'       => '20580293',
+			'akreditasi' => 'A (Unggul)',
+			'alamat'     => 'Jl. Ahmad Yani No. 76, Desa Jombang, Kec. Jombang, Kab. Jember, Jawa Timur 68168',
+			'telepon'    => '(0336) 322267',
+			'email'      => 'humasmantiger@gmail.com',
+			'website'    => 'https://man3jember.sch.id/',
+			'status'     => 'Negeri',
+			'tahun'      => '1995',
 		),
-		'visi' => 'Terwujudnya Madrasah Berkualitas, Kompetitif Secara Global dan Berwawasan Lingkungan',
-		'misi' => array(
-			'Menumbuhkan penghayatan dan pengamalan ajaran Islam dan budaya bangsa sebagai sumber kearifan dan bertindak.',
-			'Mengembangkan potensi akademik dan non-akademik peserta didik secara optimal sesuai dengan bakat dan minat melalui proses pembelajaran bermutu agar mampu bersaing.',
-			'Melaksanakan pembelajaran dan bimbingan secara efektif kepada peserta didik bidang keterampilan sebagai modal untuk terjun ke dunia kerja.',
-			'Melaksanakan pembelajaran yang mampu meningkatkan kepedulian terhadap lingkungan.',
+		'sejarah'   => 'Madrasah Aliyah Negeri 3 Jember lahir dari perjalanan panjang pendidikan di Desa Jombang. Bermula dari MA Al Ittihadiyah (1977), kemudian menjadi MAN Filial MAN 1 Jember (1982–1995), dan sejak SK Menteri Agama Nomor 515 A Tahun 1995 berstatus negeri penuh sebagai MAN 3 Jember. Program unggulan meliputi bina prestasi, keterampilan, dan tahfidzul Qur’an.',
+		'timeline'  => array(
+			array( 'tahun' => '1977–1982', 'nama' => 'MA Ittihadiyah', 'pengelola' => 'Yayasan' ),
+			array( 'tahun' => '1982–1995', 'nama' => 'MAN Filial Jember', 'pengelola' => 'Yayasan & Negara' ),
+			array( 'tahun' => '1995–sekarang', 'nama' => 'MAN 3 Jember', 'pengelola' => 'Negara' ),
 		),
-		'siswa' => array(
+		'visi'      => 'Terwujudnya lulusan yang berkarakter akhlak mulia, cerdas, terampil, dan kreatif berbasis kearifan lokal untuk membangun peradaban yang berdaya saing.',
+		'misi'      => array(
+			'Mewujudkan karakter beriman dan bertakwa: yakin dan tawakkal, jujur dan amanah, sabar dan syukur, khusyuk beribadah, serta peduli alam dan sesama.',
+			'Mewujudkan perilaku disiplin, tanggung jawab, empati, toleransi, dan kepedulian sosial.',
+			'Meningkatkan literasi dan numerasi siswa; mendorong penelitian, proyek, dan lomba akademik.',
+			'Meningkatkan karya inovatif siswa serta pemanfaatan teknologi digital secara positif.',
+			'Mewujudkan keterampilan praktis (kerajinan, seni, pertanian, kewirausahaan) sesuai potensi daerah.',
+			'Menjalin kemitraan dengan masyarakat/komunitas lokal untuk mendukung program keterampilan.',
+		),
+		'program'   => array(
 			array(
-				'tahun' => '2023-2024',
-				'x_l'   => '145',
-				'x_p'   => '255',
-				'xi_l'  => '137',
-				'xi_p'  => '241',
-				'xii_l' => '114',
-				'xii_p' => '264',
-				'total' => '1156',
+				'nama' => 'Bina Prestasi',
+				'desk' => 'Kelas dengan penguatan materi UTBK pada Bahasa Indonesia, Bahasa Inggris, dan Matematika.',
+			),
+			array(
+				'nama' => 'Keterampilan',
+				'desk' => 'Tata busana, multimedia, operator komputer, Prodistik, tata boga, dan tata rias (moving class).',
+			),
+			array(
+				'nama' => 'Tahfidzul Qur’an',
+				'desk' => 'Program pembinaan hafalan Al-Qur’an sebagai ciri khas pengembangan karakter religius.',
 			),
 		),
-		'jurusan' => array(
-			array( 'nama' => 'IPS', 'rombel' => '8' ),
-			array( 'nama' => 'IPA', 'rombel' => '10' ),
-			array( 'nama' => 'Agama', 'rombel' => '4' ),
-			array( 'nama' => 'Kurikulum Merdeka', 'rombel' => '11' ),
+		/* Agregat siswa TP 2026/2027 — tanpa daftar per individu. */
+		'siswa_chart' => array(
+			'total'  => 728,
+			'label'  => 'Peserta didik (TP 2026/2027, rekap rombel)',
+			'gender' => array(
+				array( 'label' => 'Laki-laki', 'value' => 213 ),
+				array( 'label' => 'Perempuan', 'value' => 515 ),
+			),
+			'tingkat' => array(
+				array( 'label' => 'Kelas 10', 'value' => 232 ),
+				array( 'label' => 'Kelas 11', 'value' => 244 ),
+				array( 'label' => 'Kelas 12', 'value' => 252 ),
+			),
+			'peminatan' => array(
+				array( 'label' => 'Sains', 'value' => 242, 'rombel' => 10 ),
+				array( 'label' => 'Soshum', 'value' => 210, 'rombel' => 8 ),
+				array( 'label' => 'Keagamaan', 'value' => 44, 'rombel' => 2 ),
+				array( 'label' => 'Kelas 10 (belum peminatan)', 'value' => 232, 'rombel' => 8 ),
+			),
+			'rombel_total' => 28,
 		),
-		'rombel' => array(
-			array( 'kelas' => '10', 'jumlah' => '11' ),
-			array( 'kelas' => '11', 'jumlah' => '11' ),
-			array( 'kelas' => '12', 'jumlah' => '11' ),
+		/*
+		 * Agregat pegawai — HANYA status/kategori.
+		 * Sumber ringkasan dokumen: 55 pendidik + 14 tendik; PNS vs Non-ASN.
+		 */
+		'pegawai_chart' => array(
+			'total'     => 69,
+			'pendidik'  => 55,
+			'tendik'    => 14,
+			'jenis'     => array(
+				array( 'label' => 'Pendidik (Guru)', 'value' => 55 ),
+				array( 'label' => 'Tenaga Kependidikan', 'value' => 14 ),
+			),
+			'status'    => array(
+				array( 'label' => 'PNS', 'value' => 41 ),
+				array( 'label' => 'Non-ASN (PPPK/GTT/PTT)', 'value' => 28 ),
+			),
+			'status_detail' => array(
+				array( 'label' => 'PNS — Pendidik', 'value' => 37 ),
+				array( 'label' => 'PNS — Tendik', 'value' => 4 ),
+				array( 'label' => 'Non-ASN — Pendidik', 'value' => 18 ),
+				array( 'label' => 'Non-ASN — Tendik', 'value' => 10 ),
+			),
+			'catatan'   => 'Ditampilkan hanya ringkasan agregat status kepegawaian. Nama, NIP, dan data personal tidak dipublikasikan.',
 		),
-		'rombel_total' => '33',
-		'pendidik' => array(
-		array( 'nama' => 'Abdul Muis', 'nuptk' => '20524508188001', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Fiqih', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Achmad Mas Udi', 'nuptk' => '2748749652200022', 'pendidikan' => 'S1', 'jurusan' => 'Ekonomi', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Aditya Prihardini', 'nuptk' => '1962764665210122', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Fisika', 'jabatan' => 'Guru', 'mapel' => 'Fisika', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Ahmad Dairabi', 'nuptk' => '20503863187003', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Sejarah', 'jabatan' => 'Guru', 'mapel' => 'Sejarah', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Ahmad Syahirul Alim Fikri', 'nuptk' => '6751758659200032', 'pendidikan' => 'D3', 'jurusan' => 'Perpajakan', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Ainul Ilmi Utiyad Darojah', 'nuptk' => '5445757659300002', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Matematika', 'jabatan' => 'Guru', 'mapel' => 'Matematika', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Andrik Kusumo', 'nuptk' => '2439764666200022', 'pendidikan' => 'S1', 'jurusan' => 'Bimbingan Konseling', 'jabatan' => 'Guru', 'mapel' => 'Bimbingan Konseling', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Anshori', 'nuptk' => '20554894191010', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Bahasa Arab', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Arab', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Ardliatul Chasanah', 'nuptk' => '20507965190001', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Akidah Akhlak', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Arif Zainullah Sahroni', 'nuptk' => '9746750652200072', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Fisika', 'jabatan' => 'Guru', 'mapel' => 'Fisika', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Asmari', 'nuptk' => '7246754656200023', 'pendidikan' => 'SMA', 'jurusan' => '-', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Asmul Wakil', 'nuptk' => '20524519193003', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Al Qur\'an Hadits', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Asrori', 'nuptk' => '8439745648200023', 'pendidikan' => 'S1', 'jurusan' => 'PPKN', 'jabatan' => 'Guru', 'mapel' => 'Pkn', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Dhanni Wardianto', 'nuptk' => '2851764665200022', 'pendidikan' => 'S1', 'jurusan' => 'Informatika', 'jabatan' => 'Guru', 'mapel' => 'Tik', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Dwi Isti Mualimah', 'nuptk' => '0555759662210023', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Bahasa Inggris', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Inggris', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Dwiasih Heniastuti', 'nuptk' => '0654748649300022', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Matematika', 'jabatan' => 'Guru', 'mapel' => 'Matematika', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Dyana Sumiyanto', 'nuptk' => '8761753655300032', 'pendidikan' => 'S1', 'jurusan' => 'Sosiologi', 'jabatan' => 'Guru', 'mapel' => 'Sosiologi', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Eliana', 'nuptk' => '20524519183002', 'pendidikan' => 'S1', 'jurusan' => 'Administrasi Negara', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Erny Sriwidiawati', 'nuptk' => '0154752653300033', 'pendidikan' => 'S1', 'jurusan' => 'Ekonomi', 'jabatan' => 'Guru', 'mapel' => 'Ekonomi', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Fathor Rozi Andriansyah', 'nuptk' => '2851764666200012', 'pendidikan' => 'SMA', 'jurusan' => '-', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Firda Octaviana', 'nuptk' => '20524519193002', 'pendidikan' => 'S1', 'jurusan' => 'Manajemen', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'H. A. Mahdi', 'nuptk' => '7933752654200052', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Fiqih', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Hadi Pornomo', 'nuptk' => '8360761663110073', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Hikmah Islamiah', 'nuptk' => '8546768669210022', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Akidah Akhlak', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Hofidhotul Aulia', 'nuptk' => '20524519100001', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Geografi', 'jabatan' => 'Guru', 'mapel' => 'Geografi', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Ida Ariani', 'nuptk' => '3745747649300092', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Ekonomi', 'jabatan' => 'Guru', 'mapel' => 'Ekonomi', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Ika Iffah Ilmiah', 'nuptk' => '3363755657300043', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Kimia', 'jabatan' => 'Guru', 'mapel' => 'Kimia', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Imam Nawawi', 'nuptk' => '4433743644200242', 'pendidikan' => 'S1', 'jurusan' => 'Biologi', 'jabatan' => 'Guru', 'mapel' => 'Biologi', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Inayah Rohmatillah', 'nuptk' => '9535760662300053', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Fiqih', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Indra Hardiyansyah', 'nuptk' => '20524504198001', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Indonesia', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Indonesia', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Joko Purnomo', 'nuptk' => '6554749650200012', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Biologi', 'jabatan' => 'Guru', 'mapel' => 'Kimia', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Juni Hermawati', 'nuptk' => '9933744646300092', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Biologi', 'jabatan' => 'Guru', 'mapel' => 'Biologi', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Khoirul Anjarwati', 'nuptk' => '1740756657300042', 'pendidikan' => 'S1', 'jurusan' => 'Bimbingan Konseling', 'jabatan' => 'Guru', 'mapel' => 'Bimbingan Konseling', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Kodariyah Mardiana', 'nuptk' => '0451746647300013', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Bahasa Inggris', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Inggris', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Lilis Khusniawati', 'nuptk' => '3654764666300012', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Olahraga', 'jabatan' => 'Guru', 'mapel' => 'Penjaskes', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Luqmanul Hakim', 'nuptk' => '9342750652200093', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Bahasa Arab', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Arab', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'M. Ferga Priswadiyanto', 'nuptk' => '20524519198001', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Olahraga', 'jabatan' => 'Guru', 'mapel' => 'Penjaskes', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Masfufatus Sholihah', 'nuptk' => '20524389195001', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Ski', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Moh. Hosen', 'nuptk' => '2433755657200112', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Al Qur\'an Hadits', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Moh. Khairul Anam', 'nuptk' => '4253749652200023', 'pendidikan' => 'S1', 'jurusan' => 'Ekonomi', 'jabatan' => 'Guru', 'mapel' => 'Ekonomi', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Muhammad Shafihan Rosyid', 'nuptk' => '5562763665120003', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Bahasa Inggris', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Inggris', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Munadiroh', 'nuptk' => '4542752653300062', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Biologi', 'jabatan' => 'Guru', 'mapel' => 'Biologi', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Nasrullah Syariful Anam', 'nuptk' => '20524519194001', 'pendidikan' => 'S1', 'jurusan' => 'Teknik Informatika', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Nur Hidayat', 'nuptk' => '2957752654200032', 'pendidikan' => 'S1', 'jurusan' => 'Teknik Informatika', 'jabatan' => 'Guru', 'mapel' => 'TIK', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Nuril Izzatus Shobikhah', 'nuptk' => '20596015195004', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Guru MI', 'jabatan' => 'Guru', 'mapel' => 'Ski', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Pundhi Raras Purbosari', 'nuptk' => '20524519194003', 'pendidikan' => 'S1', 'jurusan' => 'Bahasa Arab', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Arab', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Ratnadi', 'nuptk' => '1359758661200013', 'pendidikan' => 'SMA', 'jurusan' => '-', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Riduwan', 'nuptk' => '4344742644200073', 'pendidikan' => 'S1', 'jurusan' => 'Teknik Otomotif', 'jabatan' => 'Guru', 'mapel' => 'Kepala Madrasah', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Rinaldi Putra Pamungkas', 'nuptk' => '20524504197001', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Seni', 'jabatan' => 'Guru', 'mapel' => 'Prakarya', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Rita Zahara', 'nuptk' => '1446754656300063', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Biologi', 'jabatan' => 'Guru', 'mapel' => 'Geografi', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Rizka Fitria Ulva', 'nuptk' => '3436766667210082', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Bahasa Indonesia', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Indonesia', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Rizki Mariatus Sholehah', 'nuptk' => '6151763663300003', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Bahasa Inggris', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Inggris', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Samsul Arif', 'nuptk' => '20524519186001', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Al Qur\'an Hadits', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Sarifah Indiana', 'nuptk' => '1939746648300102', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Matematika', 'jabatan' => 'Guru', 'mapel' => 'Matematika', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Sindi Rizza Afkarina', 'nuptk' => '20524519196001', 'pendidikan' => 'S1', 'jurusan' => 'PAI', 'jabatan' => 'Guru', 'mapel' => 'Ski', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Siti Nur Kamila', 'nuptk' => '6447765666210112', 'pendidikan' => 'SMA', 'jurusan' => '-', 'jabatan' => 'Staf', 'mapel' => '', 'sertifikasi' => 'Tidak' ),
-		array( 'nama' => 'Siti Rofiah', 'nuptk' => '8647753655300062', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Bahasa Indonesia', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Indonesia', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Sugeng Cahyono', 'nuptk' => '8060743644200033', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan IPS', 'jabatan' => 'Guru', 'mapel' => 'Sejarah', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Suwandi', 'nuptk' => '5143749651200043', 'pendidikan' => 'S2', 'jurusan' => 'Sains', 'jabatan' => 'Guru', 'mapel' => 'Matematika', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Tantri Leonita', 'nuptk' => '7133758659200033', 'pendidikan' => 'S2', 'jurusan' => 'Linguistik', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Indonesia', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Tien Lutfia', 'nuptk' => '5235751653300063', 'pendidikan' => 'S1', 'jurusan' => 'Manajemen Pendidikan', 'jabatan' => 'Guru', 'mapel' => 'Pkn', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Titik Murniyatim', 'nuptk' => '9434758660200003', 'pendidikan' => 'S1', 'jurusan' => 'Sains', 'jabatan' => 'Guru', 'mapel' => 'Kimia', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Uswatun Hasanah', 'nuptk' => '1744757658300052', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Fisika', 'jabatan' => 'Guru', 'mapel' => 'Fisika', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Veni Kumala', 'nuptk' => '20524508192001', 'pendidikan' => 'S1', 'jurusan' => 'Bahasa Arab', 'jabatan' => 'Guru', 'mapel' => 'Bahasa Arab', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Wahman Sumanjaya', 'nuptk' => '6549744647200022', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Olahraga', 'jabatan' => 'Guru', 'mapel' => 'Penjaskes', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Yuan Ursulasari', 'nuptk' => '5460761662300082', 'pendidikan' => 'S2', 'jurusan' => 'Manajemen Pendidikan', 'jabatan' => 'Guru', 'mapel' => 'Matematika', 'sertifikasi' => 'Ya' ),
-		array( 'nama' => 'Yuliati Prasetyarini', 'nuptk' => '0052751653300073', 'pendidikan' => 'S1', 'jurusan' => 'Pendidikan Ekonomi', 'jabatan' => 'Guru', 'mapel' => 'Ekonomi', 'sertifikasi' => 'Ya' ),
-	),
-		'prasarana' => array(
-		array( 'nama' => 'Ruang Kelas', 'jumlah' => '33', 'panjang' => '8.5', 'lebar' => '9', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Guru', 'jumlah' => '1', 'panjang' => '12', 'lebar' => '24', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Kepala Madrasah', 'jumlah' => '1', 'panjang' => '8.5', 'lebar' => '8.1', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Toilet Siswa', 'jumlah' => '4', 'panjang' => '5', 'lebar' => '4.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Lab Komputer', 'jumlah' => '4', 'panjang' => '9.5', 'lebar' => '16.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Pertanian', 'jumlah' => '1', 'panjang' => '2.5', 'lebar' => '10.7', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Rumah Dinas Negara', 'jumlah' => '4', 'panjang' => '8', 'lebar' => '7.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Masjid', 'jumlah' => '1', 'panjang' => '20', 'lebar' => '21', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Laboratorium Kimia', 'jumlah' => '1', 'panjang' => '18', 'lebar' => '11.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Bimbingan Konseling', 'jumlah' => '1', 'panjang' => '9.8', 'lebar' => '10.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Kelas VIP', 'jumlah' => '1', 'panjang' => '9.8', 'lebar' => '10.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Pertemuan', 'jumlah' => '1', 'panjang' => '19.7', 'lebar' => '10.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Podcast', 'jumlah' => '1', 'panjang' => '7.9', 'lebar' => '8', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Waka', 'jumlah' => '1', 'panjang' => '8.5', 'lebar' => '8.1', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Rapat', 'jumlah' => '2', 'panjang' => '8.5', 'lebar' => '8.1', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Perpustakaan', 'jumlah' => '1', 'panjang' => '26.5', 'lebar' => '8.2', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Pramuka', 'jumlah' => '1', 'panjang' => '3', 'lebar' => '10', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Toilet Guru', 'jumlah' => '2', 'panjang' => '3', 'lebar' => '6', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Musik', 'jumlah' => '1', 'panjang' => '3.5', 'lebar' => '10', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Paskibra', 'jumlah' => '1', 'panjang' => '4', 'lebar' => '4', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang OSIM', 'jumlah' => '1', 'panjang' => '5', 'lebar' => '5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Asrama Reguler Putri', 'jumlah' => '1', 'panjang' => '75.9', 'lebar' => '8.1', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Tata Busana', 'jumlah' => '1', 'panjang' => '11.2', 'lebar' => '12.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'AULA', 'jumlah' => '1', 'panjang' => '42.5', 'lebar' => '22.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Ruang Tata Rias', 'jumlah' => '1', 'panjang' => '7.76', 'lebar' => '8.5', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Asrama SBSN Putri', 'jumlah' => '1', 'panjang' => '52.8', 'lebar' => '40.8', 'kondisi' => 'Baik' ),
-		array( 'nama' => 'Gudang', 'jumlah' => '1', 'panjang' => '5.5', 'lebar' => '14', 'kondisi' => 'Baik' ),
-	),
+		'prasarana_chart' => array(
+			'stats' => array(
+				array( 'label' => 'Luas lahan', 'value' => '10.890 m²' ),
+				array( 'label' => 'Luas bangunan', 'value' => '2.843 m²' ),
+				array( 'label' => 'Rombel', 'value' => '28' ),
+				array( 'label' => 'Ruang kelas', 'value' => '31' ),
+			),
+			'bars'  => array(
+				array( 'label' => 'Ruang kelas', 'value' => 31 ),
+				array( 'label' => 'Rombongan belajar', 'value' => 28 ),
+				array( 'label' => 'Lantai bangunan', 'value' => 2 ),
+			),
+			'catatan' => 'Ringkasan sarana utama dari profil 2026 (bukan inventaris detail per ruang).',
+		),
 	);
 }

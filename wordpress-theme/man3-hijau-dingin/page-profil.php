@@ -1,37 +1,33 @@
 <?php
 /**
  * Template Name: Profil Madrasah
+ * Profil publik: narasi umum + grafik agregat (tanpa nama/NIP).
  *
  * @package Man3_Hijau_Dingin
  */
 
 get_header();
 
-$data = function_exists( 'man3_profil_get_data' ) ? man3_profil_get_data() : array();
-$id   = $data['identitas'] ?? array();
-$misi = $data['misi'] ?? array();
-$siswa = $data['siswa'] ?? array();
-$jurusan = $data['jurusan'] ?? array();
-$rombel = $data['rombel'] ?? array();
-$pendidik = $data['pendidik'] ?? array();
-$prasarana = $data['prasarana'] ?? array();
+$data    = function_exists( 'man3_profil_get_data' ) ? man3_profil_get_data() : array();
+$id      = $data['identitas'] ?? array();
+$misi    = $data['misi'] ?? array();
+$siswa   = $data['siswa_chart'] ?? array();
+$pegawai = $data['pegawai_chart'] ?? array();
+$prasarana = $data['prasarana_chart'] ?? array();
+$program = $data['program'] ?? array();
+$timeline = $data['timeline'] ?? array();
 
-$guru_count = 0;
-$staf_count = 0;
-$sert_count = 0;
-foreach ( $pendidik as $p ) {
-	if ( isset( $p['jabatan'] ) && 0 === strcasecmp( $p['jabatan'], 'Guru' ) ) {
-		++$guru_count;
-	} else {
-		++$staf_count;
-	}
-	if ( isset( $p['sertifikasi'] ) && 'Ya' === $p['sertifikasi'] ) {
-		++$sert_count;
-	}
-}
-$total_siswa = ! empty( $siswa[0]['total'] ) ? (int) $siswa[0]['total'] : 0;
+$chart_payload = array(
+	'siswaGender'    => $siswa['gender'] ?? array(),
+	'siswaTingkat'   => $siswa['tingkat'] ?? array(),
+	'siswaPeminatan' => $siswa['peminatan'] ?? array(),
+	'pegawaiJenis'   => $pegawai['jenis'] ?? array(),
+	'pegawaiStatus'  => $pegawai['status'] ?? array(),
+	'pegawaiDetail'  => $pegawai['status_detail'] ?? array(),
+	'prasaranaBars'  => $prasarana['bars'] ?? array(),
+);
 ?>
-<main id="main" class="site-main page-profil">
+<main id="main" class="site-main page-profil" data-profil-charts="<?php echo esc_attr( wp_json_encode( $chart_payload ) ); ?>">
 	<section class="section page-hero-org profil-hero">
 		<div class="container">
 			<p class="eyebrow"><?php esc_html_e( 'Beranda', 'man3-hijau-dingin' ); ?></p>
@@ -43,18 +39,36 @@ $total_siswa = ! empty( $siswa[0]['total'] ) ? (int) $siswa[0]['total'] : 0;
 				<?php endif; ?>
 			</p>
 			<nav class="profil-jump" aria-label="<?php esc_attr_e( 'Navigasi bagian profil', 'man3-hijau-dingin' ); ?>">
+				<a href="#sejarah"><?php esc_html_e( 'Sejarah', 'man3-hijau-dingin' ); ?></a>
 				<a href="#identitas"><?php esc_html_e( 'Identitas', 'man3-hijau-dingin' ); ?></a>
 				<a href="#visi-misi"><?php esc_html_e( 'Visi & Misi', 'man3-hijau-dingin' ); ?></a>
+				<a href="#program"><?php esc_html_e( 'Program', 'man3-hijau-dingin' ); ?></a>
 				<a href="#siswa"><?php esc_html_e( 'Siswa', 'man3-hijau-dingin' ); ?></a>
-				<a href="#jurusan"><?php esc_html_e( 'Jurusan', 'man3-hijau-dingin' ); ?></a>
-				<a href="#rombel"><?php esc_html_e( 'Rombel', 'man3-hijau-dingin' ); ?></a>
-				<a href="#pendidik"><?php esc_html_e( 'Pendidik', 'man3-hijau-dingin' ); ?></a>
+				<a href="#pendidik"><?php esc_html_e( 'Kepegawaian', 'man3-hijau-dingin' ); ?></a>
 				<a href="#prasarana"><?php esc_html_e( 'Prasarana', 'man3-hijau-dingin' ); ?></a>
 			</nav>
 		</div>
 	</section>
 
-	<section id="identitas" class="section profil-section">
+	<section id="sejarah" class="section profil-section">
+		<div class="container">
+			<h2 class="profil-h2"><?php esc_html_e( 'Sejarah Singkat', 'man3-hijau-dingin' ); ?></h2>
+			<p class="profil-prose"><?php echo esc_html( $data['sejarah'] ?? '' ); ?></p>
+			<?php if ( $timeline ) : ?>
+				<ol class="profil-timeline">
+					<?php foreach ( $timeline as $row ) : ?>
+						<li>
+							<span class="profil-timeline-year"><?php echo esc_html( $row['tahun'] ?? '' ); ?></span>
+							<span class="profil-timeline-name"><?php echo esc_html( $row['nama'] ?? '' ); ?></span>
+							<span class="profil-timeline-meta"><?php echo esc_html( $row['pengelola'] ?? '' ); ?></span>
+						</li>
+					<?php endforeach; ?>
+				</ol>
+			<?php endif; ?>
+		</div>
+	</section>
+
+	<section id="identitas" class="section profil-section profil-section--tint">
 		<div class="container">
 			<h2 class="profil-h2"><?php esc_html_e( 'Identitas Madrasah', 'man3-hijau-dingin' ); ?></h2>
 			<div class="profil-identity-grid">
@@ -63,6 +77,8 @@ $total_siswa = ! empty( $siswa[0]['total'] ) ? (int) $siswa[0]['total'] : 0;
 					array( 'label' => 'Nama', 'value' => $id['nama'] ?? '' ),
 					array( 'label' => 'NPSN', 'value' => $id['npsn'] ?? '' ),
 					array( 'label' => 'NSM', 'value' => $id['nsm'] ?? '' ),
+					array( 'label' => 'Status', 'value' => $id['status'] ?? '' ),
+					array( 'label' => 'Tahun negeri', 'value' => $id['tahun'] ?? '' ),
 					array( 'label' => 'Akreditasi', 'value' => $id['akreditasi'] ?? '' ),
 					array( 'label' => 'Alamat', 'value' => $id['alamat'] ?? '' ),
 					array( 'label' => 'Telepon', 'value' => $id['telepon'] ?? '' ),
@@ -89,7 +105,7 @@ $total_siswa = ! empty( $siswa[0]['total'] ) ? (int) $siswa[0]['total'] : 0;
 		</div>
 	</section>
 
-	<section id="visi-misi" class="section profil-section profil-section--tint">
+	<section id="visi-misi" class="section profil-section">
 		<div class="container profil-vm">
 			<div class="profil-visi">
 				<h2 class="profil-h2"><?php esc_html_e( 'Visi', 'man3-hijau-dingin' ); ?></h2>
@@ -106,152 +122,106 @@ $total_siswa = ! empty( $siswa[0]['total'] ) ? (int) $siswa[0]['total'] : 0;
 		</div>
 	</section>
 
+	<section id="program" class="section profil-section profil-section--tint">
+		<div class="container">
+			<h2 class="profil-h2"><?php esc_html_e( 'Program Unggulan', 'man3-hijau-dingin' ); ?></h2>
+			<div class="profil-cards profil-cards--3">
+				<?php foreach ( $program as $prog ) : ?>
+					<article class="profil-mini-card">
+						<h3><?php echo esc_html( $prog['nama'] ?? '' ); ?></h3>
+						<p><?php echo esc_html( $prog['desk'] ?? '' ); ?></p>
+					</article>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</section>
+
 	<section id="siswa" class="section profil-section">
 		<div class="container">
-			<h2 class="profil-h2"><?php esc_html_e( 'Jumlah Siswa', 'man3-hijau-dingin' ); ?></h2>
-			<?php if ( $total_siswa ) : ?>
+			<h2 class="profil-h2"><?php esc_html_e( 'Peserta Didik', 'man3-hijau-dingin' ); ?></h2>
+			<?php if ( ! empty( $siswa['total'] ) ) : ?>
 				<p class="profil-stat-highlight">
-					<span class="profil-stat-num"><?php echo esc_html( number_format_i18n( $total_siswa ) ); ?></span>
-					<span class="profil-stat-label"><?php esc_html_e( 'peserta didik (data tahun terisi)', 'man3-hijau-dingin' ); ?></span>
+					<span class="profil-stat-num"><?php echo esc_html( number_format_i18n( (int) $siswa['total'] ) ); ?></span>
+					<span class="profil-stat-label"><?php echo esc_html( $siswa['label'] ?? __( 'peserta didik', 'man3-hijau-dingin' ) ); ?></span>
 				</p>
+				<?php if ( ! empty( $siswa['rombel_total'] ) ) : ?>
+					<p class="profil-total-note">
+						<?php printf( esc_html__( '%d rombongan belajar', 'man3-hijau-dingin' ), (int) $siswa['rombel_total'] ); ?>
+					</p>
+				<?php endif; ?>
 			<?php endif; ?>
-			<div class="profil-table-wrap">
-				<table class="profil-table">
-					<thead>
-						<tr>
-							<th rowspan="2"><?php esc_html_e( 'Tahun Pelajaran', 'man3-hijau-dingin' ); ?></th>
-							<th colspan="2"><?php esc_html_e( 'Kelas 10', 'man3-hijau-dingin' ); ?></th>
-							<th colspan="2"><?php esc_html_e( 'Kelas 11', 'man3-hijau-dingin' ); ?></th>
-							<th colspan="2"><?php esc_html_e( 'Kelas 12', 'man3-hijau-dingin' ); ?></th>
-							<th rowspan="2"><?php esc_html_e( 'Jumlah', 'man3-hijau-dingin' ); ?></th>
-						</tr>
-						<tr>
-							<th>L</th><th>P</th><th>L</th><th>P</th><th>L</th><th>P</th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach ( $siswa as $row ) : ?>
-							<tr>
-								<td><?php echo esc_html( $row['tahun'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $row['x_l'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $row['x_p'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $row['xi_l'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $row['xi_p'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $row['xii_l'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $row['xii_p'] ?? '' ); ?></td>
-								<td><strong><?php echo esc_html( $row['total'] ?? '' ); ?></strong></td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+			<p class="profil-chart-note"><?php esc_html_e( 'Grafik ringkas komposisi siswa (agregat). Detail per individu tidak ditampilkan.', 'man3-hijau-dingin' ); ?></p>
+			<div class="profil-chart-grid">
+				<figure class="profil-chart-card">
+					<h3><?php esc_html_e( 'Menurut jenis kelamin', 'man3-hijau-dingin' ); ?></h3>
+					<canvas id="chart-siswa-gender" height="220" aria-label="<?php esc_attr_e( 'Grafik siswa menurut jenis kelamin', 'man3-hijau-dingin' ); ?>"></canvas>
+				</figure>
+				<figure class="profil-chart-card">
+					<h3><?php esc_html_e( 'Menurut tingkat kelas', 'man3-hijau-dingin' ); ?></h3>
+					<canvas id="chart-siswa-tingkat" height="220" aria-label="<?php esc_attr_e( 'Grafik siswa menurut tingkat', 'man3-hijau-dingin' ); ?>"></canvas>
+				</figure>
+				<figure class="profil-chart-card profil-chart-card--wide">
+					<h3><?php esc_html_e( 'Menurut peminatan / kelompok', 'man3-hijau-dingin' ); ?></h3>
+					<canvas id="chart-siswa-peminatan" height="240" aria-label="<?php esc_attr_e( 'Grafik siswa menurut peminatan', 'man3-hijau-dingin' ); ?>"></canvas>
+				</figure>
 			</div>
-		</div>
-	</section>
-
-	<section id="jurusan" class="section profil-section profil-section--tint">
-		<div class="container">
-			<h2 class="profil-h2"><?php esc_html_e( 'Data Jurusan', 'man3-hijau-dingin' ); ?></h2>
-			<div class="profil-cards">
-				<?php foreach ( $jurusan as $j ) : ?>
-					<article class="profil-mini-card">
-						<h3><?php echo esc_html( $j['nama'] ?? '' ); ?></h3>
-						<p><strong><?php echo esc_html( $j['rombel'] ?? '' ); ?></strong> <?php esc_html_e( 'rombel', 'man3-hijau-dingin' ); ?></p>
-					</article>
-				<?php endforeach; ?>
-			</div>
-		</div>
-	</section>
-
-	<section id="rombel" class="section profil-section">
-		<div class="container">
-			<h2 class="profil-h2"><?php esc_html_e( 'Data Rombel', 'man3-hijau-dingin' ); ?></h2>
-			<div class="profil-cards profil-cards--3">
-				<?php foreach ( $rombel as $r ) : ?>
-					<article class="profil-mini-card">
-						<h3><?php printf( esc_html__( 'Kelas %s', 'man3-hijau-dingin' ), esc_html( $r['kelas'] ?? '' ) ); ?></h3>
-						<p><strong><?php echo esc_html( $r['jumlah'] ?? '' ); ?></strong> <?php esc_html_e( 'rombel', 'man3-hijau-dingin' ); ?></p>
-					</article>
-				<?php endforeach; ?>
-			</div>
-			<?php if ( ! empty( $data['rombel_total'] ) ) : ?>
-				<p class="profil-total-note"><?php printf( esc_html__( 'Total rombel: %s', 'man3-hijau-dingin' ), esc_html( $data['rombel_total'] ) ); ?></p>
-			<?php endif; ?>
 		</div>
 	</section>
 
 	<section id="pendidik" class="section profil-section profil-section--tint">
 		<div class="container">
-			<h2 class="profil-h2"><?php esc_html_e( 'Pendidik dan Tenaga Kependidikan', 'man3-hijau-dingin' ); ?></h2>
-			<div class="profil-cards profil-cards--3">
-				<article class="profil-mini-card">
-					<h3><?php esc_html_e( 'Guru', 'man3-hijau-dingin' ); ?></h3>
-					<p><strong><?php echo esc_html( (string) $guru_count ); ?></strong></p>
-				</article>
-				<article class="profil-mini-card">
-					<h3><?php esc_html_e( 'Staf / Tendik', 'man3-hijau-dingin' ); ?></h3>
-					<p><strong><?php echo esc_html( (string) $staf_count ); ?></strong></p>
-				</article>
-				<article class="profil-mini-card">
-					<h3><?php esc_html_e( 'Tersertifikasi', 'man3-hijau-dingin' ); ?></h3>
-					<p><strong><?php echo esc_html( (string) $sert_count ); ?></strong></p>
-				</article>
-			</div>
-			<div class="profil-table-wrap profil-table-wrap--scroll">
-				<table class="profil-table profil-table--compact">
-					<thead>
-						<tr>
-							<th>#</th>
-							<th><?php esc_html_e( 'Nama', 'man3-hijau-dingin' ); ?></th>
-							<th><?php esc_html_e( 'Jabatan', 'man3-hijau-dingin' ); ?></th>
-							<th><?php esc_html_e( 'Mapel', 'man3-hijau-dingin' ); ?></th>
-							<th><?php esc_html_e( 'Pendidikan', 'man3-hijau-dingin' ); ?></th>
-							<th><?php esc_html_e( 'Sertifikasi', 'man3-hijau-dingin' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach ( $pendidik as $i => $p ) : ?>
-							<tr>
-								<td><?php echo esc_html( (string) ( $i + 1 ) ); ?></td>
-								<td><?php echo esc_html( $p['nama'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $p['jabatan'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $p['mapel'] ?? '—' ); ?></td>
-								<td><?php echo esc_html( trim( ( $p['pendidikan'] ?? '' ) . ' ' . ( $p['jurusan'] ?? '' ) ) ); ?></td>
-								<td><?php echo esc_html( $p['sertifikasi'] ?? '' ); ?></td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+			<h2 class="profil-h2"><?php esc_html_e( 'Pendidik & Tenaga Kependidikan', 'man3-hijau-dingin' ); ?></h2>
+			<p class="profil-prose">
+				<?php
+				printf(
+					/* translators: 1: total 2: pendidik 3: tendik */
+					esc_html__( 'Seluruhnya %1$d orang: %2$d tenaga pendidik dan %3$d tenaga kependidikan. Berikut ringkasan agregat status kepegawaian.', 'man3-hijau-dingin' ),
+					(int) ( $pegawai['total'] ?? 0 ),
+					(int) ( $pegawai['pendidik'] ?? 0 ),
+					(int) ( $pegawai['tendik'] ?? 0 )
+				);
+				?>
+			</p>
+			<?php if ( ! empty( $pegawai['catatan'] ) ) : ?>
+				<p class="profil-privacy-note"><?php echo esc_html( $pegawai['catatan'] ); ?></p>
+			<?php endif; ?>
+			<div class="profil-chart-grid">
+				<figure class="profil-chart-card">
+					<h3><?php esc_html_e( 'Komposisi pegawai', 'man3-hijau-dingin' ); ?></h3>
+					<canvas id="chart-pegawai-jenis" height="220" aria-label="<?php esc_attr_e( 'Grafik komposisi pendidik dan tendik', 'man3-hijau-dingin' ); ?>"></canvas>
+				</figure>
+				<figure class="profil-chart-card">
+					<h3><?php esc_html_e( 'Status kepegawaian', 'man3-hijau-dingin' ); ?></h3>
+					<canvas id="chart-pegawai-status" height="220" aria-label="<?php esc_attr_e( 'Grafik status PNS dan Non-ASN', 'man3-hijau-dingin' ); ?>"></canvas>
+				</figure>
+				<figure class="profil-chart-card profil-chart-card--wide">
+					<h3><?php esc_html_e( 'PNS & Non-ASN per jenis tenaga', 'man3-hijau-dingin' ); ?></h3>
+					<canvas id="chart-pegawai-detail" height="240" aria-label="<?php esc_attr_e( 'Grafik detail status per jenis tenaga', 'man3-hijau-dingin' ); ?>"></canvas>
+				</figure>
 			</div>
 		</div>
 	</section>
 
 	<section id="prasarana" class="section profil-section">
 		<div class="container">
-			<h2 class="profil-h2"><?php esc_html_e( 'Data Prasarana', 'man3-hijau-dingin' ); ?></h2>
-			<div class="profil-table-wrap profil-table-wrap--scroll">
-				<table class="profil-table profil-table--compact">
-					<thead>
-						<tr>
-							<th>#</th>
-							<th><?php esc_html_e( 'Nama', 'man3-hijau-dingin' ); ?></th>
-							<th><?php esc_html_e( 'Jumlah', 'man3-hijau-dingin' ); ?></th>
-							<th><?php esc_html_e( 'Ukuran (m)', 'man3-hijau-dingin' ); ?></th>
-							<th><?php esc_html_e( 'Kondisi', 'man3-hijau-dingin' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach ( $prasarana as $i => $pr ) : ?>
-							<tr>
-								<td><?php echo esc_html( (string) ( $i + 1 ) ); ?></td>
-								<td><?php echo esc_html( $pr['nama'] ?? '' ); ?></td>
-								<td><?php echo esc_html( $pr['jumlah'] ?? '' ); ?></td>
-								<td><?php echo esc_html( trim( ( $pr['panjang'] ?? '' ) . ' × ' . ( $pr['lebar'] ?? '' ), ' ×' ) ); ?></td>
-								<td><?php echo esc_html( $pr['kondisi'] ?? '' ); ?></td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
-			</div>
+			<h2 class="profil-h2"><?php esc_html_e( 'Sarana & Prasarana', 'man3-hijau-dingin' ); ?></h2>
+			<?php if ( ! empty( $prasarana['stats'] ) ) : ?>
+				<div class="profil-cards">
+					<?php foreach ( $prasarana['stats'] as $st ) : ?>
+						<article class="profil-mini-card">
+							<h3><?php echo esc_html( $st['label'] ?? '' ); ?></h3>
+							<p><strong><?php echo esc_html( $st['value'] ?? '' ); ?></strong></p>
+						</article>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+			<?php if ( ! empty( $prasarana['catatan'] ) ) : ?>
+				<p class="profil-chart-note"><?php echo esc_html( $prasarana['catatan'] ); ?></p>
+			<?php endif; ?>
+			<figure class="profil-chart-card profil-chart-card--wide" style="margin-top:1.25rem">
+				<h3><?php esc_html_e( 'Ringkasan kapasitas', 'man3-hijau-dingin' ); ?></h3>
+				<canvas id="chart-prasarana" height="220" aria-label="<?php esc_attr_e( 'Grafik ringkasan prasarana', 'man3-hijau-dingin' ); ?>"></canvas>
+			</figure>
 		</div>
 	</section>
 </main>
