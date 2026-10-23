@@ -141,3 +141,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Local mirrors / deploy artifacts (not for PR)
+/jurnal-kbm-full/
+/jurnal-kbm-deploy/
+/downloads/
+/*.zip
+/cp_*.png
+/SIM_MAN3.zip

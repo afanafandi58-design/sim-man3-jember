@@ -1,0 +1,1 @@
+<span>{{ $jurnal->dokumentasiLabel() }}</span>
