@@ -222,7 +222,7 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 		array( 'label' => 'Pengumuman', 'href' => home_url( '/pengumuman/' ) ),
 		array( 'label' => 'Download', 'href' => home_url( '/download/' ) ),
 		array( 'label' => 'News Digital', 'href' => home_url( '/pengumuman/hightlight-mei/' ) ),
-		array( 'label' => 'PRODISTIK', 'href' => 'https://prodistik.man3jember.sch.id/' ),
+		array( 'label' => 'News Mantiger', 'href' => home_url( '/news-mantiger/' ) ),
 	);
 
 	foreach ( $items as $item ) {

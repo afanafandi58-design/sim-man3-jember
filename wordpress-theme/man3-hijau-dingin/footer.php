@@ -18,7 +18,7 @@
 			<h3><?php esc_html_e( 'Kontak', 'man3-hijau-dingin' ); ?></h3>
 			<a href="mailto:humasmantiger@gmail.com">humasmantiger@gmail.com</a>
 			<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Situs resmi', 'man3-hijau-dingin' ); ?></a>
-			<a href="https://prodistik.man3jember.sch.id/" target="_blank" rel="noreferrer">PRODISTIK</a>
+			<a href="<?php echo esc_url( home_url( '/news-mantiger/' ) ); ?>"><?php esc_html_e( 'News Mantiger', 'man3-hijau-dingin' ); ?></a>
 		</div>
 		<div class="footer-col">
 			<h3><?php esc_html_e( 'Media sosial', 'man3-hijau-dingin' ); ?></h3>

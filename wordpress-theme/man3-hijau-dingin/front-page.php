@@ -36,7 +36,7 @@ $quick     = array(
 	array( 'label' => 'Galeri Foto', 'href' => home_url( '/galeri/' ) ),
 	array( 'label' => 'Video', 'href' => home_url( '/video/' ) ),
 	array( 'label' => 'Download', 'href' => home_url( '/download/' ) ),
-	array( 'label' => 'PRODISTIK', 'href' => 'https://prodistik.man3jember.sch.id/' ),
+	array( 'label' => 'News Mantiger', 'href' => home_url( '/news-mantiger/' ) ),
 );
 $news_digital = array(
 	array( 'label' => 'News Digital at Juli', 'published' => 'July 23, 2024', 'href' => home_url( '/pengumuman/hightlight-mei/' ) ),
