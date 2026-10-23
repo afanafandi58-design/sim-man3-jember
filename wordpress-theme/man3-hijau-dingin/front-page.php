@@ -8,8 +8,23 @@
 get_header();
 
 $logo      = man3_hijau_asset( 'images/logo.png' );
-$hero      = man3_hijau_asset( 'images/hero-campus.jpg' );
-$kamad     = man3_hijau_asset( 'images/kamad.png' );
+$hero_def  = man3_hijau_asset( 'images/hero-campus.jpg' );
+$slides    = function_exists( 'man3_hero_get_slides' ) ? man3_hero_get_slides() : array();
+if ( ! $slides && function_exists( 'man3_hero_fallback_slides' ) ) {
+	$slides = man3_hero_fallback_slides();
+}
+if ( ! $slides ) {
+	$slides = array(
+		array(
+			'id'    => 0,
+			'title' => '',
+			'url'   => $hero_def,
+			'alt'   => 'MAN 3 Jember',
+		),
+	);
+}
+$slide_count = count( $slides );
+$kamad       = man3_hijau_asset( 'images/kamad.png' );
 $quotes    = man3_hijau_fallback_quotes();
 $quick     = array(
 	array( 'label' => 'Pengumuman', 'href' => home_url( '/pengumuman/' ) ),
@@ -38,9 +53,24 @@ $wp_posts = new WP_Query(
 ?>
 
 <main>
-	<section class="hero" id="beranda" aria-label="<?php esc_attr_e( 'Beranda MAN 3 Jember', 'man3-hijau-dingin' ); ?>">
-		<div class="hero-media" aria-hidden="true">
-			<img src="<?php echo esc_url( $hero ); ?>" alt="" />
+	<section
+		class="hero hero--slider"
+		id="beranda"
+		aria-label="<?php esc_attr_e( 'Beranda MAN 3 Jember', 'man3-hijau-dingin' ); ?>"
+		data-hero-slider
+		data-hero-interval="5500"
+	>
+		<div class="hero-track" aria-hidden="true">
+			<?php foreach ( $slides as $i => $slide ) : ?>
+				<figure class="hero-slide<?php echo 0 === $i ? ' is-active' : ''; ?>" data-hero-slide="<?php echo esc_attr( (string) $i ); ?>">
+					<img
+						src="<?php echo esc_url( $slide['url'] ); ?>"
+						alt=""
+						<?php echo 0 === $i ? '' : 'loading="lazy"'; ?>
+						decoding="async"
+					/>
+				</figure>
+			<?php endforeach; ?>
 		</div>
 		<div class="hero-content">
 			<div class="hero-brand">
@@ -56,6 +86,28 @@ $wp_posts = new WP_Query(
 				<a class="btn btn-ghost" href="#berita"><?php esc_html_e( 'Berita Terbaru', 'man3-hijau-dingin' ); ?></a>
 			</div>
 		</div>
+		<?php if ( $slide_count > 1 ) : ?>
+			<div class="hero-nav" role="group" aria-label="<?php esc_attr_e( 'Navigasi slider hero', 'man3-hijau-dingin' ); ?>">
+				<button type="button" class="hero-arrow hero-arrow--prev" data-hero-prev aria-label="<?php esc_attr_e( 'Slide sebelumnya', 'man3-hijau-dingin' ); ?>">
+					<span aria-hidden="true">‹</span>
+				</button>
+				<button type="button" class="hero-arrow hero-arrow--next" data-hero-next aria-label="<?php esc_attr_e( 'Slide berikutnya', 'man3-hijau-dingin' ); ?>">
+					<span aria-hidden="true">›</span>
+				</button>
+			</div>
+			<div class="hero-dots" role="tablist" aria-label="<?php esc_attr_e( 'Pilih slide', 'man3-hijau-dingin' ); ?>">
+				<?php for ( $i = 0; $i < $slide_count; $i++ ) : ?>
+					<button
+						type="button"
+						class="hero-dot<?php echo 0 === $i ? ' is-active' : ''; ?>"
+						data-hero-dot="<?php echo esc_attr( (string) $i ); ?>"
+						role="tab"
+						aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
+						aria-label="<?php echo esc_attr( sprintf( /* translators: %d slide number */ __( 'Slide %d', 'man3-hijau-dingin' ), $i + 1 ) ); ?>"
+					></button>
+				<?php endfor; ?>
+			</div>
+		<?php endif; ?>
 	</section>
 
 	<section class="section" id="sambutan">
