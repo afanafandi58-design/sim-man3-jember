@@ -46,7 +46,7 @@
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { color: colors.muted, boxWidth: 12, font: { family: 'Outfit, sans-serif', size: 12 } },
+            labels: { color: colors.muted, boxWidth: 10, padding: 8, font: { family: 'Outfit, sans-serif', size: 11 } },
           },
         },
       },
@@ -65,23 +65,24 @@
         datasets: [{
           data: lv.values,
           backgroundColor: colors.green.slice(0, lv.values.length),
-          borderRadius: 8,
-          maxBarThickness: horizontal ? 28 : 48,
+          borderRadius: 6,
+          maxBarThickness: horizontal ? 18 : 32,
         }],
       },
       options: {
         indexAxis: horizontal ? 'y' : 'x',
         responsive: true,
+        maintainAspectRatio: true,
         plugins: {
           legend: { display: false },
         },
         scales: {
           x: {
-            ticks: { color: colors.muted, font: { family: 'Outfit, sans-serif' } },
+            ticks: { color: colors.muted, font: { family: 'Outfit, sans-serif', size: 10 } },
             grid: { color: 'rgba(15, 82, 68, 0.08)' },
           },
           y: {
-            ticks: { color: colors.muted, font: { family: 'Outfit, sans-serif' } },
+            ticks: { color: colors.muted, font: { family: 'Outfit, sans-serif', size: 10 } },
             grid: { color: 'rgba(15, 82, 68, 0.08)' },
             beginAtZero: true,
           },

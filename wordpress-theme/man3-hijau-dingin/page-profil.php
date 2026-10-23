@@ -154,15 +154,15 @@ $chart_payload = array(
 			<div class="profil-chart-grid">
 				<figure class="profil-chart-card">
 					<h3><?php esc_html_e( 'Menurut jenis kelamin', 'man3-hijau-dingin' ); ?></h3>
-					<canvas id="chart-siswa-gender" height="220" aria-label="<?php esc_attr_e( 'Grafik siswa menurut jenis kelamin', 'man3-hijau-dingin' ); ?>"></canvas>
+					<canvas id="chart-siswa-gender" height="150" aria-label="<?php esc_attr_e( 'Grafik siswa menurut jenis kelamin', 'man3-hijau-dingin' ); ?>"></canvas>
 				</figure>
 				<figure class="profil-chart-card">
 					<h3><?php esc_html_e( 'Menurut tingkat kelas', 'man3-hijau-dingin' ); ?></h3>
-					<canvas id="chart-siswa-tingkat" height="220" aria-label="<?php esc_attr_e( 'Grafik siswa menurut tingkat', 'man3-hijau-dingin' ); ?>"></canvas>
+					<canvas id="chart-siswa-tingkat" height="150" aria-label="<?php esc_attr_e( 'Grafik siswa menurut tingkat', 'man3-hijau-dingin' ); ?>"></canvas>
 				</figure>
 				<figure class="profil-chart-card profil-chart-card--wide">
 					<h3><?php esc_html_e( 'Menurut peminatan / kelompok', 'man3-hijau-dingin' ); ?></h3>
-					<canvas id="chart-siswa-peminatan" height="240" aria-label="<?php esc_attr_e( 'Grafik siswa menurut peminatan', 'man3-hijau-dingin' ); ?>"></canvas>
+					<canvas id="chart-siswa-peminatan" height="165" aria-label="<?php esc_attr_e( 'Grafik siswa menurut peminatan', 'man3-hijau-dingin' ); ?>"></canvas>
 				</figure>
 			</div>
 		</div>
@@ -188,15 +188,15 @@ $chart_payload = array(
 			<div class="profil-chart-grid">
 				<figure class="profil-chart-card">
 					<h3><?php esc_html_e( 'Komposisi pegawai', 'man3-hijau-dingin' ); ?></h3>
-					<canvas id="chart-pegawai-jenis" height="220" aria-label="<?php esc_attr_e( 'Grafik komposisi pendidik dan tendik', 'man3-hijau-dingin' ); ?>"></canvas>
+					<canvas id="chart-pegawai-jenis" height="150" aria-label="<?php esc_attr_e( 'Grafik komposisi pendidik dan tendik', 'man3-hijau-dingin' ); ?>"></canvas>
 				</figure>
 				<figure class="profil-chart-card">
 					<h3><?php esc_html_e( 'Status kepegawaian', 'man3-hijau-dingin' ); ?></h3>
-					<canvas id="chart-pegawai-status" height="220" aria-label="<?php esc_attr_e( 'Grafik status PNS dan Non-ASN', 'man3-hijau-dingin' ); ?>"></canvas>
+					<canvas id="chart-pegawai-status" height="150" aria-label="<?php esc_attr_e( 'Grafik status PNS dan Non-ASN', 'man3-hijau-dingin' ); ?>"></canvas>
 				</figure>
 				<figure class="profil-chart-card profil-chart-card--wide">
 					<h3><?php esc_html_e( 'PNS & Non-ASN per jenis tenaga', 'man3-hijau-dingin' ); ?></h3>
-					<canvas id="chart-pegawai-detail" height="240" aria-label="<?php esc_attr_e( 'Grafik detail status per jenis tenaga', 'man3-hijau-dingin' ); ?>"></canvas>
+					<canvas id="chart-pegawai-detail" height="165" aria-label="<?php esc_attr_e( 'Grafik detail status per jenis tenaga', 'man3-hijau-dingin' ); ?>"></canvas>
 				</figure>
 			</div>
 		</div>
@@ -220,7 +220,7 @@ $chart_payload = array(
 			<?php endif; ?>
 			<figure class="profil-chart-card profil-chart-card--wide" style="margin-top:1.25rem">
 				<h3><?php esc_html_e( 'Ringkasan kapasitas', 'man3-hijau-dingin' ); ?></h3>
-				<canvas id="chart-prasarana" height="220" aria-label="<?php esc_attr_e( 'Grafik ringkasan prasarana', 'man3-hijau-dingin' ); ?>"></canvas>
+				<canvas id="chart-prasarana" height="150" aria-label="<?php esc_attr_e( 'Grafik ringkasan prasarana', 'man3-hijau-dingin' ); ?>"></canvas>
 			</figure>
 		</div>
 	</section>
