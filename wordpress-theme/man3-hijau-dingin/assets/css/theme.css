@@ -350,8 +350,8 @@ button {
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(4, 36, 30, 0.38) 0%, rgba(4, 36, 30, 0.52) 42%, rgba(4, 36, 30, 0.9) 100%),
-    radial-gradient(ellipse at 18% 28%, rgba(45, 159, 132, 0.28), transparent 52%);
+    linear-gradient(180deg, rgba(4, 36, 30, 0.22) 0%, rgba(4, 36, 30, 0.42) 48%, rgba(4, 36, 30, 0.82) 100%),
+    radial-gradient(ellipse at 18% 28%, rgba(45, 159, 132, 0.22), transparent 52%);
 }
 
 .hero-slide {
@@ -483,6 +483,19 @@ button {
 }
 
 @media (max-width: 720px) {
+  .hero {
+    min-height: calc(100svh - 4.5rem);
+  }
+  .hero-content {
+    padding: 3.25rem 0 3.25rem;
+  }
+  .hero-brand img {
+    width: 56px;
+    height: 56px;
+  }
+  .hero-brand-name {
+    font-size: clamp(1.85rem, 9vw, 2.6rem);
+  }
   .hero-arrow {
     width: 2.2rem;
     height: 2.2rem;
