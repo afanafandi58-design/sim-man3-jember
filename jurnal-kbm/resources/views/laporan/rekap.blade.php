@@ -8,7 +8,7 @@
             font-family: 'Amiri';
             font-style: normal;
             font-weight: normal;
-            src: url('{{ storage_path('fonts/Amiri-Regular.ttf') }}') format('truetype');
+            src: url('{{ \App\Support\ArabicPdfText::amiriFontPath() }}') format('truetype');
         }
         body { font-family: DejaVu Sans, Amiri, sans-serif; font-size: 11px; }
         h2 { text-align: center; margin-bottom: 4px; }

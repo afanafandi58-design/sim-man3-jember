@@ -508,10 +508,17 @@ Halaman 1
     MATERI PEMBELAJARAN
 </div>
 
-<div class="materi-box">
-
-    {!! nl2br(e($jurnal->materi)) !!}
-
+<div class="materi-box" style="font-family: DejaVu Sans, sans-serif;">
+    @php
+        $materiRaw = (string) ($jurnal->materi ?? '');
+        $materiHasArab = (bool) preg_match('/[\x{0600}-\x{06FF}]/u', $materiRaw);
+        $materiPdf = $materiHasArab
+            ? \App\Support\ArabicPdfText::shape($materiRaw, 200)
+            : $materiRaw;
+    @endphp
+    <div @if($materiHasArab) style="direction:ltr; text-align:right; unicode-bidi:normal;" @endif>
+        {!! nl2br(e($materiPdf)) !!}
+    </div>
 </div>
 
 </div>

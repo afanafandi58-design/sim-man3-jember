@@ -69,9 +69,9 @@ class LaporanAbsensiController extends Controller
 
         try {
             @ini_set('memory_limit', '512M');
-            @set_time_limit(90);
+            @set_time_limit(120);
 
-            // Avoid a separate COUNT(*) (can OOM/timeout on wide joins); probe with limit+1.
+            // Join-optimized query; probe with limit+1 (no separate COUNT(*)).
             $probe = $this->rekapAbsensiService->getRekap($filters, self::MAX_ROWS + 1);
             if ($probe->isEmpty()) {
                 return redirect()

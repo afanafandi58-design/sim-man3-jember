@@ -15,7 +15,9 @@ class ArabicPdfText
 {
     private static bool $loaded = false;
 
-    public static function shape(?string $text, int $maxChars = 80): string
+    private static ?\ArPHP\I18N\Arabic $engine = null;
+
+    public static function shape(?string $text, int $maxChars = 120): string
     {
         if ($text === null || $text === '') {
             return '';
@@ -33,10 +35,12 @@ class ArabicPdfText
                 throw new \RuntimeException('ar_glyphs.json missing: '.$glyphs);
             }
 
-            $arabic = new \ArPHP\I18N\Arabic;
+            $normalized = class_exists(\Normalizer::class)
+                ? (\Normalizer::normalize($text, \Normalizer::FORM_C) ?: $text)
+                : $text;
 
             // forcertl=true: treat mixed lines as RTL for PDF visual stream
-            return $arabic->utf8Glyphs($text, $maxChars, true, true);
+            return self::$engine->utf8Glyphs($normalized, $maxChars, true, true);
         } catch (\Throwable $e) {
             Log::warning('ArabicPdfText::shape failed', [
                 'message' => $e->getMessage(),
@@ -47,20 +51,29 @@ class ArabicPdfText
         }
     }
 
+    /** Absolute path DomPDF can load for @font-face. */
+    public static function amiriFontPath(): string
+    {
+        $path = storage_path('fonts/Amiri-Regular.ttf');
+
+        return str_replace('\\', '/', $path);
+    }
+
     private static function ensureLoaded(): void
     {
-        if (self::$loaded || class_exists(\ArPHP\I18N\Arabic::class, false)) {
-            self::$loaded = true;
-
+        if (self::$engine instanceof \ArPHP\I18N\Arabic) {
             return;
         }
 
-        $path = app_path('Libraries/ar-php/Arabic.php');
-        if (! is_readable($path)) {
-            throw new \RuntimeException('Arabic.php missing: '.$path);
+        if (! class_exists(\ArPHP\I18N\Arabic::class, false)) {
+            $path = app_path('Libraries/ar-php/Arabic.php');
+            if (! is_readable($path)) {
+                throw new \RuntimeException('Arabic.php missing: '.$path);
+            }
+            require_once $path;
         }
 
-        require_once $path;
+        self::$engine = new \ArPHP\I18N\Arabic;
         self::$loaded = true;
     }
 }
