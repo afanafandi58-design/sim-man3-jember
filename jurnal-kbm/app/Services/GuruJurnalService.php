@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AbsensiSiswa;
 use App\Models\Jadwal;
 use App\Models\Jurnal;
 use App\Models\User;
@@ -15,6 +16,7 @@ class GuruJurnalService
     public function __construct(
         private AbsensiSiswaService $absensiSiswaService,
         private OperationalDateService $operationalDate,
+        private AbsensiHarianService $absensiHarianService,
     ) {}
 
     public function assertGuruAccount(): User
@@ -123,6 +125,7 @@ class GuruJurnalService
 
             if ($absensiInput !== null) {
                 $this->absensiSiswaService->syncForJurnal($jurnal, $jadwal, $absensiInput);
+                $this->syncHarianFromJurnal($jurnal);
             }
 
             return $jurnal;
@@ -164,10 +167,25 @@ class GuruJurnalService
 
             if ($absensiInput !== null) {
                 $this->absensiSiswaService->syncForJurnal($jurnal, $jurnal->jadwal, $absensiInput);
+                $this->syncHarianFromJurnal($jurnal);
             }
 
             return $jurnal->refresh();
         });
+    }
+
+    private function syncHarianFromJurnal(Jurnal $jurnal): void
+    {
+        $rows = AbsensiSiswa::query()->where('jurnal_id', $jurnal->id)->get();
+        $tanggal = $jurnal->tanggal instanceof \DateTimeInterface
+            ? $jurnal->tanggal->format('Y-m-d')
+            : (string) $jurnal->tanggal;
+
+        $this->absensiHarianService->syncFromJurnalAbsensi(
+            (int) $jurnal->id,
+            $tanggal,
+            $rows,
+        );
     }
 
     public function findTodayJurnalId(Jadwal $jadwal): ?int

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Jadwal;
 use App\Models\Jurnal;
 use App\Models\JurnalAttachment;
+use App\Services\AbsensiHarianService;
 use App\Services\AbsensiSiswaService;
 use App\Services\GuruJurnalService;
 use App\Services\JurnalJamSelectionService;
@@ -22,6 +23,7 @@ class GuruJurnalController extends Controller
         private JurnalAttachmentService $attachmentService,
         private SiswaService $siswaService,
         private AbsensiSiswaService $absensiSiswaService,
+        private AbsensiHarianService $absensiHarianService,
         private KodeKelasResolverService $kodeKelasResolverService,
         private OperationalDateService $operationalDate,
         private JurnalJamSelectionService $jamSelectionService,
@@ -56,6 +58,19 @@ class GuruJurnalController extends Controller
             ? (auth()->user()->guru?->nama ?? auth()->user()->name)
             : old('guru_pengganti');
 
+        $prefill = $this->absensiHarianService->prefillMapForKelas(
+            $tanggal,
+            (string) ($kelasMeta['kelas'] ?? $jadwal->kelas),
+            $kelasMeta['rombel'] ?? null,
+        );
+        $absensiMap = collect($prefill['status']);
+        $keteranganMap = collect($prefill['keterangan']);
+        $tidakMasukHarian = $this->absensiHarianService->tidakMasuk(
+            $tanggal,
+            (string) ($kelasMeta['kelas'] ?? $jadwal->kelas),
+            $kelasMeta['rombel'] ?? null,
+        );
+
         return view('guru.jurnal.create', compact(
             'jadwal',
             'siswas',
@@ -68,6 +83,9 @@ class GuruJurnalController extends Controller
             'tanggal',
             'jurnalRulesNotice',
             'defaultPengganti',
+            'absensiMap',
+            'keteranganMap',
+            'tidakMasukHarian',
         ));
     }
 

@@ -56,6 +56,18 @@
 @include('guru.partials.operational-date-badge')
 @include('guru.partials.jurnal-rules-notice')
 
+<div class="mb-3">
+    <a href="{{ route('absensi-modul.hari-efektif') }}" class="btn btn-info btn-sm">
+        <i class="fas fa-user-clock"></i> Tool absensi hari efektif
+    </a>
+    <a href="{{ route('absensi-modul.input') }}" class="btn btn-outline-primary btn-sm">
+        <i class="fas fa-clipboard-check"></i> Input absensi + bukti
+    </a>
+    <a href="{{ route('absensi-modul.laporan') }}" class="btn btn-outline-secondary btn-sm">
+        Laporan absensi harian
+    </a>
+</div>
+
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show">
         <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}

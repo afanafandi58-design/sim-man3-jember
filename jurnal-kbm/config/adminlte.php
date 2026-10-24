@@ -346,6 +346,50 @@ return [
             'can' => 'role-guru',
         ],
 
+        ['header' => 'ABSENSI HARIAN', 'can' => 'role-absensi-modul'],
+
+        [
+            'text' => 'Input Absensi + Bukti',
+            'route' => 'absensi-modul.input',
+            'icon' => 'fas fa-clipboard-check',
+            'can' => 'role-absensi-modul',
+        ],
+
+        [
+            'text' => 'Tool Hari Efektif',
+            'route' => 'absensi-modul.hari-efektif',
+            'icon' => 'fas fa-user-clock',
+            'can' => 'role-absensi-modul',
+        ],
+
+        [
+            'text' => 'Menu Wali Kelas',
+            'route' => 'absensi-modul.wali',
+            'icon' => 'fas fa-chalkboard',
+            'can' => 'role-wali-or-admin',
+        ],
+
+        [
+            'text' => 'Laporan Absensi Harian',
+            'route' => 'absensi-modul.laporan',
+            'icon' => 'fas fa-chart-pie',
+            'can' => 'role-absensi-modul',
+        ],
+
+        [
+            'text' => 'Kelola Wali Kelas',
+            'route' => 'absensi-modul.wali.manage',
+            'icon' => 'fas fa-user-tag',
+            'can' => 'role-admin',
+        ],
+
+        [
+            'text' => 'Akun Staff Absensi',
+            'route' => 'absensi-modul.staff.manage',
+            'icon' => 'fas fa-user-shield',
+            'can' => 'role-admin',
+        ],
+
         ['header' => 'MASTER DATA', 'can' => 'role-admin'],
 
         [

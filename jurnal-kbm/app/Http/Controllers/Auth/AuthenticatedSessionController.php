@@ -61,6 +61,10 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('kepala.dashboard');
         }
 
+        if ($user->role === 'staff') {
+            return redirect()->route('absensi-modul.input');
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

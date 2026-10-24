@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AbsensiModulController;
 use App\Http\Controllers\AbsensiSiswaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuruAccountController;
@@ -131,6 +132,26 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Titik F — Modul Absensi Harian (terhubung jurnal; guru/staff/admin/kepala)
+Route::middleware(['auth', 'role:guru,staff,admin,kepala'])->prefix('absensi-modul')->name('absensi-modul.')->group(function () {
+    Route::get('/input', [AbsensiModulController::class, 'inputForm'])->name('input');
+    Route::post('/input', [AbsensiModulController::class, 'inputStore'])->name('input.store');
+    Route::get('/hari-efektif', [AbsensiModulController::class, 'hariEfektif'])->name('hari-efektif');
+    Route::get('/wali-kelas', [AbsensiModulController::class, 'waliKelas'])->name('wali');
+    Route::get('/laporan', [AbsensiModulController::class, 'laporan'])->name('laporan');
+    Route::get('/bukti/{absensiHarian}', [AbsensiModulController::class, 'bukti'])->name('bukti');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('absensi-modul')->name('absensi-modul.')->group(function () {
+    Route::get('/wali-kelas/kelola', [AbsensiModulController::class, 'waliManage'])->name('wali.manage');
+    Route::post('/wali-kelas/kelola', [AbsensiModulController::class, 'waliStore'])->name('wali.store');
+    Route::delete('/wali-kelas/kelola/{waliKelas}', [AbsensiModulController::class, 'waliDestroy'])->name('wali.destroy');
+    Route::get('/staff', [AbsensiModulController::class, 'staffManage'])->name('staff.manage');
+    Route::post('/staff', [AbsensiModulController::class, 'staffStore'])->name('staff.store');
+    Route::post('/staff/{user}/reset', [AbsensiModulController::class, 'staffReset'])->name('staff.reset');
+    Route::post('/staff/{user}/toggle', [AbsensiModulController::class, 'staffToggle'])->name('staff.toggle');
 });
 
 require __DIR__.'/auth.php';

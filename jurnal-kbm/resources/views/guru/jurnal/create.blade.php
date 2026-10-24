@@ -154,11 +154,24 @@
                 <button type="button" class="btn btn-info" id="btn-absensi-siswa">
                     <i class="fas fa-user-check"></i> ABSENSI SISWA
                 </button>
+                <a href="{{ route('absensi-modul.hari-efektif', ['tanggal' => $tanggal ?? now()->toDateString(), 'kelas' => $kelasMeta['kelas'] ?? $jadwal->kelas]) }}"
+                   class="btn btn-outline-secondary" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> Tool tidak masuk (hari efektif)
+                </a>
             </div>
 
+            @if(!empty($tidakMasukHarian) && $tidakMasukHarian->isNotEmpty())
+                <div class="alert alert-warning">
+                    <strong>Prefill dari Absensi Harian (modul F):</strong>
+                    {{ $tidakMasukHarian->count() }} siswa tidak masuk pada tanggal ini
+                    ({{ $tidakMasukHarian->pluck('siswa.nama')->filter()->take(5)->implode(', ') }}{{ $tidakMasukHarian->count() > 5 ? '…' : '' }}).
+                    Checklist di bawah sudah diisi otomatis — silakan koreksi bila perlu.
+                </div>
+            @endif
+
             @php
-                $absensiMap = collect();
-                $keteranganMap = collect();
+                $absensiMap = $absensiMap ?? collect();
+                $keteranganMap = $keteranganMap ?? collect();
             @endphp
             @include('guru.jurnal.partials.absensi-form', ['jadwal' => $jadwal])
 
