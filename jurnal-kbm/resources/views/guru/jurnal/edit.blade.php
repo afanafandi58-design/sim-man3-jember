@@ -18,10 +18,18 @@
         @method('PUT')
 
         <div class="card-body">
+            @include('guru.partials.jurnal-rules-notice')
             <div class="alert alert-info">
-                <strong>{{ $jurnal->jadwal->guru->nama }}</strong> —
+                <strong>Pengampu: {{ $jurnal->jadwal->guru->nama }}</strong>
+                @if($jurnal->guru_pengganti)
+                    <br><span class="badge badge-info">Guru pengganti: {{ $jurnal->guru_pengganti }}</span>
+                @endif
+                <br>
                 {{ $jurnal->jadwal->mapel }} | {{ $jurnal->jadwal->kelas }} |
                 {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d F Y') }}
+                @if(!empty($isLocked))
+                    <br><span class="badge badge-secondary mt-1">Di luar toleransi H/H-1 — hanya lihat</span>
+                @endif
             </div>
 
             @if ($errors->any())
@@ -68,13 +76,24 @@
 
             <div class="form-group">
                 <label>Status KBM</label>
-                <select name="status_kbm" class="form-control">
+                <select name="status_kbm" class="form-control" @disabled(!empty($isLocked))>
                     @foreach (['Selesai', 'Belum Selesai', 'Guru Pengganti', 'Libur'] as $status)
                         <option value="{{ $status }}" @selected(old('status_kbm', $jurnal->status_kbm) === $status)>
                             {{ $status }}
                         </option>
                     @endforeach
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label>Guru Pengganti</label>
+                <input type="text" name="guru_pengganti" class="form-control" maxlength="150"
+                       value="{{ old('guru_pengganti', $jurnal->guru_pengganti) }}"
+                       @disabled(!empty($isLocked))
+                       placeholder="Kosongkan jika tidak ada pengganti">
+                @error('guru_pengganti')
+                    <small class="text-danger">{{ $message }}</small>
+                @enderror
             </div>
 
             <div class="form-group">

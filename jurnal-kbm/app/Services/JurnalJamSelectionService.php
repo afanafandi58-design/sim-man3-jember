@@ -24,18 +24,32 @@ class JurnalJamSelectionService
         $this->assertConsecutive($normalized);
 
         $polaId = (int) ($jadwal->pola_jadwal_id ?? 0);
-
-        if ($polaId <= 0) {
-            throw ValidationException::withMessages([
-                'jp_selected' => 'Pola jadwal tidak tersedia untuk jadwal ini.',
-            ]);
-        }
-
         $first = (int) $normalized[0];
         $last = (int) $normalized[array_key_last($normalized)];
 
-        $firstJam = $this->jadwalMasterDataService->resolveJam($first, $polaId);
-        $lastJam = $this->jadwalMasterDataService->resolveJam($last, $polaId);
+        // Fleksibel: bila pola tidak ada / slot tidak ketemu, pakai jam di master jadwal.
+        if ($polaId <= 0) {
+            return [
+                'jam_ke' => $first > 0 ? $first : (int) ($jadwal->jam_ke ?? 1),
+                'jam_mulai' => $this->normalizeTime($jadwal->jam_mulai ?? '07:00').':00',
+                'jam_selesai' => $this->normalizeTime($jadwal->jam_selesai ?? '07:45').':00',
+                'jp_count' => count($normalized),
+                'jp_label' => $this->formatJpRangeLabel($normalized),
+            ];
+        }
+
+        try {
+            $firstJam = $this->jadwalMasterDataService->resolveJam($first, $polaId);
+            $lastJam = $this->jadwalMasterDataService->resolveJam($last, $polaId);
+        } catch (\Throwable) {
+            return [
+                'jam_ke' => $first,
+                'jam_mulai' => $this->normalizeTime($jadwal->jam_mulai ?? '07:00').':00',
+                'jam_selesai' => $this->normalizeTime($jadwal->jam_selesai ?? '07:45').':00',
+                'jp_count' => count($normalized),
+                'jp_label' => $this->formatJpRangeLabel($normalized),
+            ];
+        }
 
         return [
             'jam_ke' => $first,
@@ -132,20 +146,36 @@ class JurnalJamSelectionService
     {
         $polaId = (int) ($jadwal->pola_jadwal_id ?? 0);
 
-        if ($polaId <= 0) {
-            return [];
+        if ($polaId > 0) {
+            $fromPola = $this->jamSlotsForPola($polaId)
+                ->mapWithKeys(fn (JamPelajaran $jam) => [
+                    (string) $jam->jam_ke => [
+                        'jam_ke' => (int) $jam->jam_ke,
+                        'jam_mulai' => $this->normalizeTime($jam->jam_mulai),
+                        'jam_selesai' => $this->normalizeTime($jam->jam_selesai),
+                        'label' => 'JP '.$jam->jam_ke,
+                    ],
+                ])
+                ->all();
+
+            if ($fromPola !== []) {
+                return $fromPola;
+            }
         }
 
-        return $this->jamSlotsForPola($polaId)
-            ->mapWithKeys(fn (JamPelajaran $jam) => [
-                (string) $jam->jam_ke => [
-                    'jam_ke' => (int) $jam->jam_ke,
-                    'jam_mulai' => $this->normalizeTime($jam->jam_mulai),
-                    'jam_selesai' => $this->normalizeTime($jam->jam_selesai),
-                    'label' => 'JP '.$jam->jam_ke,
-                ],
-            ])
-            ->all();
+        // Fallback fleksibel: opsi JP 1–10 + slot jadwal saat ini
+        $jp = max(1, (int) ($jadwal->jam_ke ?? 1));
+        $options = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $options[(string) $i] = [
+                'jam_ke' => $i,
+                'jam_mulai' => $i === $jp ? $this->normalizeTime($jadwal->jam_mulai ?? '07:00') : '',
+                'jam_selesai' => $i === $jp ? $this->normalizeTime($jadwal->jam_selesai ?? '07:45') : '',
+                'label' => 'JP '.$i,
+            ];
+        }
+
+        return $options;
     }
 
     public function preselectedJp(Jadwal $jadwal): array

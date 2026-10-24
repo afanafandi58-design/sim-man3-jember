@@ -28,11 +28,25 @@ class Jurnal extends Model
         'alpha',
         'catatan',
         'status_kbm',
+        'guru_pengganti',
     ];
 
     public function jadwal()
     {
         return $this->belongsTo(Jadwal::class);
+    }
+
+    /** Nama pengampu (pemilik jadwal), tidak diganti oleh guru pengganti. */
+    public function pengampuNama(): string
+    {
+        $this->loadMissing('jadwal.guru');
+
+        return (string) ($this->jadwal?->guru?->nama ?? '-');
+    }
+
+    public function hasGuruPengganti(): bool
+    {
+        return filled($this->guru_pengganti);
     }
 
     public function absensiSiswas()
@@ -45,11 +59,12 @@ class Jurnal extends Model
         return $this->hasMany(JurnalAttachment::class)->orderBy('created_at');
     }
 
+    /**
+     * Terkunci jika di luar toleransi H / H-1 (boleh edit hari ini & kemarin).
+     */
     public function isLocked(): bool
     {
-        $today = app(OperationalDateService::class)->today();
-
-        return ! Carbon::parse($this->tanggal)->isSameDay($today);
+        return ! app(OperationalDateService::class)->isFillableDate($this->tanggal);
     }
 
     public static function dokumentasiLabelForCount(int $count): string

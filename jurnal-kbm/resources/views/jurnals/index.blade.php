@@ -71,6 +71,7 @@
                 <th>No</th>
                 <th>Tanggal</th>
                 <th>Kelas</th>
+                <th>Pengganti</th>
                 <th>Jam</th>
                 <th>Materi</th>
                 <th>Dokumentasi</th>
@@ -87,6 +88,7 @@
                 <td>{{ $jurnals->firstItem() + $loop->index }}</td>
                 <td>{{ $jurnal->tanggal }}</td>
                 <td>{{ $jurnal->jadwal->kelas ?? '-' }}</td>
+                <td>{{ $jurnal->guru_pengganti ?: '-' }}</td>
                 <td>{{ $jurnal->jam_ke }}</td>
                 <td>{{ \Illuminate\Support\Str::limit($jurnal->materi, 40) }}</td>
                 <td>@include('guru.jurnal.partials.lampiran-foto-index', ['jurnal' => $jurnal])</td>
@@ -113,7 +115,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="11" class="text-center">Belum ada data jurnal.</td>
+                <td colspan="12" class="text-center">Belum ada data jurnal.</td>
             </tr>
         @endforelse
         </tbody>

@@ -54,6 +54,7 @@
 
 @include('guru.partials.uat-watermark')
 @include('guru.partials.operational-date-badge')
+@include('guru.partials.jurnal-rules-notice')
 
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show">
@@ -633,30 +634,30 @@ if ($jam < 11) {
 
             <div class="col-md-3 d-flex align-items-center">
 
+                <div class="w-100">
                 @if($jadwal->sudah_diisi)
-
                     <a href="{{ route('guru.jurnal.edit', $jadwal->jurnal_id) }}"
-                        class="btn btn-success btn-block mr-1">
-
-                        <i class="fas fa-eye mr-1"></i>
-
-                        Lihat Jurnal
-
+                        class="btn btn-success btn-block btn-sm mb-1">
+                        <i class="fas fa-eye mr-1"></i> Edit (hari H)
                     </a>
-
                 @else
-
-                    <a href="{{ route('guru.jurnal.create',$jadwal->id) }}"
-
-                        class="btn btn-primary btn-block">
-
-                        <i class="fas fa-pen mr-1"></i>
-
-                        Isi Jurnal
-
+                    <a href="{{ route('guru.jurnal.create', $jadwal->id) }}?tanggal={{ urlencode($tanggalHariIni ?? now()->toDateString()) }}"
+                        class="btn btn-primary btn-block btn-sm mb-1">
+                        <i class="fas fa-pen mr-1"></i> Isi (hari H)
                     </a>
-
                 @endif
+                @if(!empty($jadwal->bisa_isi_kemarin))
+                    <a href="{{ route('guru.jurnal.create', $jadwal->id) }}?tanggal={{ urlencode($tanggalKemarin ?? now()->subDay()->toDateString()) }}"
+                        class="btn btn-outline-secondary btn-block btn-sm">
+                        Isi untuk kemarin (H-1)
+                    </a>
+                @elseif(!empty($jadwal->jurnal_kemarin_id))
+                    <a href="{{ route('guru.jurnal.edit', $jadwal->jurnal_kemarin_id) }}"
+                        class="btn btn-outline-success btn-block btn-sm">
+                        Edit kemarin (H-1)
+                    </a>
+                @endif
+                </div>
 
             </div>
 
@@ -672,11 +673,86 @@ if ($jam < 11) {
 
     <i class="fas fa-info-circle mr-2"></i>
 
-    Tidak ada jadwal mengajar hari ini.
+    Tidak ada jadwal dengan hari = hari operasional. Gunakan daftar “Semua jadwal saya” di bawah untuk mengisi fleksibel.
 
 </div>
 
 @endforelse
+
+        @if(($jadwalLain ?? collect())->isNotEmpty())
+            <hr>
+            <h5 class="font-weight-bold text-muted mb-3">
+                <i class="fas fa-calendar-alt mr-1"></i>
+                Semua jadwal saya (pengisian tidak dikunci hari)
+            </h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Hari</th>
+                            <th>Mapel</th>
+                            <th>Kelas</th>
+                            <th>Jam</th>
+                            <th width="220">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($jadwalLain as $jLain)
+                            <tr>
+                                <td>{{ $jLain->hari }}</td>
+                                <td>{{ $jLain->mapel }}</td>
+                                <td>{{ $jLain->kelas }}</td>
+                                <td>{{ substr($jLain->jam_mulai,0,5) }}–{{ substr($jLain->jam_selesai,0,5) }}</td>
+                                <td>
+                                    <a class="btn btn-xs btn-primary" href="{{ route('guru.jurnal.create', $jLain->id) }}?tanggal={{ urlencode($tanggalHariIni) }}">Isi H</a>
+                                    @if($jLain->bisa_isi_kemarin)
+                                        <a class="btn btn-xs btn-outline-secondary" href="{{ route('guru.jurnal.create', $jLain->id) }}?tanggal={{ urlencode($tanggalKemarin) }}">Isi H-1</a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
+        @if(($jadwalPengganti ?? collect())->isNotEmpty())
+            <hr>
+            <h5 class="font-weight-bold text-info mb-2">
+                <i class="fas fa-user-friends mr-1"></i>
+                Isi sebagai guru pengganti
+            </h5>
+            <p class="small text-muted">Pengampu tetap guru pemilik jadwal; nama Anda tercatat di kolom Guru Pengganti.</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Pengampu</th>
+                            <th>Hari</th>
+                            <th>Mapel</th>
+                            <th>Kelas</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($jadwalPengganti as $jGanti)
+                            <tr>
+                                <td>{{ $jGanti->guru->nama ?? '-' }}</td>
+                                <td>{{ $jGanti->hari }}</td>
+                                <td>{{ $jGanti->mapel }}</td>
+                                <td>{{ $jGanti->kelas }}</td>
+                                <td>
+                                    <a class="btn btn-xs btn-info"
+                                       href="{{ route('guru.jurnal.create', $jGanti->id) }}?tanggal={{ urlencode($tanggalHariIni) }}">
+                                        Isi sebagai pengganti
+                                    </a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
 
         </div>
 

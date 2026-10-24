@@ -25,5 +25,12 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('role-guru', fn ($user) => $user && $user->role === 'guru');
         Gate::define('role-kepala-or-admin', fn ($user) => $user && in_array($user->role, ['kepala', 'admin'], true));
         Gate::define('role-kepala', fn ($user) => $user && $user->role === 'kepala');
+
+        // Titik E: pastikan kolom guru_pengganti ada (shared hosting tanpa artisan).
+        try {
+            \App\Support\TitikESchema::ensure();
+        } catch (\Throwable) {
+            // diamkan bila DB belum siap saat boot CLI
+        }
     }
 }

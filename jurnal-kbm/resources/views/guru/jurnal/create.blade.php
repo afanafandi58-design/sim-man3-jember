@@ -25,11 +25,12 @@
                value="{{ $jadwal->id }}">
 
         <div class="card-body">
+        @include('guru.partials.jurnal-rules-notice')
         <div class="alert alert-info">
 
 <h5>
     <i class="fas fa-chalkboard-teacher"></i>
-    Informasi Mengajar Hari Ini
+    Informasi Mengajar
 </h5>
 
 <hr>
@@ -41,7 +42,7 @@
         <table class="table table-sm table-borderless">
 
             <tr>
-                <th width="160">Guru</th>
+                <th width="160">Guru Pengampu</th>
                 <td>: {{ $jadwal->guru->nama }}</td>
             </tr>
 
@@ -56,8 +57,13 @@
             </tr>
 
             <tr>
-                <th>Jam Ke</th>
-                <td>: {{ $jadwal->jam_ke ?? 1 }}</td>
+                <th>Hari di jadwal</th>
+                <td>: {{ $jadwal->hari }} <span class="text-muted small">(boleh beda dengan hari isi)</span></td>
+            </tr>
+
+            <tr>
+                <th>Jam Ke (master)</th>
+                <td>: {{ $jadwal->jam_ke ?? 1 }} <span class="text-muted small">(JP bisa dipilih ulang di bawah)</span></td>
             </tr>
 
         </table>
@@ -69,12 +75,7 @@
         <table class="table table-sm table-borderless">
 
             <tr>
-                <th width="160">Tanggal</th>
-                <td>: {{ $operationalDate['tanggalSistem'] ?? '-' }}</td>
-            </tr>
-
-            <tr>
-                <th>Hari</th>
+                <th width="160">Hari sistem</th>
                 <td>: {{ $operationalDate['hariOperasional'] ?? '-' }}</td>
             </tr>
 
@@ -89,6 +90,15 @@
             </tr>
 
         </table>
+
+        <div class="form-group mb-0">
+            <label for="tanggal"><strong>Tanggal KBM</strong> (H atau H-1)</label>
+            <select name="tanggal" id="tanggal" class="form-control" required>
+                @foreach(($fillableDates ?? []) as $d)
+                    <option value="{{ $d }}" @selected(old('tanggal', $tanggal ?? '') === $d)>{{ $d }}</option>
+                @endforeach
+            </select>
+        </div>
 
     </div>
 
@@ -222,15 +232,30 @@
 
                 <select
                     name="status_kbm"
+                    id="status_kbm"
                     class="form-control">
 
-                    <option value="Selesai">Selesai</option>
-                    <option value="Belum Selesai">Belum Selesai</option>
-                    <option value="Guru Pengganti">Guru Pengganti</option>
-                    <option value="Libur">Libur</option>
+                    <option value="Selesai" @selected(old('status_kbm', empty($isOwner) ? 'Guru Pengganti' : 'Selesai') === 'Selesai')>Selesai</option>
+                    <option value="Belum Selesai" @selected(old('status_kbm') === 'Belum Selesai')>Belum Selesai</option>
+                    <option value="Guru Pengganti" @selected(old('status_kbm', empty($isOwner) ? 'Guru Pengganti' : '') === 'Guru Pengganti')>Guru Pengganti</option>
+                    <option value="Libur" @selected(old('status_kbm') === 'Libur')>Libur</option>
 
                 </select>
 
+            </div>
+
+            <div class="form-group">
+                <label>Guru Pengganti <span class="text-muted small">(kolom tambahan — pengampu di atas tidak diganti)</span></label>
+                <input type="text"
+                       name="guru_pengganti"
+                       class="form-control"
+                       maxlength="150"
+                       placeholder="Nama guru yang menggantikan (kosongkan jika pengampu sendiri yang mengajar)"
+                       value="{{ old('guru_pengganti', $defaultPengganti ?? '') }}"
+                       @if(empty($isOwner)) required @endif>
+                @error('guru_pengganti')
+                    <small class="text-danger">{{ $message }}</small>
+                @enderror
             </div>
 
             <div class="form-group">

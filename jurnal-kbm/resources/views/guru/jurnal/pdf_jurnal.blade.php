@@ -423,7 +423,7 @@ Halaman 1
 <table class="identitas-jurnal">
 
     <tr>
-        <td class="label">Nama Guru</td>
+        <td class="label">Nama Guru (Pengampu)</td>
         <td class="titik">:</td>
         <td class="isi">{{ $jurnal->jadwal->guru->nama }}</td>
 
@@ -433,17 +433,27 @@ Halaman 1
     </tr>
 
     <tr>
-        <td class="label">NIP</td>
+        <td class="label">Guru Pengganti</td>
         <td class="titik">:</td>
-        <td class="isi">
-            {{ $jurnal->jadwal->guru->nip ?? '-' }}
-        </td>
+        <td class="isi">{{ $jurnal->guru_pengganti ?: '-' }}</td>
 
         <td class="label">Tanggal</td>
         <td class="titik">:</td>
         <td class="isi">
             {{ \Carbon\Carbon::parse($jurnal->tanggal)->translatedFormat('d F Y') }}
         </td>
+    </tr>
+
+    <tr>
+        <td class="label">NIP Pengampu</td>
+        <td class="titik">:</td>
+        <td class="isi">
+            {{ $jurnal->jadwal->guru->nip ?? '-' }}
+        </td>
+
+        <td class="label"></td>
+        <td class="titik"></td>
+        <td class="isi"></td>
     </tr>
 
     <tr>

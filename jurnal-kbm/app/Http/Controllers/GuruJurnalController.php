@@ -12,6 +12,7 @@ use App\Services\JurnalAttachmentService;
 use App\Services\KodeKelasResolverService;
 use App\Services\OperationalDateService;
 use App\Services\SiswaService;
+use App\Support\TitikESchema;
 use Illuminate\Http\Request;
 
 class GuruJurnalController extends Controller
@@ -26,14 +27,20 @@ class GuruJurnalController extends Controller
         private JurnalJamSelectionService $jamSelectionService,
     ) {}
 
-    public function create(Jadwal $jadwal)
+    public function create(Jadwal $jadwal, Request $request)
     {
-        $this->guruJurnalService->assertJadwalOwnership($jadwal);
+        TitikESchema::ensure();
+        $this->guruJurnalService->assertJadwalAccess($jadwal);
 
-        if ($this->guruJurnalService->findTodayJurnalId($jadwal)) {
+        $tanggal = (string) $request->query('tanggal', $this->operationalDate->today()->toDateString());
+        if (! $this->operationalDate->isFillableDate($tanggal)) {
+            $tanggal = $this->operationalDate->today()->toDateString();
+        }
+
+        if ($existingId = $this->guruJurnalService->findJurnalIdForDate($jadwal, $tanggal)) {
             return redirect()
-                ->route('guru.dashboard')
-                ->with('warning', 'Jurnal untuk jadwal ini sudah diisi hari ini.');
+                ->route('guru.jurnal.edit', $existingId)
+                ->with('warning', 'Jurnal untuk jadwal & tanggal tersebut sudah ada — membuka form edit.');
         }
 
         $jadwal->load('guru');
@@ -42,6 +49,12 @@ class GuruJurnalController extends Controller
         $operationalDate = $this->operationalDate->context();
         $jpOptions = $this->jamSelectionService->jpOptionsForJadwal($jadwal);
         $selectedJp = old('jp_selected', $this->jamSelectionService->preselectedJp($jadwal));
+        $isOwner = $this->guruJurnalService->isJadwalOwner($jadwal);
+        $fillableDates = $this->operationalDate->fillableDateStrings();
+        $jurnalRulesNotice = $this->operationalDate->jurnalRulesNotice();
+        $defaultPengganti = ! $isOwner
+            ? (auth()->user()->guru?->nama ?? auth()->user()->name)
+            : old('guru_pengganti');
 
         return view('guru.jurnal.create', compact(
             'jadwal',
@@ -50,12 +63,18 @@ class GuruJurnalController extends Controller
             'operationalDate',
             'jpOptions',
             'selectedJp',
+            'isOwner',
+            'fillableDates',
+            'tanggal',
+            'jurnalRulesNotice',
+            'defaultPengganti',
         ));
     }
 
     public function edit(Jurnal $jurnal)
     {
-        $this->guruJurnalService->assertJurnalOwnership($jurnal);
+        TitikESchema::ensure();
+        $this->guruJurnalService->assertJurnalAccess($jurnal);
         $jurnal->load(['jadwal.guru', 'absensiSiswas.siswa', 'attachments']);
 
         $siswas = $this->siswaService->forJadwal($jurnal->jadwal);
@@ -65,6 +84,9 @@ class GuruJurnalController extends Controller
         $absensiDetail = $this->absensiSiswaService->groupedAbsentees($jurnal);
         $jpOptions = $this->jamSelectionService->jpOptionsForJadwal($jurnal->jadwal);
         $selectedJp = old('jp_selected', $this->jamSelectionService->selectedJpForJurnal($jurnal, $jurnal->jadwal));
+        $isOwner = $this->guruJurnalService->isJadwalOwner($jurnal->jadwal);
+        $jurnalRulesNotice = $this->operationalDate->jurnalRulesNotice();
+        $isLocked = $jurnal->isLocked();
 
         return view('guru.jurnal.edit', compact(
             'jurnal',
@@ -75,11 +97,15 @@ class GuruJurnalController extends Controller
             'absensiDetail',
             'jpOptions',
             'selectedJp',
+            'isOwner',
+            'jurnalRulesNotice',
+            'isLocked',
         ));
     }
 
     public function update(Request $request, Jurnal $jurnal)
     {
+        TitikESchema::ensure();
         $data = $request->validate([
             'materi' => 'required',
             'jp_selected' => 'required|array|min:1',
@@ -89,6 +115,7 @@ class GuruJurnalController extends Controller
             'sakit' => 'required|integer|min:0',
             'alpha' => 'required|integer|min:0',
             'status_kbm' => 'required|in:Selesai,Belum Selesai,Guru Pengganti,Libur',
+            'guru_pengganti' => 'nullable|string|max:150',
             'catatan' => 'nullable',
             'absensi.siswa' => 'nullable|array',
             'absensi.siswa.*' => 'in:Hadir,Sakit,Izin,Alpha',
@@ -126,8 +153,10 @@ class GuruJurnalController extends Controller
 
     public function store(Request $request)
     {
+        TitikESchema::ensure();
         $data = $request->validate([
             'jadwal_id' => 'required|exists:jadwals,id',
+            'tanggal' => 'required|date',
             'materi' => 'required',
             'jp_selected' => 'required|array|min:1',
             'jp_selected.*' => 'integer|min:0',
@@ -136,6 +165,7 @@ class GuruJurnalController extends Controller
             'sakit' => 'required|integer|min:0',
             'alpha' => 'required|integer|min:0',
             'status_kbm' => 'required|in:Selesai,Belum Selesai,Guru Pengganti,Libur',
+            'guru_pengganti' => 'nullable|string|max:150',
             'catatan' => 'nullable',
             'absensi.siswa' => 'nullable|array',
             'absensi.siswa.*' => 'in:Hadir,Sakit,Izin,Alpha',
@@ -147,7 +177,7 @@ class GuruJurnalController extends Controller
             'lampiran_caption.*' => JurnalAttachmentService::captionFieldRules(),
         ]);
 
-        $data['tanggal'] = $this->operationalDate->today()->toDateString();
+        $this->operationalDate->assertFillableDate($data['tanggal']);
         $absensiInput = $request->input('absensi');
         $jadwal = Jadwal::findOrFail($data['jadwal_id']);
         $data = $this->mergeJamSelection($data, $jadwal);

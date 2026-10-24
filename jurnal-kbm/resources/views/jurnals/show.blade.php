@@ -18,8 +18,12 @@
                 <td>{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d F Y') }}</td>
             </tr>
             <tr>
-                <th>Guru</th>
+                <th>Guru Pengampu</th>
                 <td>{{ $jurnal->jadwal->guru->nama ?? '-' }}</td>
+            </tr>
+            <tr>
+                <th>Guru Pengganti</th>
+                <td>{{ $jurnal->guru_pengganti ?: '-' }}</td>
             </tr>
             <tr>
                 <th>Mata Pelajaran</th>

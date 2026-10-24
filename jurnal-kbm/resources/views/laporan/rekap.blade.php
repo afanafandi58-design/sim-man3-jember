@@ -36,6 +36,7 @@
                 <th>No</th>
                 <th>Tanggal</th>
                 <th>Guru</th>
+                <th>Pengganti</th>
                 <th>Kelas</th>
                 <th>Mapel</th>
                 <th>Materi</th>
@@ -54,6 +55,7 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d/m/Y') }}</td>
                     <td>{{ $jurnal->jadwal->guru->nama }}</td>
+                    <td>{{ $jurnal->guru_pengganti ?: '-' }}</td>
                     <td>{{ $jurnal->jadwal->kelas }}</td>
                     <td>{{ $jurnal->jadwal->mapel }}</td>
                     <td @class(['materi-arab' => $hasArab])>{{ $materiPdf }}</td>
@@ -62,7 +64,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" style="text-align:center;">Tidak ada data jurnal pada periode ini.</td>
+                    <td colspan="9" style="text-align:center;">Tidak ada data jurnal pada periode ini.</td>
                 </tr>
             @endforelse
         </tbody>

@@ -25,6 +25,56 @@ class OperationalDateService
         return Carbon::today();
     }
 
+    /** Tanggal KBM yang boleh diisi: hari H dan H-1 (toleransi keterlambatan 1 hari). */
+    public function earliestFillableDate(): Carbon
+    {
+        return $this->today()->copy()->subDay()->startOfDay();
+    }
+
+    public function latestFillableDate(): Carbon
+    {
+        return $this->today()->copy()->startOfDay();
+    }
+
+    /** @return list<string> Y-m-d */
+    public function fillableDateStrings(): array
+    {
+        return [
+            $this->earliestFillableDate()->toDateString(),
+            $this->latestFillableDate()->toDateString(),
+        ];
+    }
+
+    public function isFillableDate(string|\DateTimeInterface $date): bool
+    {
+        $day = Carbon::parse($date)->startOfDay();
+
+        return $day->betweenIncluded($this->earliestFillableDate(), $this->latestFillableDate());
+    }
+
+    public function assertFillableDate(string $date): void
+    {
+        if (! $this->isFillableDate($date)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'tanggal' => 'Tanggal jurnal hanya boleh hari ini atau kemarin (toleransi keterlambatan 1 hari).',
+            ]);
+        }
+    }
+
+    public function jurnalRulesNotice(): array
+    {
+        return [
+            'title' => 'Aturan pengisian jurnal (portal guru)',
+            'items' => [
+                'Jadwal tidak dikunci ketat: Anda dapat mengisi jurnal meski hari/jam di master jadwal berubah.',
+                'Jam pelajaran fleksibel: pilih JP yang relevan; tidak wajib mengikuti slot lama bila jadwal sudah bergeser.',
+                'Tanggal pengisian: setiap hari untuk hari H, dengan toleransi keterlambatan 1 hari (boleh isi untuk kemarin).',
+                'Guru pengganti: isi kolom Guru Pengganti; pengampu tetap guru pemilik jadwal (tidak diganti).',
+            ],
+            'fillable_dates' => $this->fillableDateStrings(),
+        ];
+    }
+
     public function hari(): string
     {
         if ($this->isSimulation()) {
