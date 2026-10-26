@@ -73,5 +73,28 @@
     <div class="footer">
         Dicetak: {{ now()->format('d/m/Y H:i') }} | Total: {{ $jurnals->count() }} jurnal
     </div>
+
+    @php
+        $kamadNama = config('madrasah.kepala.nama', 'Imam Syahroni, S.Pd., M.Pd.');
+        $kamadNip = config('madrasah.kepala.nip', '198309202009011007');
+        $kamadJabatan = config('madrasah.kepala.jabatan', 'Kepala Madrasah');
+    @endphp
+    <table style="width:100%; margin-top:28px; border-collapse:collapse;">
+        <tr>
+            <td style="width:50%; text-align:center; font-size:10px; line-height:1.4;">
+                Mengetahui,<br>
+                {{ $kamadJabatan }}
+                <div style="margin-top:48px; font-weight:bold; text-decoration:underline;">{{ $kamadNama }}</div>
+                <div style="font-size:9px;">NIP. {{ $kamadNip }}</div>
+            </td>
+            <td style="width:50%; text-align:center; font-size:10px; line-height:1.4;">
+                Jember, {{ now()->translatedFormat('d F Y') }}<br>
+                Petugas Laporan
+                <div style="margin-top:48px; font-weight:bold; text-decoration:underline;">................................</div>
+                <div style="font-size:9px;">NIP. ....................................</div>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
+

@@ -640,59 +640,11 @@ Halaman 1
      TANDA TANGAN
 ========================================== -->
 
-<table class="footer signature-block">
-
-    <tr>
-
-        <td>
-
-            Mengetahui,
-
-            <br>
-
-            Kepala Madrasah
-
-            <div class="ttd">
-
-                Imam Syahroni, S.Pd., M.Pd.
-
-            </div>
-
-            <div class="nip">
-
-                NIP. ....................................
-
-            </div>
-
-        </td>
-
-        <td>
-
-            Jember,
-            {{ \Carbon\Carbon::parse($jurnal->tanggal)->translatedFormat('d F Y') }}
-
-            <br>
-
-            Guru Mata Pelajaran
-
-            <div class="ttd">
-
-                {{ $jurnal->jadwal->guru->nama }}
-
-            </div>
-
-            <div class="nip">
-
-                NIP.
-                {{ $jurnal->jadwal->guru->nip ?? '-' }}
-
-            </div>
-
-        </td>
-
-    </tr>
-
-</table>
+@include('partials.pdf-ttd-kepala-guru', [
+    'guruNama' => $jurnal->jadwal->guru->nama ?? '-',
+    'guruNip' => $jurnal->jadwal->guru->nip ?? '-',
+    'tanggalTtd' => $jurnal->tanggal,
+])
 
 @if ($showUatPdfFooter ?? false)
     <div class="uat-pdf-footer">

@@ -112,22 +112,11 @@
         Dicetak: {{ now()->format('d/m/Y H:i') }} | Total: {{ $jurnals->count() }} jurnal
     </div>
 
-    <table class="signature-block">
-        <tr>
-            <td>
-                Mengetahui,<br>
-                Kepala Madrasah
-                <div class="ttd">Imam Syahroni, S.Pd., M.Pd.</div>
-                <div class="nip">NIP. ....................................</div>
-            </td>
-            <td>
-                Jember, {{ now()->translatedFormat('d F Y') }}<br>
-                Guru Mata Pelajaran
-                <div class="ttd">{{ $guru->nama ?? '-' }}</div>
-                <div class="nip">NIP. {{ $guru->nip ?? '-' }}</div>
-            </td>
-        </tr>
-    </table>
+    @include('partials.pdf-ttd-kepala-guru', [
+        'guruNama' => $guru->nama ?? '-',
+        'guruNip' => $guru->nip ?? '-',
+        'tanggalTtd' => now(),
+    ])
 
 </body>
 </html>
