@@ -46,7 +46,10 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                // Pakai terjemahan ID; fallback teks agar tidak tampil raw key "auth.failed".
+                'email' => __('auth.failed') === 'auth.failed'
+                    ? 'Email atau password salah. Pastikan URL https://jurnal-kbm.man3jember.sch.id/login dan password sesuai reset terakhir dari admin.'
+                    : __('auth.failed'),
             ]);
         }
 
@@ -76,11 +79,15 @@ class LoginRequest extends FormRequest
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
+        $throttle = __('auth.throttle', [
+            'seconds' => $seconds,
+            'minutes' => ceil($seconds / 60),
+        ]);
+
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'email' => $throttle === 'auth.throttle'
+                ? "Terlalu banyak percobaan login. Coba lagi dalam {$seconds} detik."
+                : $throttle,
         ]);
     }
 

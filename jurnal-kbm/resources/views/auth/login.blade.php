@@ -4,6 +4,13 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
+    <p class="mb-4 text-sm text-gray-600">
+        Portal Jurnal KBM — gunakan URL
+        <strong>jurnal-kbm.man3jember.sch.id</strong>
+        (bukan situs utama WordPress).
+        Password guru hanya dari reset admin; reset baru mengganti password lama.
+    </p>
+
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
