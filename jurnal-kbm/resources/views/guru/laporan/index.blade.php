@@ -11,7 +11,7 @@
 
 <div class="alert alert-info">
     Cetak rekap jurnal KBM <strong>milik Anda saja</strong> (pengampu = {{ $guru->nama ?? '-' }}).
-    Periode: Mingguan, Bulanan, atau Semester — selaras laporan admin, tanpa bisa memilih guru lain.
+    Alur: pilih periode → <strong>pratinjau</strong> → unduh/cetak PDF.
 </div>
 
 @if($errors->any())
@@ -26,10 +26,10 @@
 
 <div class="card card-primary">
     <div class="card-header">
-        <h3 class="card-title">Filter &amp; cetak PDF</h3>
+        <h3 class="card-title">Filter &amp; pratinjau</h3>
     </div>
 
-    <form id="form-cetak-rekap-guru" action="{{ route('guru.laporan.cetak') }}" method="POST" target="_blank">
+    <form id="form-preview-rekap-guru" action="{{ route('guru.laporan.preview') }}" method="POST">
         @csrf
         <div class="card-body">
             <div class="row">
@@ -38,7 +38,7 @@
                         <label>Periode</label>
                         <select name="periode" id="periode" class="form-control" required>
                             @foreach ($periodes as $value => $label)
-                                <option value="{{ $value }}" @selected(old('periode', 'mingguan') === $value)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected(old('periode', $defaultPeriode ?? 'mingguan') === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -127,9 +127,12 @@
         </div>
 
         <div class="card-footer">
-            <button type="submit" id="btn-cetak-rekap-guru" class="btn btn-danger">
-                <i class="fas fa-file-pdf"></i> Cetak PDF Rekap
+            <button type="submit" id="btn-preview-rekap-guru" class="btn btn-primary">
+                <i class="fas fa-eye"></i> Pratinjau rekap
             </button>
+            <a href="{{ route('guru.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
         </div>
     </form>
 </div>
@@ -144,11 +147,5 @@
     }
     document.getElementById('periode').addEventListener('change', toggleFilters);
     toggleFilters();
-    document.getElementById('form-cetak-rekap-guru').addEventListener('submit', function () {
-        const btn = document.getElementById('btn-cetak-rekap-guru');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyiapkan PDF…';
-        setTimeout(function () { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> Cetak PDF Rekap'; }, 8000);
-    });
 </script>
 @stop

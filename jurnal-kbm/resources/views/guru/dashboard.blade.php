@@ -68,6 +68,37 @@
     </a>
 </div>
 
+{{-- Shortcut cetak rekap jurnal (pratinjau → PDF) --}}
+<div class="card card-outline card-danger mb-3 shadow-sm" id="shortcut-cetak-rekap">
+    <div class="card-body py-3">
+        <div class="row align-items-center">
+            <div class="col-md-7 mb-2 mb-md-0">
+                <div class="d-flex align-items-center">
+                    <div class="mr-3 text-danger" style="font-size:2.4rem;line-height:1;">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-1 font-weight-bold text-danger">Cetak Rekap Jurnal Saya</h4>
+                        <p class="mb-0 text-muted small">
+                            Mingguan / Bulanan / Semester — pratinjau dulu, baru unduh PDF (hanya jurnal Anda).
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 text-md-right">
+                <a href="{{ route('guru.laporan.index') }}" class="btn btn-danger mb-1">
+                    <i class="fas fa-print"></i> Buka cetak rekap
+                </a>
+                <div class="btn-group mb-1" role="group" aria-label="Shortcut periode">
+                    <a href="{{ route('guru.laporan.index', ['periode' => 'mingguan']) }}" class="btn btn-outline-danger btn-sm">Mingguan</a>
+                    <a href="{{ route('guru.laporan.index', ['periode' => 'bulanan']) }}" class="btn btn-outline-danger btn-sm">Bulanan</a>
+                    <a href="{{ route('guru.laporan.index', ['periode' => 'semester']) }}" class="btn btn-outline-danger btn-sm">Semester</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show">
         <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}

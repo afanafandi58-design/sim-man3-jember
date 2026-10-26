@@ -56,6 +56,7 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
     Route::delete('/guru/jurnal/{jurnal}/lampiran/{attachment}', [GuruJurnalAttachmentController::class, 'destroy'])->name('guru.jurnal.lampiran.destroy');
     Route::get('/guru/jurnal/{jurnal}/pdf', [GuruPdfController::class, 'jurnal'])->name('guru.jurnal.pdf');
     Route::get('/guru/laporan', [GuruLaporanController::class, 'index'])->name('guru.laporan.index');
+    Route::post('/guru/laporan/pratinjau', [GuruLaporanController::class, 'preview'])->name('guru.laporan.preview');
     Route::post('/guru/laporan/cetak', [GuruLaporanController::class, 'cetak'])->name('guru.laporan.cetak');
     Route::get('/guru/data-siswa', [SiswaController::class, 'index'])->name('guru.siswas.index');
     Route::get('/guru/data-siswa/{siswa}', [SiswaController::class, 'show'])->name('guru.siswas.show');
