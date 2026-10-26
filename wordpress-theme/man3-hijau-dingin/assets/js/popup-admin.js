@@ -8,16 +8,19 @@
         return;
       }
       frame = wp.media({
-        title: 'Pilih gambar popup',
-        button: { text: 'Gunakan gambar' },
+        title: 'Pilih / unggah gambar poster popup',
+        button: { text: 'Pakai sebagai poster' },
+        library: { type: 'image' },
         multiple: false
       });
       frame.on('select', function () {
         var att = frame.state().get('selection').first().toJSON();
         $('#man3_popup_image_id').val(att.id);
-        var url = (att.sizes && att.sizes.medium) ? att.sizes.medium.url : att.url;
+        var url = (att.sizes && (att.sizes.medium_large || att.sizes.large || att.sizes.medium))
+          ? (att.sizes.medium_large || att.sizes.large || att.sizes.medium).url
+          : att.url;
         $('#man3_popup_image_preview').html(
-          '<img src="' + url + '" alt="" style="max-width:280px;height:auto;border-radius:8px;" />'
+          '<img src="' + url + '" alt="" style="max-width:min(520px,100%);height:auto;border-radius:10px;border:1px solid #c3c4c7;box-shadow:0 4px 16px rgba(0,0,0,.08);" />'
         );
       });
       frame.open();
