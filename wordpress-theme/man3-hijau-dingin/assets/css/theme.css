@@ -723,6 +723,37 @@ button {
   color: var(--ink);
 }
 
+.sambutan-page .sambutan--full {
+  align-items: start;
+}
+
+.sambutan-page-title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.2vw, 2.35rem);
+  color: var(--green-950);
+  line-height: 1.15;
+}
+
+.sambutan-content {
+  margin: 0 0 1.75rem;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--ink);
+}
+
+.sambutan-content p {
+  margin: 0 0 1.1rem;
+}
+
+.sambutan-content p:last-child {
+  margin-bottom: 0;
+}
+
+.sambutan-back {
+  margin: 0;
+}
+
 /* Quotes — editorial strip, bukan kartu hero */
 .quotes {
   background:

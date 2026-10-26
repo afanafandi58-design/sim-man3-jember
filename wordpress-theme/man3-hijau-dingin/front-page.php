@@ -110,20 +110,34 @@ $wp_posts = new WP_Query(
 		<?php endif; ?>
 	</section>
 
+	<?php
+	$sambutan_name = function_exists( 'man3_sambutan_get_display_name' ) ? man3_sambutan_get_display_name() : 'IMAM SYAHRONI';
+	$sambutan_role = function_exists( 'man3_sambutan_get_role' ) ? man3_sambutan_get_role() : __( 'Kepala Madrasah', 'man3-hijau-dingin' );
+	$sambutan_date = function_exists( 'man3_sambutan_get_date_label' ) ? man3_sambutan_get_date_label() : '';
+	$sambutan_ex   = function_exists( 'man3_sambutan_get_excerpt' ) ? man3_sambutan_get_excerpt( 220 ) : '';
+	$sambutan_url  = function_exists( 'man3_sambutan_get_url' ) ? man3_sambutan_get_url() : home_url( '/editorial/sambutan-kepala-madrasah/' );
+	$sambutan_page = function_exists( 'man3_sambutan_get_page' ) ? man3_sambutan_get_page() : null;
+	if ( $sambutan_page instanceof WP_Post ) {
+		$thumb = get_the_post_thumbnail_url( $sambutan_page, 'large' );
+		if ( $thumb ) {
+			$kamad = $thumb;
+		}
+	}
+	?>
 	<section class="section" id="sambutan">
 		<div class="container sambutan">
 			<div class="sambutan-photo">
-				<img src="<?php echo esc_url( $kamad ); ?>" alt="<?php esc_attr_e( 'Foto IMAM SYAHRONI', 'man3-hijau-dingin' ); ?>" />
+				<img src="<?php echo esc_url( $kamad ); ?>" alt="<?php echo esc_attr( sprintf( /* translators: %s name */ __( 'Foto %s', 'man3-hijau-dingin' ), $sambutan_name ) ); ?>" />
 			</div>
 			<div class="sambutan-body">
-				<p class="section-kicker">Editorial</p>
-				<h2>IMAM SYAHRONI</h2>
-				<p class="sambutan-role"><?php esc_html_e( 'Kepala Madrasah', 'man3-hijau-dingin' ); ?></p>
-				<p class="sambutan-date">April 1, 2026</p>
-				<p class="sambutan-excerpt">
-					Assalamu&rsquo;alaikum warahmatullahi wabarakatuh. Alhamdulillahirabbil &lsquo;alamin, puji syukur kita panjatkan ke hadirat Allah SWT atas limpahan rahmat dan karunia-Nya, sehingga kita dapat terus melangkah bersama dalam memajukan pendidikan di Madrasah yang..
-				</p>
-				<a class="btn btn-solid" href="<?php echo esc_url( home_url( '/editorial/sambutan-kepala-madrasah/' ) ); ?>">
+				<p class="section-kicker"><?php esc_html_e( 'Editorial', 'man3-hijau-dingin' ); ?></p>
+				<h2><?php echo esc_html( $sambutan_name ); ?></h2>
+				<p class="sambutan-role"><?php echo esc_html( $sambutan_role ); ?></p>
+				<?php if ( $sambutan_date ) : ?>
+					<p class="sambutan-date"><?php echo esc_html( $sambutan_date ); ?></p>
+				<?php endif; ?>
+				<p class="sambutan-excerpt"><?php echo esc_html( $sambutan_ex ); ?></p>
+				<a class="btn btn-solid" href="<?php echo esc_url( $sambutan_url ); ?>">
 					<?php esc_html_e( 'Selengkapnya', 'man3-hijau-dingin' ); ?>
 				</a>
 			</div>
