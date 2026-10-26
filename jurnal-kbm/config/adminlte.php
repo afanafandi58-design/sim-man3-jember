@@ -346,6 +346,13 @@ return [
             'can' => 'role-guru',
         ],
 
+        [
+            'text' => 'Rekap Jurnal Saya',
+            'route' => 'guru.laporan.index',
+            'icon' => 'fas fa-file-pdf',
+            'can' => 'role-guru',
+        ],
+
         ['header' => 'ABSENSI HARIAN', 'can' => 'role-absensi-modul'],
 
         [

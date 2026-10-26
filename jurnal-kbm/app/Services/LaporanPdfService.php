@@ -26,6 +26,45 @@ class LaporanPdfService
         ];
     }
 
+    /** Opsi filter untuk portal guru (hanya mapel/kelas milik jadwal guru ini). */
+    public function getGuruFilterOptions(int $guruId): array
+    {
+        $jadwalQuery = Jadwal::query()->where('guru_id', $guruId);
+
+        return [
+            'mapels' => (clone $jadwalQuery)->distinct()->orderBy('mapel')->pluck('mapel'),
+            'kelas' => (clone $jadwalQuery)->distinct()->orderBy('kelas')->pluck('kelas'),
+            'periodes' => [
+                'mingguan' => 'Mingguan',
+                'bulanan' => 'Bulanan',
+                'semester' => 'Semester',
+            ],
+        ];
+    }
+
+    public function buildGuruTitle(array $filters, Carbon $startDate, Carbon $endDate, ?string $guruNama): string
+    {
+        $periode = ucfirst($filters['periode'] ?? 'mingguan');
+        $nama = $guruNama ?: 'Guru';
+
+        return "Rekap Jurnal KBM {$periode} — {$nama} ({$startDate->format('d/m/Y')} - {$endDate->format('d/m/Y')})";
+    }
+
+    public function buildGuruFilename(array $reportData): string
+    {
+        $slug = preg_replace('/[^A-Za-z0-9\-]+/', '-', (string) ($reportData['guru']->nama ?? 'guru'));
+
+        return 'Rekap-Jurnal-Guru-'
+            .trim($slug, '-')
+            .'-'
+            .$reportData['periode']
+            .'-'
+            .$reportData['startDate']->format('Ymd')
+            .'-'
+            .$reportData['endDate']->format('Ymd')
+            .'.pdf';
+    }
+
     public function getReportData(array $filters): array
     {
         [$startDate, $endDate] = $this->resolveDateRange($filters);

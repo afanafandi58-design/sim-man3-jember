@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AbsensiModulController;
+use App\Http\Controllers\GuruLaporanController;
 use App\Http\Controllers\AbsensiSiswaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuruAccountController;
@@ -54,6 +55,8 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
     Route::post('/guru/jurnal/{jurnal}/lampiran', [GuruJurnalAttachmentController::class, 'store'])->name('guru.jurnal.lampiran.store');
     Route::delete('/guru/jurnal/{jurnal}/lampiran/{attachment}', [GuruJurnalAttachmentController::class, 'destroy'])->name('guru.jurnal.lampiran.destroy');
     Route::get('/guru/jurnal/{jurnal}/pdf', [GuruPdfController::class, 'jurnal'])->name('guru.jurnal.pdf');
+    Route::get('/guru/laporan', [GuruLaporanController::class, 'index'])->name('guru.laporan.index');
+    Route::post('/guru/laporan/cetak', [GuruLaporanController::class, 'cetak'])->name('guru.laporan.cetak');
     Route::get('/guru/data-siswa', [SiswaController::class, 'index'])->name('guru.siswas.index');
     Route::get('/guru/data-siswa/{siswa}', [SiswaController::class, 'show'])->name('guru.siswas.show');
 });
