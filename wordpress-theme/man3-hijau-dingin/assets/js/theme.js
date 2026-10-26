@@ -116,58 +116,67 @@
     }
   }
 
-  /* Info popup — beranda */
-  var popup = document.querySelector('[data-man3-popup]');
-  if (!popup) return;
+  /* Info popup — beranda (DOM ready: markup diprint setelah script footer WP) */
+  function initMan3Popup() {
+    var popup = document.querySelector('[data-man3-popup]');
+    if (!popup) return;
 
-  var cookieKey = popup.getAttribute('data-cookie-key') || 'man3_popup_hide';
-  var hours = parseInt(popup.getAttribute('data-cookie-hours') || '24', 10);
-  if (isNaN(hours) || hours < 1) hours = 24;
-  var snooze = popup.querySelector('[data-man3-popup-snooze]');
-  var lastFocus = null;
+    var cookieKey = popup.getAttribute('data-cookie-key') || 'man3_popup_hide';
+    var hours = parseInt(popup.getAttribute('data-cookie-hours') || '24', 10);
+    if (isNaN(hours) || hours < 1) hours = 24;
+    var snooze = popup.querySelector('[data-man3-popup-snooze]');
+    var lastFocus = null;
 
-  function readCookie(name) {
-    var m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
-    return m ? decodeURIComponent(m[1]) : '';
-  }
-
-  function writeCookie(name, value, hrs) {
-    var maxAge = Math.floor(hrs * 3600);
-    var secure = location.protocol === 'https:' ? '; Secure' : '';
-    document.cookie = name + '=' + encodeURIComponent(value) + '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
-  }
-
-  function openPopup() {
-    if (readCookie(cookieKey) === '1') return;
-    lastFocus = document.activeElement;
-    popup.hidden = false;
-    document.documentElement.classList.add('man3-popup-open');
-    var closeBtn = popup.querySelector('.man3-popup__x');
-    if (closeBtn) closeBtn.focus();
-  }
-
-  function closePopup() {
-    if (snooze && snooze.checked) {
-      writeCookie(cookieKey, '1', hours);
+    function readCookie(name) {
+      var m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+      return m ? decodeURIComponent(m[1]) : '';
     }
-    popup.hidden = true;
-    document.documentElement.classList.remove('man3-popup-open');
-    if (lastFocus && typeof lastFocus.focus === 'function') {
-      try { lastFocus.focus(); } catch (e) { /* ignore */ }
-    }
-  }
 
-  popup.querySelectorAll('[data-man3-popup-close]').forEach(function (el) {
-    el.addEventListener('click', function (e) {
-      e.preventDefault();
-      closePopup();
+    function writeCookie(name, value, hrs) {
+      var maxAge = Math.floor(hrs * 3600);
+      var secure = location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = name + '=' + encodeURIComponent(value) + '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
+    }
+
+    function openPopup() {
+      if (readCookie(cookieKey) === '1') return;
+      lastFocus = document.activeElement;
+      popup.hidden = false;
+      popup.removeAttribute('hidden');
+      document.documentElement.classList.add('man3-popup-open');
+      var closeBtn = popup.querySelector('.man3-popup__x');
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function closePopup() {
+      if (snooze && snooze.checked) {
+        writeCookie(cookieKey, '1', hours);
+      }
+      popup.hidden = true;
+      popup.setAttribute('hidden', 'hidden');
+      document.documentElement.classList.remove('man3-popup-open');
+      if (lastFocus && typeof lastFocus.focus === 'function') {
+        try { lastFocus.focus(); } catch (e) { /* ignore */ }
+      }
+    }
+
+    popup.querySelectorAll('[data-man3-popup-close]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        closePopup();
+      });
     });
-  });
 
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !popup.hidden) closePopup();
-  });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !popup.hidden) closePopup();
+    });
 
-  // Delay singkat agar halaman sempat paint; tidak memblokir interaksi lama.
-  window.setTimeout(openPopup, 450);
+    window.setTimeout(openPopup, 400);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMan3Popup);
+  } else {
+    initMan3Popup();
+  }
 })();

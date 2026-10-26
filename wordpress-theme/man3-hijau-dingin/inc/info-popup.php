@@ -315,4 +315,5 @@ function man3_popup_render() {
 	</div>
 	<?php
 }
-add_action( 'wp_footer', 'man3_popup_render', 30 );
+// Priority 5: sebelum wp_print_footer_scripts (~20) agar markup ada saat script di-cache lama; JS juga menunggu DOMContentLoaded.
+add_action( 'wp_footer', 'man3_popup_render', 5 );
