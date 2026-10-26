@@ -179,4 +179,92 @@
   } else {
     initMan3Popup();
   }
+
+  /* Galeri Foto — filter jenis + lightbox */
+  function initMan3FotoGallery() {
+    var grid = document.querySelector('[data-foto-grid]');
+    if (!grid) return;
+
+    var cards = Array.prototype.slice.call(document.querySelectorAll('[data-foto-card]'));
+    var filters = Array.prototype.slice.call(document.querySelectorAll('[data-foto-filter]'));
+    var empty = document.querySelector('[data-foto-empty]');
+    var countEl = document.querySelector('[data-foto-count]');
+    var totalLabel = countEl ? countEl.textContent : '';
+
+    function setFilter(slug) {
+      var visible = 0;
+      cards.forEach(function (card) {
+        var match = slug === 'all' || card.getAttribute('data-jenis') === slug;
+        card.classList.toggle('is-hidden', !match);
+        if (match) visible += 1;
+      });
+      filters.forEach(function (btn) {
+        var on = btn.getAttribute('data-foto-filter') === slug;
+        btn.classList.toggle('is-active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      if (empty) empty.hidden = visible > 0;
+      if (countEl) {
+        countEl.textContent = visible + ' foto kegiatan';
+        if (slug === 'all' && totalLabel) countEl.textContent = totalLabel;
+      }
+    }
+
+    filters.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setFilter(btn.getAttribute('data-foto-filter') || 'all');
+      });
+    });
+
+    var dialog = document.querySelector('[data-foto-lightbox]');
+    if (!dialog || typeof dialog.showModal !== 'function') return;
+
+    var img = dialog.querySelector('[data-foto-lightbox-img]');
+    var titleEl = dialog.querySelector('[data-foto-lightbox-title]');
+    var jenisEl = dialog.querySelector('[data-foto-lightbox-jenis]');
+    var dateEl = dialog.querySelector('[data-foto-lightbox-date]');
+    var descEl = dialog.querySelector('[data-foto-lightbox-desc]');
+
+    function openLightbox(btn) {
+      if (!img) return;
+      img.src = btn.getAttribute('data-full') || '';
+      img.alt = btn.getAttribute('data-title') || '';
+      if (titleEl) titleEl.textContent = btn.getAttribute('data-title') || '';
+      if (jenisEl) {
+        jenisEl.textContent = btn.getAttribute('data-jenis-label') || '';
+        jenisEl.hidden = !jenisEl.textContent;
+      }
+      if (dateEl) {
+        dateEl.textContent = btn.getAttribute('data-date') || '';
+        dateEl.hidden = !dateEl.textContent;
+      }
+      if (descEl) {
+        descEl.textContent = btn.getAttribute('data-desc') || '';
+        descEl.hidden = !descEl.textContent;
+      }
+      dialog.showModal();
+    }
+
+    document.querySelectorAll('[data-foto-open]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openLightbox(btn);
+      });
+    });
+
+    var closeBtn = dialog.querySelector('[data-foto-close]');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        dialog.close();
+      });
+    }
+    dialog.addEventListener('click', function (e) {
+      if (e.target === dialog) dialog.close();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMan3FotoGallery);
+  } else {
+    initMan3FotoGallery();
+  }
 })();

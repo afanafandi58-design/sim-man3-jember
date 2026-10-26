@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.11' );
+define( 'MAN3_HIJAU_VERSION', '1.5.12' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -19,6 +19,11 @@ if ( file_exists( $man3_org_inc ) ) {
 $man3_video_inc = get_template_directory() . '/inc/galeri-video.php';
 if ( file_exists( $man3_video_inc ) ) {
 	require_once $man3_video_inc;
+}
+
+$man3_foto_inc = get_template_directory() . '/inc/galeri-foto.php';
+if ( file_exists( $man3_foto_inc ) ) {
+	require_once $man3_foto_inc;
 }
 
 $man3_profil_inc = get_template_directory() . '/inc/profil-madrasah.php';
