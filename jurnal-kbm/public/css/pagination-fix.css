@@ -1,0 +1,26 @@
+/**
+ * Safety net: constrain pagination SVG/icons if a non-Bootstrap view slips through.
+ * Primary fix is Paginator::useBootstrapFour() in AppServiceProvider.
+ */
+.pagination .page-link,
+.pagination .page-item span {
+    line-height: 1.25;
+}
+
+.pagination svg,
+nav[role="navigation"] svg,
+.page-link svg {
+    width: 0.9rem !important;
+    height: 0.9rem !important;
+    max-width: 1rem !important;
+    max-height: 1rem !important;
+    display: inline-block;
+    vertical-align: -0.125em;
+}
+
+/* Tailwind-sized utility leftovers (if any) */
+.pagination .w-5,
+nav[role="navigation"] .w-5 {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+}

@@ -580,6 +580,16 @@ return [
     */
 
     'plugins' => [
+        'PaginationFix' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'css/pagination-fix.css',
+                ],
+            ],
+        ],
         'Datatables' => [
             'active' => false,
             'files' => [

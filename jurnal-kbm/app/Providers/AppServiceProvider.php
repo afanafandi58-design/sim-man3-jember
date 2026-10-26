@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\OperationalDateService;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // AdminLTE = Bootstrap 4. Default Tailwind pagination SVG (w-5/h-5) has no size
+        // without Tailwind CSS and renders as huge black chevrons.
+        Paginator::useBootstrapFour();
+
         Gate::define('role-admin', fn ($user) => $user && $user->role === 'admin');
         Gate::define('role-guru', fn ($user) => $user && $user->role === 'guru');
         Gate::define('role-staff', fn ($user) => $user && $user->role === 'staff');
