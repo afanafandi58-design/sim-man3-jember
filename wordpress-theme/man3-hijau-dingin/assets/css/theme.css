@@ -2237,6 +2237,15 @@ html.man3-popup-open {
 }
 .man3-popup__close-btn {
   margin-left: auto;
+  background: rgba(15, 81, 50, 0.08);
+  border: 1px solid rgba(15, 81, 50, 0.22);
+  color: var(--green-900, #0f5132);
+  backdrop-filter: none;
+}
+.man3-popup__close-btn:hover,
+.man3-popup__close-btn:focus-visible {
+  background: rgba(15, 81, 50, 0.14);
+  color: var(--green-900, #0f5132);
 }
 @media (max-width: 520px) {
   .man3-popup {
