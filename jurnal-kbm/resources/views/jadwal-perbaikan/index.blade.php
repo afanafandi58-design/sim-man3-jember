@@ -25,7 +25,16 @@
 @if($pendingCount > 0)
     <div class="alert alert-info">
         <i class="fas fa-bell"></i>
-        Ada <strong>{{ $pendingCount }}</strong> permintaan perbaikan yang menunggu tindakan.
+        Ada <strong>{{ $pendingCount }}</strong> permintaan perbaikan yang menunggu tindakan (Setujui / Tolak).
+    </div>
+@endif
+
+@if(($needEditCount ?? 0) > 0)
+    <div class="alert alert-warning">
+        <i class="fas fa-edit"></i>
+        Ada <strong>{{ $needEditCount }}</strong> permintaan sudah disetujui tetapi jadwal masih terbuka —
+        selesaikan lewat <strong>Ubah Jadwal</strong> (lalu simpan agar terkunci lagi).
+        <a href="{{ route('jadwal-perbaikan.index', ['status' => 'perlu_ubah']) }}" class="alert-link ml-1">Filter: Perlu ubah jadwal</a>
     </div>
 @endif
 
@@ -40,6 +49,7 @@
             <select name="status" class="form-control form-control-sm mr-3">
                 <option value="">Semua</option>
                 <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>Menunggu</option>
+                <option value="perlu_ubah" {{ $status === 'perlu_ubah' ? 'selected' : '' }}>Perlu ubah jadwal</option>
                 <option value="approved" {{ $status === 'approved' ? 'selected' : '' }}>Disetujui</option>
                 <option value="rejected" {{ $status === 'rejected' ? 'selected' : '' }}>Ditolak</option>
             </select>

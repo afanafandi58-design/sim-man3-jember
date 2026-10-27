@@ -23,8 +23,12 @@ class JadwalPerbaikanService
 
         return JadwalPerbaikanRequest::query()
             ->with(['jadwal', 'guru', 'processor'])
-            ->when($status, fn ($q) => $q->where('status', $status))
-            ->orderByRaw("CASE status WHEN 'pending' THEN 0 ELSE 1 END")
+            ->when($status === 'perlu_ubah', function ($q) {
+                $q->where('status', JadwalPerbaikanRequest::STATUS_APPROVED)
+                    ->whereHas('jadwal', fn ($jadwal) => $jadwal->where('is_locked', false));
+            })
+            ->when($status && $status !== 'perlu_ubah', fn ($q) => $q->where('status', $status))
+            ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END")
             ->orderByDesc('created_at')
             ->paginate(15)
             ->withQueryString();
@@ -144,6 +148,15 @@ class JadwalPerbaikanService
     {
         return JadwalPerbaikanRequest::query()
             ->where('status', JadwalPerbaikanRequest::STATUS_PENDING)
+            ->count();
+    }
+
+    /** Disetujui tetapi jadwal masih terbuka — menunggu admin menyelesaikan form Ubah Jadwal. */
+    public function countApprovedNeedingEdit(): int
+    {
+        return JadwalPerbaikanRequest::query()
+            ->where('status', JadwalPerbaikanRequest::STATUS_APPROVED)
+            ->whereHas('jadwal', fn ($q) => $q->where('is_locked', false))
             ->count();
     }
 

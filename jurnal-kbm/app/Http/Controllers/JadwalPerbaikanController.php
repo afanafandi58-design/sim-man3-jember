@@ -19,9 +19,10 @@ class JadwalPerbaikanController extends Controller
         ]);
 
         $pendingCount = $this->jadwalPerbaikanService->countPending();
+        $needEditCount = $this->jadwalPerbaikanService->countApprovedNeedingEdit();
         $status = $request->get('status');
 
-        return view('jadwal-perbaikan.index', compact('requests', 'pendingCount', 'status'));
+        return view('jadwal-perbaikan.index', compact('requests', 'pendingCount', 'needEditCount', 'status'));
     }
 
     public function approve(JadwalPerbaikanRequest $jadwalPerbaikan)
