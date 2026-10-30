@@ -158,4 +158,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('absensi-modul')->name('absens
     Route::post('/staff/{user}/toggle', [AbsensiModulController::class, 'staffToggle'])->name('staff.toggle');
 });
 
+require __DIR__.'/lms.php';
+
 require __DIR__.'/auth.php';
