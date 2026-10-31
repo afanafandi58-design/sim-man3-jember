@@ -40,6 +40,27 @@ php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 
+echo "=== routes lms ==="
+php artisan route:list --path=lms 2>&1 | head -12
+
+echo "=== render test dashboard ==="
+php artisan tinker --execute="
+try {
+  \$u = App\\Models\\User::query()->first();
+  \$html = view('lms.dashboard', [
+    'user' => \$u,
+    'stats' => ['materials'=>0,'assignments'=>0,'quizzes'=>0,'submissions'=>0],
+    'announcements' => collect(),
+  ])->render();
+  echo 'render_len=' . strlen(\$html) . PHP_EOL;
+} catch (Throwable \$e) {
+  echo 'RENDER_ERROR: ' . \$e->getMessage() . PHP_EOL;
+}
+" 2>&1 | tail -5
+
+echo "=== log tail (errors) ==="
+tail -n 20 storage/logs/laravel.log 2>/dev/null | grep -iE 'error|exception|lms|view' || echo "(no matching lines)"
+
 echo "=== HTTP /lms ==="
 curl -sI "https://jurnal-kbm.man3jember.sch.id/lms" | head -1
-echo "Done. Hard-refresh /lms in browser after login."
+echo "Done. Hard-refresh /lms in browser after login (admin/guru/kepala)."
