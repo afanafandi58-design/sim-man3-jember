@@ -9,12 +9,12 @@ fi
 test -f artisan || { echo "ERROR: Laravel root not found"; pwd; exit 1; }
 
 # Hapus stub one-shot 0 byte (upload gagal / respons putih)
-for stub in public/lms-deep-fix-once.php public/lms-repair-all-once.php; do
-  if [[ -f "$stub" ]] && [[ ! -s "$stub" ]]; then
+while IFS= read -r -d '' stub; do
+  if [[ ! -s "$stub" ]]; then
     rm -f "$stub"
-    echo "removed empty $stub"
+    echo "removed empty ${stub#public/}"
   fi
-done
+done < <(find public -maxdepth 1 -name '*-once.php' -print0 2>/dev/null || true)
 
 git fetch origin cursor/lms-modul-cd7e 2>/dev/null || true
 git checkout cursor/lms-modul-cd7e 2>/dev/null || git checkout -B cursor/lms-modul-cd7e origin/cursor/lms-modul-cd7e
@@ -40,23 +40,22 @@ php artisan optimize:clear
 php artisan config:cache
 php artisan route:cache
 
-echo "=== routes lms ==="
-php artisan route:list --path=lms 2>&1 | head -12
+echo "=== routes (lms) ==="
+php artisan route:list --path=lms 2>&1 | head -15
 
-echo "=== render test dashboard ==="
+echo "=== view compile smoke (dashboard) ==="
 php artisan tinker --execute="
 try {
-  \$u = App\\Models\\User::query()->first();
   \$html = view('lms.dashboard', [
-    'user' => \$u,
-    'stats' => ['materials'=>0,'assignments'=>0,'quizzes'=>0,'submissions'=>0],
+    'user' => App\\Models\\User::query()->first(),
+    'stats' => ['materials' => 0, 'assignments' => 0, 'quizzes' => 0, 'submissions' => 0],
     'announcements' => collect(),
   ])->render();
   echo 'render_len=' . strlen(\$html) . PHP_EOL;
 } catch (Throwable \$e) {
-  echo 'RENDER_ERROR: ' . \$e->getMessage() . PHP_EOL;
+  echo 'render_error=' . \$e->getMessage() . PHP_EOL;
 }
-" 2>&1 | tail -5
+" 2>&1 | tail -8
 
 echo "=== log tail (errors) ==="
 tail -n 20 storage/logs/laravel.log 2>/dev/null | grep -iE 'error|exception|lms|view' || echo "(no matching lines)"
