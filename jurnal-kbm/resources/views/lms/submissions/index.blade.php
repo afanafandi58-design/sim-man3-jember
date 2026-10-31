@@ -1,4 +1,4 @@
-@extends('lms.page')
+@extends('adminlte::page')
 
 @section('title', 'Pengumpulan Tugas')
 

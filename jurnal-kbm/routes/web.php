@@ -37,6 +37,7 @@ Route::get('/', function () {
 });
 
 Route::redirect('/home', '/dashboard');
+Route::redirect('/dashboard/lms', '/lms', 301);
 
 Route::bind('jadwalPerbaikan', fn (string $value) => JadwalPerbaikanRequest::findOrFail($value));
 Route::bind('mataPelajaranUsulan', fn (string $value) => \App\Models\MataPelajaranUsulan::findOrFail($value));

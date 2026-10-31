@@ -654,7 +654,7 @@ return [
             ],
         ],
         'NavbarSuccessContrast' => [
-            'active' => true,
+            'active' => false,
             'files' => [
                 [
                     'type' => 'css',
