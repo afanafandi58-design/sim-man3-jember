@@ -8,6 +8,14 @@ if [[ ! -f artisan ]]; then
 fi
 test -f artisan || { echo "ERROR: Laravel root not found"; pwd; exit 1; }
 
+# Hapus stub one-shot 0 byte (upload gagal / respons putih)
+for stub in public/lms-deep-fix-once.php public/lms-repair-all-once.php; do
+  if [[ -f "$stub" ]] && [[ ! -s "$stub" ]]; then
+    rm -f "$stub"
+    echo "removed empty $stub"
+  fi
+done
+
 git fetch origin cursor/lms-modul-cd7e 2>/dev/null || true
 git checkout cursor/lms-modul-cd7e 2>/dev/null || git checkout -B cursor/lms-modul-cd7e origin/cursor/lms-modul-cd7e
 git pull origin cursor/lms-modul-cd7e 2>/dev/null || true
