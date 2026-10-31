@@ -37,6 +37,7 @@ Route::get('/', function () {
 });
 
 Route::redirect('/home', '/dashboard');
+Route::redirect('/dashboard/lms', '/lms', 301);
 
 Route::bind('jadwalPerbaikan', fn (string $value) => JadwalPerbaikanRequest::findOrFail($value));
 Route::bind('mataPelajaranUsulan', fn (string $value) => \App\Models\MataPelajaranUsulan::findOrFail($value));
@@ -157,5 +158,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('absensi-modul')->name('absens
     Route::post('/staff/{user}/reset', [AbsensiModulController::class, 'staffReset'])->name('staff.reset');
     Route::post('/staff/{user}/toggle', [AbsensiModulController::class, 'staffToggle'])->name('staff.toggle');
 });
+
+require __DIR__.'/lms.php';
 
 require __DIR__.'/auth.php';

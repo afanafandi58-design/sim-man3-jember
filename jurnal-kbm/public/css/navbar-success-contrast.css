@@ -1,0 +1,139 @@
+/**
+ * SIM MAN 3 Jember — kontras menu AdminLTE (navbar-success + sidebar-dark-success).
+ * Teks/ikon biru gelap di atas hijau → putih/terang di semua menu atas & samping.
+ */
+.main-header.navbar.navbar-success,
+.main-header.navbar-success {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* ——— Top navbar: semua link, ikon, teks ——— */
+.main-header.navbar-success .nav-link,
+.main-header.navbar-success .navbar-nav .nav-link,
+.main-header.navbar-success .navbar-nav .dropdown-toggle,
+.main-header.navbar-success .navbar-brand,
+.main-header.navbar-success .navbar-brand .brand-text,
+.main-header.navbar-success .navbar-nav .nav-item .nav-link,
+.main-header.navbar-success .navbar-nav .user-menu .nav-link,
+.main-header.navbar-success a,
+.main-header.navbar-success .btn-link {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 1.05rem;
+}
+
+.main-header.navbar-success .nav-link:hover,
+.main-header.navbar-success .nav-link:focus,
+.main-header.navbar-success .navbar-nav .nav-link:hover,
+.main-header.navbar-success a:hover,
+.main-header.navbar-success a:focus {
+    color: #ffffff !important;
+}
+
+.main-header.navbar-success .nav-link i,
+.main-header.navbar-success .nav-link .fas,
+.main-header.navbar-success .nav-link .far,
+.main-header.navbar-success .nav-link .fab,
+.main-header.navbar-success .nav-link .fa,
+.main-header.navbar-success .nav-link .bi,
+.main-header.navbar-success [data-widget="pushmenu"],
+.main-header.navbar-success [data-widget="fullscreen"],
+.main-header.navbar-success .navbar-nav .nav-link i,
+.main-header.navbar-success .navbar-nav .nav-link svg {
+    color: #ffffff !important;
+    font-size: 1.15rem;
+}
+
+.main-header.navbar-success .form-control-navbar,
+.main-header.navbar-success .btn-navbar {
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.main-header.navbar-success .form-control-navbar::placeholder {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.main-header.navbar-success .navbar-badge {
+    font-size: 0.7rem;
+}
+
+.main-header.navbar-success .navbar-nav .user-menu .image,
+.main-header.navbar-success .navbar-nav .user-menu .img-circle {
+    border: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+/* ——— Sidebar kiri (semua item menu AdminLTE) ——— */
+.main-sidebar.sidebar-dark-success .brand-link,
+.main-sidebar.sidebar-dark-success .brand-link .brand-text,
+.main-sidebar.sidebar-dark-success .brand-link .brand-image {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link p,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link .nav-icon,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link i,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link .fas,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link .far,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link .fa {
+    color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link:hover,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link:focus,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link:hover .nav-icon,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link:hover p {
+    color: #ffffff !important;
+}
+
+.main-sidebar.sidebar-dark-success .nav-sidebar > .nav-item > .nav-link.active,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link.active,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link.active .nav-icon,
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link.active p {
+    color: #ffffff !important;
+}
+
+.main-sidebar.sidebar-dark-success .nav-treeview > .nav-item > .nav-link,
+.main-sidebar.sidebar-dark-success .nav-treeview .nav-link .nav-icon,
+.main-sidebar.sidebar-dark-success .nav-treeview .nav-link p {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.main-sidebar.sidebar-dark-success .nav-treeview > .nav-item > .nav-link.active,
+.main-sidebar.sidebar-dark-success .nav-treeview .nav-link.active {
+    color: #ffffff !important;
+}
+
+.main-sidebar.sidebar-dark-success .nav-sidebar .nav-link.text-primary,
+.main-sidebar.sidebar-dark-success .nav-sidebar .text-primary {
+    color: #ffffff !important;
+}
+
+/* ——— Menu pencarian sidebar (jika ada) ——— */
+.main-sidebar.sidebar-dark-success .form-control-sidebar,
+.main-sidebar.sidebar-dark-success .btn-sidebar {
+    color: #fff !important;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.main-sidebar.sidebar-dark-success .form-control-sidebar::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ——— Biru/teks gelap AdminLTE & Bootstrap di area menu ——— */
+.main-header.navbar-success .text-primary,
+.main-header.navbar-success .text-info,
+.main-header.navbar-success .text-dark,
+.main-sidebar.sidebar-dark-success .text-info,
+.main-sidebar.sidebar-dark-success .text-dark,
+.main-sidebar.sidebar-dark-success .nav-sidebar a,
+.main-header.navbar-success .dropdown-menu .dropdown-item,
+.main-header.navbar-success .dropdown-menu .dropdown-item i {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.main-header.navbar-success .dropdown-menu .dropdown-item:hover,
+.main-header.navbar-success .dropdown-menu .dropdown-item:focus {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.12);
+}
