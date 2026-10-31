@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+@extends('lms.page')
 
 @section('title', 'Kuis LMS')
 

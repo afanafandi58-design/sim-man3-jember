@@ -653,6 +653,16 @@ return [
                 ],
             ],
         ],
+        'NavbarSuccessContrast' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'css/navbar-success-contrast.css',
+                ],
+            ],
+        ],
         'Datatables' => [
             'active' => false,
             'files' => [

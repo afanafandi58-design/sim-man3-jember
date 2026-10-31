@@ -1,0 +1,45 @@
+/**
+ * AdminLTE navbar-success: teks/ikon terang di atas latar hijau (kontras SIM/LMS).
+ */
+.main-header.navbar.navbar-success,
+.main-header.navbar-success {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.main-header.navbar-success .nav-link,
+.main-header.navbar-success .navbar-nav .nav-link,
+.main-header.navbar-success .navbar-nav .dropdown-toggle,
+.main-header.navbar-success .navbar-brand,
+.main-header.navbar-success .navbar-brand .brand-text {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 1.05rem;
+}
+
+.main-header.navbar-success .nav-link:hover,
+.main-header.navbar-success .nav-link:focus,
+.main-header.navbar-success .navbar-nav .nav-link:hover {
+    color: #ffffff !important;
+}
+
+.main-header.navbar-success .nav-link i,
+.main-header.navbar-success .nav-link .fas,
+.main-header.navbar-success .nav-link .far,
+.main-header.navbar-success .nav-link .fa,
+.main-header.navbar-success [data-widget="pushmenu"] {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 1.15rem;
+}
+
+.main-header.navbar-success .form-control-navbar,
+.main-header.navbar-success .btn-navbar {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.main-header.navbar-success .form-control-navbar::placeholder {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.main-header.navbar-success .navbar-badge {
+    font-size: 0.7rem;
+}
