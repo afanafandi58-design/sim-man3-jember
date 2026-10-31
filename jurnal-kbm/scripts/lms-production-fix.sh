@@ -33,6 +33,22 @@ fi
 cd "$APP"
 echo "ok app_root=$APP"
 
+PHP=""
+for bin in ea-php83 php83 /usr/local/bin/ea-php83 /opt/cpanel/ea-php83/root/usr/bin/php php; do
+  if command -v "$bin" >/dev/null 2>&1; then
+    ver=$("$bin" -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;' 2>/dev/null || true)
+    case "$ver" in
+      8.3|8.4|8.5|9.*) PHP="$bin"; break ;;
+    esac
+  fi
+done
+if [ -z "$PHP" ]; then
+  echo "ERROR: PHP 8.3+ tidak ditemukan (CLI saat ini: $(php -v 2>/dev/null | head -1))"
+  echo "cPanel → Select PHP Version → pilih 8.3 untuk domain jurnal-kbm, lalu jalankan ulang script."
+  exit 1
+fi
+echo "ok php=$PHP ($($PHP -v 2>/dev/null | head -1))"
+
 for stub in public/lms-deep-fix-once.php public/lms-repair-all-once.php public/*-once.php; do
   if [ -f "$stub" ] && [ ! -s "$stub" ]; then
     rm -f "$stub"
