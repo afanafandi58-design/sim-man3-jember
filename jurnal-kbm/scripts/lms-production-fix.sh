@@ -74,7 +74,7 @@ fi
 rm -f resources/views/lms/page.blade.php 2>/dev/null || true
 echo "ok views_patched"
 
-php -r '
+"$PHP" -r '
 $f = "config/adminlte.php";
 if (!is_file($f)) { exit(0); }
 $c = file_get_contents($f);
@@ -86,16 +86,19 @@ file_put_contents($f, $c);
 echo "adminlte ok\n";
 '
 
-php artisan migrate --force --no-interaction 2>&1 | tail -n 20
-php artisan optimize:clear
-php artisan config:cache
-php artisan route:cache
+"$PHP" artisan migrate --force --no-interaction 2>&1 | tail -n 20
+rm -f bootstrap/cache/*.php 2>/dev/null || true
+"$PHP" artisan optimize:clear
+"$PHP" artisan config:clear
+"$PHP" artisan route:clear
+"$PHP" artisan view:clear
+# Jangan config:cache / route:cache di shared hosting — sering memicu HTTP 500
 
 echo "=== routes (lms) ==="
-php artisan route:list --path=lms 2>&1 | head -15
+"$PHP" artisan route:list --path=lms 2>&1 | head -15
 
 echo "=== render test (dashboard) ==="
-php artisan tinker --execute="
+"$PHP" artisan tinker --execute="
 try {
   \$html = view('lms.dashboard', [
     'user' => App\\Models\\User::query()->first(),
