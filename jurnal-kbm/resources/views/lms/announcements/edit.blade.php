@@ -6,6 +6,7 @@
 
 @section('content')
     @include('lms.partials.flash')
+    @include('lms.partials.guide', ['page' => 'announcements_form'])
     <div class="card">
         <form method="POST" action="{{ route('lms.announcements.update', $announcement) }}">@csrf @method('PUT')
             <div class="card-body">

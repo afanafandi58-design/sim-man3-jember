@@ -5,6 +5,7 @@
 @section('content_header')<h1>Kelas & Jadwal Saya</h1>@stop
 
 @section('content')
+    @include('lms.partials.guide', ['page' => 'my_classes'])
     <div class="card">
         <table class="table table-striped mb-0">
             <thead><tr><th>Kelas</th><th>Mapel</th><th>Hari</th><th>Jam</th><th>TP</th></tr></thead>

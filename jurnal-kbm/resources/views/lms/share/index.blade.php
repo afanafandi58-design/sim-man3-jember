@@ -5,6 +5,7 @@
 @section('content_header')<h1>Link Berbagi untuk Siswa (tanpa login)</h1>@stop
 
 @section('content')
+    @include('lms.partials.guide', ['page' => 'share'])
     <p class="text-muted">Bagikan URL halaman publik berikut ke siswa. Mereka hanya membuka link Google Drive / mengirim link jawaban.</p>
 
     <div class="card card-success"><div class="card-header">Materi</div><ul class="list-group list-group-flush">

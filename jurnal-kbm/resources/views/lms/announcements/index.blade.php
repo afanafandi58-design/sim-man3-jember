@@ -13,6 +13,7 @@
 
 @section('content')
     @include('lms.partials.flash')
+    @include('lms.partials.guide', ['page' => 'announcements'])
     @foreach ($announcements as $a)
         <div class="card card-outline card-success mb-2">
             <div class="card-header"><strong>{{ e($a->judul) }}</strong> <span class="float-right text-muted small">{{ $a->published_at?->format('d/m/Y') }}</span></div>

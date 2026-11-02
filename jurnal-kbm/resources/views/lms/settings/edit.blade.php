@@ -6,6 +6,7 @@
 
 @section('content')
     @include('lms.partials.flash')
+    @include('lms.partials.guide', ['page' => 'settings'])
     <div class="alert alert-info">
         Mode default: <strong>link manual</strong> ke Google Drive. OAuth API aktif hanya jika env <code>GOOGLE_CLIENT_ID</code> dan <code>GOOGLE_CLIENT_SECRET</code> diisi di server.
         Status OAuth env: {{ $oauthConfigured ? 'terdeteksi' : 'belum dikonfigurasi' }}.

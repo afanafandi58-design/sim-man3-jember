@@ -5,6 +5,7 @@
 @section('content_header')<h1>Monitoring LMS per Guru</h1>@stop
 
 @section('content')
+    @include('lms.partials.guide', ['page' => 'monitoring'])
     <div class="card">
         <table class="table table-bordered mb-0">
             <thead><tr><th>Guru</th><th>Materi</th><th>Tugas</th><th>Kuis</th><th>Pengumpulan</th></tr></thead>

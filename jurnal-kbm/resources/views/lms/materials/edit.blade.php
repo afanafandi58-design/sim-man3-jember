@@ -8,6 +8,7 @@
 
 @section('content')
     @include('lms.partials.flash')
+    @include('lms.partials.guide', ['page' => 'materials_form'])
     <div class="card card-success">
         <form method="POST" action="{{ route('lms.materials.update', $material) }}">
             @csrf @method('PUT')

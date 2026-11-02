@@ -13,6 +13,7 @@
 
 @section('content')
     @include('lms.partials.flash')
+    @include('lms.partials.guide', ['page' => 'submissions'])
     <div class="card">
         <table class="table table-striped mb-0">
             <thead><tr><th>Tugas</th><th>Siswa</th><th>Waktu</th><th>Nilai</th><th></th></tr></thead>

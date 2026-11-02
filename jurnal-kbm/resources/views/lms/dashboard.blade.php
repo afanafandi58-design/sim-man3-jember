@@ -8,6 +8,7 @@
 
 @section('content')
     @include('lms.partials.flash')
+    @include('lms.partials.guide', ['page' => 'dashboard'])
 
     <div class="row">
         @foreach ([

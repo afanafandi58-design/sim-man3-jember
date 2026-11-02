@@ -13,6 +13,7 @@
 
 @section('content')
     @include('lms.partials.flash')
+    @include('lms.partials.guide', ['page' => 'quizzes'])
     <div class="card">
         <div class="table-responsive">
             <table class="table table-striped mb-0">
