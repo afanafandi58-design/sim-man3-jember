@@ -11,18 +11,18 @@
 
     <div class="row">
         @foreach ([
-            ['Materi', $stats['materials'], 'book-reader', 'primary'],
-            ['Tugas', $stats['assignments'], 'tasks', 'success'],
-            ['Kuis', $stats['quizzes'], 'question-circle', 'info'],
-            ['Pengumpulan', $stats['submissions'], 'inbox', 'warning'],
-        ] as [$label, $count, $icon, $color])
+            ['label' => 'Materi', 'count' => $stats['materials'], 'icon' => 'book-reader', 'color' => 'primary'],
+            ['label' => 'Tugas', 'count' => $stats['assignments'], 'icon' => 'tasks', 'color' => 'success'],
+            ['label' => 'Kuis', 'count' => $stats['quizzes'], 'icon' => 'question-circle', 'color' => 'info'],
+            ['label' => 'Pengumpulan', 'count' => $stats['submissions'], 'icon' => 'inbox', 'color' => 'warning'],
+        ] as $card)
             <div class="col-md-3 col-sm-6">
-                <div class="small-box bg-{{ $color }}">
+                <div class="small-box bg-{{ $card['color'] }}">
                     <div class="inner">
-                        <h3>{{ $count }}</h3>
-                        <p>{{ $label }}</p>
+                        <h3>{{ $card['count'] }}</h3>
+                        <p>{{ $card['label'] }}</p>
                     </div>
-                    <div class="icon"><i class="fas fa-{{ $icon }}"></i></div>
+                    <div class="icon"><i class="fas fa-{{ $card['icon'] }}"></i></div>
                 </div>
             </div>
         @endforeach
