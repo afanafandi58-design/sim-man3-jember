@@ -35,16 +35,22 @@ for f in public/index.php bootstrap/app.php routes/web.php app/Providers/AppServ
   echo "ok $f size=$(wc -c < "$f")"
 done
 
-# Hapus plugin & CSS kontras navbar (penyebab blank/500 setelah deploy UI)
+# Nonaktifkan plugin kontras navbar (jangan hapus blok — regex hapus bisa rusak syntax baris ~656)
 "$PHP" -r '
 $f = "config/adminlte.php";
 $c = file_get_contents($f);
-while (substr_count($c, "'\''NavbarSuccessContrast'\'' =>") > 0) {
-  $c = preg_replace("/\s*'\''NavbarSuccessContrast'\''\s*=>\s*\[.*?\],\s*/s", "", $c, 1);
+if (str_contains($c, "NavbarSuccessContrast")) {
+  $c = preg_replace(
+    "/(\'\''NavbarSuccessContrast'\''\s*=>\s*\[\s*\n\s*'\''active'\''\s*=>\s*)(true|false)/",
+    "${1}false",
+    $c,
+    1
+  );
+  file_put_contents($f, $c);
+  echo "ok NavbarSuccessContrast_deactivated\n";
+} else {
+  echo "ok NavbarSuccessContrast_not_present\n";
 }
-$c = preg_replace("/,\s*,/", ",", $c);
-file_put_contents($f, $c);
-echo "ok NavbarSuccessContrast_removed\n";
 '
 rm -f public/css/navbar-success-contrast.css 2>/dev/null && echo "ok css_removed" || echo "note css_already_gone"
 
