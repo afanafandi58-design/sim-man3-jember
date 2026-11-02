@@ -35,27 +35,12 @@ for f in public/index.php bootstrap/app.php routes/web.php app/Providers/AppServ
   echo "ok $f size=$(wc -c < "$f")"
 done
 
-# Nonaktifkan plugin kontras navbar (jangan hapus blok — regex hapus bisa rusak syntax baris ~656)
-FIXPHP="/tmp/lms-rollback-adminlte-$$.php"
-cat > "$FIXPHP" <<'PHPEND'
-<?php
-$f = 'config/adminlte.php';
-$c = file_get_contents($f);
-if (str_contains($c, 'NavbarSuccessContrast')) {
-    $c = preg_replace(
-        "/('NavbarSuccessContrast'\\s*=>\\s*\\[\\s*\\n\\s*'active'\\s*=>\\s*)(true|false)/",
-        '$1false',
-        $c,
-        1
-    );
-    file_put_contents($f, $c);
-    echo "ok NavbarSuccessContrast_deactivated\n";
-} else {
-    echo "ok NavbarSuccessContrast_not_present\n";
-}
-PHPEND
-"$PHP" "$FIXPHP"
-rm -f "$FIXPHP"
+# Jangan edit adminlte jika sudah valid (edit pada file rusak = syntax error baris 656)
+if "$PHP" -l config/adminlte.php >/dev/null 2>&1; then
+  echo "ok adminlte_php_l_skip_edit"
+else
+  echo "WARN adminlte invalid — restore dulu: curl config/adminlte.php from GitHub (Point 8D)"
+fi
 rm -f public/css/navbar-success-contrast.css 2>/dev/null && echo "ok css_removed" || echo "note css_already_gone"
 
 if [ -d resources/views/lms ]; then
