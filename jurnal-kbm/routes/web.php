@@ -66,6 +66,9 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('gurus', GuruController::class);
+    Route::get('jadwals/grid', [JadwalController::class, 'grid'])->name('jadwals.grid');
+    Route::post('jadwals/grid/upsert', [JadwalController::class, 'upsertGridCell'])->name('jadwals.grid.upsert');
+    Route::delete('jadwals/{jadwal}/grid-cell', [JadwalController::class, 'clearGridCell'])->name('jadwals.grid.clear');
     Route::resource('jadwals', JadwalController::class);
     Route::resource('jurnals', JurnalController::class);
 
