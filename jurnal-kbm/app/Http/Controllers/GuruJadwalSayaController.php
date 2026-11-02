@@ -57,7 +57,46 @@ class GuruJadwalSayaController extends Controller
 
         return redirect()
             ->route('guru.jadwal-saya.index')
-            ->with('success', 'Jadwal berhasil disimpan dan status menjadi TERKUNCI.');
+            ->with('success', 'Jadwal berhasil disimpan. Anda dapat mengubahnya kapan saja lewat Edit.');
+    }
+
+    public function edit(Jadwal $jadwal)
+    {
+        $this->guruJadwalSayaService->assertOwnership($jadwal);
+        $guru = $this->guruJadwalSayaService->getGuru();
+        $formData = $this->guruJadwalSayaService->formDataForEdit($jadwal);
+
+        return view('guru.jadwal-saya.edit', array_merge(compact('guru', 'jadwal'), $formData));
+    }
+
+    public function update(Request $request, Jadwal $jadwal)
+    {
+        $rules = [
+            'kode_kelas' => 'required|string|max:50',
+            'mapel' => 'required|string|max:100',
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'jam_ke' => 'required|integer|min:0',
+            'jam_ke_akhir' => 'nullable|integer|min:0|gte:jam_ke',
+            'tahun_pelajaran' => 'required|string|max:20',
+            'semester' => 'required|in:Ganjil,Genap',
+        ];
+
+        $validated = $request->validate($rules);
+
+        $this->guruJadwalSayaService->update($jadwal, $validated, $request->ip());
+
+        return redirect()
+            ->route('guru.jadwal-saya.index')
+            ->with('success', 'Jadwal berhasil diperbarui.');
+    }
+
+    public function destroy(Request $request, Jadwal $jadwal)
+    {
+        $this->guruJadwalSayaService->deleteOwned($jadwal, $request->ip());
+
+        return redirect()
+            ->route('guru.jadwal-saya.index')
+            ->with('success', 'Jadwal berhasil dihapus.');
     }
 
     public function perbaikanForm(Jadwal $jadwal)

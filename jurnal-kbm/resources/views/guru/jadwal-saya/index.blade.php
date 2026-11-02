@@ -44,6 +44,10 @@
     </div>
 
     <div class="card-body">
+        <p class="text-muted small">
+            <i class="fas fa-unlock"></i>
+            Mode <strong>terbuka</strong>: ubah hari, jam, kelas, atau mapel langsung lewat <strong>Edit</strong> (tukar jam tanpa ajukan perbaikan).
+        </p>
         <form method="GET" class="form-inline mb-3">
             <label class="mr-2">Tahun Pelajaran</label>
             <input type="text" name="tahun_pelajaran" class="form-control form-control-sm mr-3"
@@ -73,21 +77,11 @@
                         <th>Jam</th>
                         <th>TP</th>
                         <th>Semester</th>
-                        <th>Status</th>
-                        <th width="160">Aksi</th>
+                        <th width="180">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($jadwals as $jadwal)
-                        @php
-                            $hasPending = $jadwal->pendingPerbaikanRequest !== null;
-                            $statusLabel = $hasPending ? 'MENUNGGU PERBAIKAN' : ($jadwal->is_locked ? 'TERKUNCI' : 'TERBUKA');
-                            $statusClass = match($statusLabel) {
-                                'TERKUNCI' => 'badge-success',
-                                'MENUNGGU PERBAIKAN' => 'badge-warning',
-                                default => 'badge-info',
-                            };
-                        @endphp
                         <tr>
                             <td>{{ $jadwals->firstItem() + $loop->index }}</td>
                             <td>{{ $jadwal->kelas }}</td>
@@ -97,23 +91,15 @@
                             <td>{{ substr((string) $jadwal->jam_mulai, 0, 5) }} - {{ substr((string) $jadwal->jam_selesai, 0, 5) }}</td>
                             <td>{{ $jadwal->tahun_pelajaran }}</td>
                             <td>{{ $jadwal->semester }}</td>
-                            <td><span class="badge {{ $statusClass }}">{{ $statusLabel }}</span></td>
                             <td>
-                                @if($jadwal->is_locked && ! $jadwal->pendingPerbaikanRequest)
-                                    <a href="{{ route('guru.jadwal-saya.perbaikan', $jadwal) }}"
-                                       class="btn btn-warning btn-sm">
-                                        <i class="fas fa-paper-plane"></i> Ajukan Perbaikan
-                                    </a>
-                                @elseif($jadwal->pendingPerbaikanRequest)
-                                    <span class="text-muted small">Menunggu admin</span>
-                                @else
-                                    <span class="text-muted small">—</span>
-                                @endif
+                                <a href="{{ route('guru.jadwal-saya.edit', $jadwal) }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center text-muted">
+                            <td colspan="9" class="text-center text-muted">
                                 Belum ada jadwal. Klik <strong>Tambah Jadwal</strong> untuk mulai menyusun jadwal semester.
                             </td>
                         </tr>

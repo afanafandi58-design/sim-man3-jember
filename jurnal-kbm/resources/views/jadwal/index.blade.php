@@ -13,9 +13,14 @@
     <div class="d-flex justify-content-between mb-3">
         <h3>Master Jadwal</h3>
 
-        <a href="{{ route('jadwals.create') }}" class="btn btn-success">
-            + Tambah Jadwal
-        </a>
+        <div>
+            <a href="{{ route('jadwals.grid') }}" class="btn btn-info mr-2">
+                Tampilan Grid
+            </a>
+            <a href="{{ route('jadwals.create') }}" class="btn btn-success">
+                + Tambah Jadwal
+            </a>
+        </div>
     </div>
 
     @if(session('success'))

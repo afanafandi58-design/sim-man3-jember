@@ -41,7 +41,7 @@
         <p class="text-muted small mb-0">
             <i class="fas fa-info-circle"></i>
             Data guru diambil otomatis dari akun login. Kelas, mapel, dan jam diambil dari master data.
-            Setelah disimpan, jadwal langsung berstatus <strong>TERKUNCI</strong>.
+            Setelah disimpan, jadwal dapat langsung di-<strong>Edit</strong> kapan saja (mode terbuka).
         </p>
     </div>
 </div>

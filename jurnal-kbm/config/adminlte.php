@@ -484,6 +484,13 @@ return [
         ],
 
         [
+            'text' => 'Monitor Perubahan Jadwal',
+            'route' => 'jadwal-changes.index',
+            'icon' => 'fas fa-history',
+            'can' => 'role-admin',
+        ],
+
+        [
             'text' => 'Permintaan Perubahan Jadwal',
             'route' => 'jadwal-perbaikan.index',
             'icon' => 'fas fa-calendar-times',
@@ -543,6 +550,69 @@ return [
             'can' => 'role-admin',
         ],
 
+        ['header' => 'LMS PEMBELAJARAN', 'can' => 'role-lms'],
+
+        [
+            'text' => 'Dashboard LMS',
+            'route' => 'lms.dashboard',
+            'icon' => 'fas fa-graduation-cap',
+            'can' => 'role-lms',
+        ],
+        [
+            'text' => 'Materi Pembelajaran',
+            'route' => 'lms.materials.index',
+            'icon' => 'fas fa-book-reader',
+            'can' => 'role-lms',
+        ],
+        [
+            'text' => 'Tugas',
+            'route' => 'lms.assignments.index',
+            'icon' => 'fas fa-tasks',
+            'can' => 'role-lms',
+        ],
+        [
+            'text' => 'Pengumpulan Tugas',
+            'route' => 'lms.submissions.index',
+            'icon' => 'fas fa-inbox',
+            'can' => 'role-lms',
+        ],
+        [
+            'text' => 'Kuis',
+            'route' => 'lms.quizzes.index',
+            'icon' => 'fas fa-question-circle',
+            'can' => 'role-lms',
+        ],
+        [
+            'text' => 'Pengumuman',
+            'route' => 'lms.announcements.index',
+            'icon' => 'fas fa-bullhorn',
+            'can' => 'role-lms',
+        ],
+        [
+            'text' => 'Kelas & Jadwal Saya',
+            'route' => 'lms.my-classes.index',
+            'icon' => 'fas fa-chalkboard',
+            'can' => 'role-lms-guru-or-admin',
+        ],
+        [
+            'text' => 'Link Berbagi Siswa',
+            'route' => 'lms.share.index',
+            'icon' => 'fas fa-link',
+            'can' => 'role-lms-guru-or-admin',
+        ],
+        [
+            'text' => 'Monitoring LMS',
+            'route' => 'lms.monitoring.index',
+            'icon' => 'fas fa-chart-line',
+            'can' => 'role-lms-kamad-or-admin',
+        ],
+        [
+            'text' => 'Pengaturan LMS',
+            'route' => 'lms.settings.edit',
+            'icon' => 'fas fa-cog',
+            'can' => 'role-lms-admin',
+        ],
+
     ],
 
     /*
@@ -587,6 +657,16 @@ return [
                     'type' => 'css',
                     'asset' => true,
                     'location' => 'css/pagination-fix.css',
+                ],
+            ],
+        ],
+        'NavbarSuccessContrast' => [
+            'active' => false,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'css/navbar-success-contrast.css',
                 ],
             ],
         ],

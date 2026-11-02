@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Jadwal;
 use App\Services\AdminJadwalService;
 use App\Services\GuruService;
+use App\Services\JadwalGridService;
 use App\Services\JadwalMasterDataService;
 use App\Services\JadwalScheduleService;
 use App\Services\JurnalJamSelectionService;
+use App\Services\OperationalDateService;
 use App\Models\Guru;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -17,9 +19,11 @@ class JadwalController extends Controller
     public function __construct(
         private JadwalScheduleService $jadwalScheduleService,
         private JadwalMasterDataService $jadwalMasterDataService,
+        private JadwalGridService $jadwalGridService,
         private JurnalJamSelectionService $jamSelectionService,
         private AdminJadwalService $adminJadwalService,
         private GuruService $guruService,
+        private OperationalDateService $operationalDateService,
     ) {}
 
     public function index(Request $request)
@@ -169,6 +173,116 @@ class JadwalController extends Controller
 
         return redirect()->route('jadwals.index')
             ->with('success', 'Jadwal berhasil diupdate.');
+    }
+
+    public function grid(Request $request)
+    {
+        $gurus = Guru::orderBy('nama')->get();
+        $guruId = (int) $request->query('guru_id', 0);
+        $tahunPelajaran = $request->query(
+            'tahun_pelajaran',
+            $this->operationalDateService->tahunPelajaran(),
+        );
+        $semester = $request->query(
+            'semester',
+            $this->operationalDateService->semester(),
+        );
+
+        $grid = null;
+        $selectedGuru = null;
+        $deleteChecks = [];
+
+        if ($guruId > 0) {
+            $selectedGuru = Guru::find($guruId);
+            if ($selectedGuru) {
+                $grid = $this->jadwalGridService->buildGridData($guruId, $tahunPelajaran, $semester);
+                foreach ($grid['cells'] as $cell) {
+                    if ($cell['jadwal']) {
+                        $deleteChecks[$cell['jadwal']->id] = $this->adminJadwalService->canDelete($cell['jadwal']);
+                    }
+                }
+            }
+        }
+
+        return view('jadwal.grid', [
+            'gurus' => $gurus,
+            'guruId' => $guruId,
+            'selectedGuru' => $selectedGuru,
+            'tahunPelajaran' => $tahunPelajaran,
+            'semester' => $semester,
+            'grid' => $grid,
+            'deleteChecks' => $deleteChecks,
+            'kelasOptions' => $this->jadwalMasterDataService->kelasOptions(),
+            'mapelOptions' => $this->jadwalMasterDataService->mapelOptions(),
+        ]);
+    }
+
+    public function upsertGridCell(Request $request)
+    {
+        $validated = $request->validate([
+            'guru_id' => 'required|exists:gurus,id',
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat',
+            'jam_ke' => 'required|integer|min:0',
+            'tahun_pelajaran' => 'required|string',
+            'semester' => 'required|in:Ganjil,Genap',
+            'kode_kelas' => 'required|string',
+            'mapel' => 'required|string',
+        ]);
+
+        try {
+            $this->jadwalGridService->upsertGridCell($validated);
+        } catch (ValidationException $e) {
+            return redirect()
+                ->route('jadwals.grid', [
+                    'guru_id' => $validated['guru_id'],
+                    'tahun_pelajaran' => $validated['tahun_pelajaran'],
+                    'semester' => $validated['semester'],
+                ])
+                ->withInput()
+                ->withErrors($e->errors());
+        }
+
+        return redirect()
+            ->route('jadwals.grid', [
+                'guru_id' => $validated['guru_id'],
+                'tahun_pelajaran' => $validated['tahun_pelajaran'],
+                'semester' => $validated['semester'],
+            ])
+            ->with('success', 'Sel jadwal berhasil disimpan.');
+    }
+
+    public function clearGridCell(Request $request, Jadwal $jadwal)
+    {
+        $validated = $request->validate([
+            'guru_id' => 'required|exists:gurus,id',
+            'tahun_pelajaran' => 'required|string',
+            'semester' => 'required|in:Ganjil,Genap',
+        ]);
+
+        try {
+            $this->adminJadwalService->delete(
+                $jadwal,
+                $request->user(),
+                $request->ip(),
+                'Dihapus dari tampilan grid Master Jadwal.',
+            );
+        } catch (ValidationException $e) {
+            return redirect()
+                ->route('jadwals.grid', [
+                    'guru_id' => $validated['guru_id'],
+                    'tahun_pelajaran' => $validated['tahun_pelajaran'],
+                    'semester' => $validated['semester'],
+                ])
+                ->withErrors($e->errors());
+        }
+
+        return redirect()
+            ->route('jadwals.grid', [
+                'guru_id' => $validated['guru_id'],
+                'tahun_pelajaran' => $validated['tahun_pelajaran'],
+                'semester' => $validated['semester'],
+            ])
+            ->with('success', 'Sel jadwal berhasil dikosongkan.');
     }
 
     public function destroy(Request $request, Jadwal $jadwal)

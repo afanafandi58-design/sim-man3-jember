@@ -19,6 +19,7 @@ use App\Http\Controllers\ImportJadwalController;
 use App\Http\Controllers\ImportSiswaController;
 use App\Http\Controllers\JamPelajaranController;
 use App\Http\Controllers\JadwalController;
+use App\Http\Controllers\JadwalChangeLogController;
 use App\Http\Controllers\JadwalPerbaikanController;
 use App\Models\JadwalPerbaikanRequest;
 use App\Http\Controllers\MataPelajaranController;
@@ -37,6 +38,7 @@ Route::get('/', function () {
 });
 
 Route::redirect('/home', '/dashboard');
+Route::redirect('/dashboard/lms', '/lms', 301);
 
 Route::bind('jadwalPerbaikan', fn (string $value) => JadwalPerbaikanRequest::findOrFail($value));
 Route::bind('mataPelajaranUsulan', fn (string $value) => \App\Models\MataPelajaranUsulan::findOrFail($value));
@@ -46,6 +48,9 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
     Route::get('/guru/jadwal-saya', [GuruJadwalSayaController::class, 'index'])->name('guru.jadwal-saya.index');
     Route::get('/guru/jadwal-saya/create', [GuruJadwalSayaController::class, 'create'])->name('guru.jadwal-saya.create');
     Route::post('/guru/jadwal-saya', [GuruJadwalSayaController::class, 'store'])->name('guru.jadwal-saya.store');
+    Route::get('/guru/jadwal-saya/{jadwal}/edit', [GuruJadwalSayaController::class, 'edit'])->name('guru.jadwal-saya.edit');
+    Route::put('/guru/jadwal-saya/{jadwal}', [GuruJadwalSayaController::class, 'update'])->name('guru.jadwal-saya.update');
+    Route::delete('/guru/jadwal-saya/{jadwal}', [GuruJadwalSayaController::class, 'destroy'])->name('guru.jadwal-saya.destroy');
     Route::get('/guru/jadwal-saya/{jadwal}/perbaikan', [GuruJadwalSayaController::class, 'perbaikanForm'])->name('guru.jadwal-saya.perbaikan');
     Route::post('/guru/jadwal-saya/{jadwal}/perbaikan', [GuruJadwalSayaController::class, 'perbaikanStore'])->name('guru.jadwal-saya.perbaikan.store');
     Route::get('/guru/jurnal/{jadwal}/create', [GuruJurnalController::class, 'create'])->name('guru.jurnal.create');
@@ -65,6 +70,9 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('gurus', GuruController::class);
+    Route::get('jadwals/grid', [JadwalController::class, 'grid'])->name('jadwals.grid');
+    Route::post('jadwals/grid/upsert', [JadwalController::class, 'upsertGridCell'])->name('jadwals.grid.upsert');
+    Route::delete('jadwals/{jadwal}/grid-cell', [JadwalController::class, 'clearGridCell'])->name('jadwals.grid.clear');
     Route::resource('jadwals', JadwalController::class);
     Route::resource('jurnals', JurnalController::class);
 
@@ -85,6 +93,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/import-jadwal', [ImportJadwalController::class, 'store'])->name('import-jadwal.store');
     Route::get('/import-jadwal/result', [ImportJadwalController::class, 'result'])->name('import-jadwal.result');
 
+    Route::get('/jadwal-perubahan', [JadwalChangeLogController::class, 'index'])->name('jadwal-changes.index');
     Route::get('/jadwal-perbaikan', [JadwalPerbaikanController::class, 'index'])->name('jadwal-perbaikan.index');
     Route::post('/jadwal-perbaikan/{jadwalPerbaikan}/approve', [JadwalPerbaikanController::class, 'approve'])->name('jadwal-perbaikan.approve');
     Route::post('/jadwal-perbaikan/{jadwalPerbaikan}/reject', [JadwalPerbaikanController::class, 'reject'])->name('jadwal-perbaikan.reject');
@@ -157,5 +166,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('absensi-modul')->name('absens
     Route::post('/staff/{user}/reset', [AbsensiModulController::class, 'staffReset'])->name('staff.reset');
     Route::post('/staff/{user}/toggle', [AbsensiModulController::class, 'staffToggle'])->name('staff.toggle');
 });
+
+require __DIR__.'/lms.php';
 
 require __DIR__.'/auth.php';
