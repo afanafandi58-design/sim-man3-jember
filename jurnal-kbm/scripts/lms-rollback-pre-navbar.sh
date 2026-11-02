@@ -36,22 +36,26 @@ for f in public/index.php bootstrap/app.php routes/web.php app/Providers/AppServ
 done
 
 # Nonaktifkan plugin kontras navbar (jangan hapus blok — regex hapus bisa rusak syntax baris ~656)
-"$PHP" -r '
-$f = "config/adminlte.php";
+FIXPHP="/tmp/lms-rollback-adminlte-$$.php"
+cat > "$FIXPHP" <<'PHPEND'
+<?php
+$f = 'config/adminlte.php';
 $c = file_get_contents($f);
-if (str_contains($c, "NavbarSuccessContrast")) {
-  $c = preg_replace(
-    "/(\'\''NavbarSuccessContrast'\''\s*=>\s*\[\s*\n\s*'\''active'\''\s*=>\s*)(true|false)/",
-    "${1}false",
-    $c,
-    1
-  );
-  file_put_contents($f, $c);
-  echo "ok NavbarSuccessContrast_deactivated\n";
+if (str_contains($c, 'NavbarSuccessContrast')) {
+    $c = preg_replace(
+        "/('NavbarSuccessContrast'\\s*=>\\s*\\[\\s*\\n\\s*'active'\\s*=>\\s*)(true|false)/",
+        '$1false',
+        $c,
+        1
+    );
+    file_put_contents($f, $c);
+    echo "ok NavbarSuccessContrast_deactivated\n";
 } else {
-  echo "ok NavbarSuccessContrast_not_present\n";
+    echo "ok NavbarSuccessContrast_not_present\n";
 }
-'
+PHPEND
+"$PHP" "$FIXPHP"
+rm -f "$FIXPHP"
 rm -f public/css/navbar-success-contrast.css 2>/dev/null && echo "ok css_removed" || echo "note css_already_gone"
 
 if [ -d resources/views/lms ]; then

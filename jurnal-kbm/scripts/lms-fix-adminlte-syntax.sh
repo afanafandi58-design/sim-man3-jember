@@ -18,22 +18,26 @@ echo "ok restore config/adminlte.php from GitHub"
 curl -fsSL "$BASE/config/adminlte.php" -o config/adminlte.php
 echo "ok size=$(wc -c < config/adminlte.php)"
 
-"$PHP" -r '
-$f = "config/adminlte.php";
+FIXPHP="/tmp/lms-fix-adminlte-$$.php"
+cat > "$FIXPHP" <<'PHPEND'
+<?php
+$f = 'config/adminlte.php';
 $c = file_get_contents($f);
-if (str_contains($c, "NavbarSuccessContrast")) {
-  $c = preg_replace(
-    "/(\'NavbarSuccessContrast\'\s*=>\s*\[\s*\n\s*\'active\'\s*=>\s*)(true|false)/",
-    "${1}false",
-    $c,
-    1
-  );
-  file_put_contents($f, $c);
-  echo "ok NavbarSuccessContrast_deactivated\n";
+if (str_contains($c, 'NavbarSuccessContrast')) {
+    $c = preg_replace(
+        "/('NavbarSuccessContrast'\\s*=>\\s*\\[\\s*\\n\\s*'active'\\s*=>\\s*)(true|false)/",
+        '$1false',
+        $c,
+        1
+    );
+    file_put_contents($f, $c);
+    echo "ok NavbarSuccessContrast_deactivated\n";
 } else {
-  echo "ok NavbarSuccessContrast_not_present\n";
+    echo "ok NavbarSuccessContrast_not_present\n";
 }
-'
+PHPEND
+"$PHP" "$FIXPHP"
+rm -f "$FIXPHP"
 
 echo "=== php -l ==="
 "$PHP" -l config/adminlte.php
