@@ -136,7 +136,7 @@ class JadwalPerbaikanService
             'jam_selesai' => $rangeData['jam_selesai'],
             'tahun_pelajaran' => $rangeData['tahun_pelajaran'],
             'semester' => $rangeData['semester'],
-            'is_locked' => true,
+            'is_locked' => false,
         ]);
 
         $this->guruService->syncJumlahJamMengajar(Guru::findOrFail($jadwal->guru_id));

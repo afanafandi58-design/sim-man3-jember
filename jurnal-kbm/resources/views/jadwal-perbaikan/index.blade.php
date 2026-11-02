@@ -22,6 +22,13 @@
     </div>
 @endif
 
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    <strong>Mode jadwal terbuka:</strong> guru mengubah jadwal langsung di <em>Jadwal Saya</em>.
+    Pantau perubahan di <a href="{{ route('jadwal-changes.index') }}" class="alert-link">Monitor Perubahan Jadwal</a>.
+    Halaman ini hanya untuk permintaan lama yang belum selesai.
+</div>
+
 @if($pendingCount > 0)
     <div class="alert alert-info">
         <i class="fas fa-bell"></i>

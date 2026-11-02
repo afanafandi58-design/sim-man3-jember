@@ -169,7 +169,7 @@ class JadwalGridService
                 'jam_selesai' => $rangeData['jam_selesai'],
                 'tahun_pelajaran' => $tahunPelajaran,
                 'semester' => $semester,
-                'is_locked' => true,
+                'is_locked' => false,
             ];
 
             if ($existing) {

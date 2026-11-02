@@ -484,6 +484,13 @@ return [
         ],
 
         [
+            'text' => 'Monitor Perubahan Jadwal',
+            'route' => 'jadwal-changes.index',
+            'icon' => 'fas fa-history',
+            'can' => 'role-admin',
+        ],
+
+        [
             'text' => 'Permintaan Perubahan Jadwal',
             'route' => 'jadwal-perbaikan.index',
             'icon' => 'fas fa-calendar-times',

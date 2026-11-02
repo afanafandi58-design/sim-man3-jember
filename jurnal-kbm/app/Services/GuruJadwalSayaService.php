@@ -17,6 +17,8 @@ class GuruJadwalSayaService
         private JadwalMasterDataService $jadwalMasterDataService,
         private MataPelajaranUsulanService $mataPelajaranUsulanService,
         private GuruService $guruService,
+        private AdminJadwalService $adminJadwalService,
+        private JadwalChangeLogger $changeLogger,
     ) {}
 
     public function assertGuruAccount(): User
@@ -45,6 +47,20 @@ class GuruJadwalSayaService
             'polaHariMap' => $this->jadwalMasterDataService->polaHariMapForJs(),
             'jamMapByPola' => $this->jadwalMasterDataService->jamMapByPolaForJs(),
         ];
+    }
+
+    public function formDataForEdit(Jadwal $jadwal): array
+    {
+        $jamSelection = app(JurnalJamSelectionService::class);
+
+        return array_merge($this->formData(), [
+            'selectedKodeKelas' => $this->jadwalMasterDataService->findKodeKelasValue($jadwal->kelas),
+            'selectedMapel' => $jadwal->mapel,
+            'selectedJamKe' => $jadwal->jam_ke,
+            'selectedJamKeAkhir' => $jamSelection->jamAkhirKeForJadwal($jadwal),
+            'selectedHari' => $jadwal->hari,
+            'showMapelLainnya' => false,
+        ]);
     }
 
     public function paginateForGuru(array $filters = []): LengthAwarePaginator
@@ -126,12 +142,128 @@ class GuruJadwalSayaService
             'jam_selesai' => $rangeData['jam_selesai'],
             'tahun_pelajaran' => $rangeData['tahun_pelajaran'],
             'semester' => $rangeData['semester'],
-            'is_locked' => true,
+            'is_locked' => false,
         ]);
 
         $this->guruService->syncJumlahJamMengajar(Guru::findOrFail($guruId));
 
+        $this->changeLogger->log(
+            'guru_create',
+            $user,
+            $jadwal,
+            $guruId,
+            null,
+            $this->changeLogger->snapshot($jadwal),
+            request()->ip(),
+        );
+
         return $jadwal;
+    }
+
+    public function update(Jadwal $jadwal, array $data, ?string $ipAddress = null): Jadwal
+    {
+        $this->assertOwnership($jadwal);
+        $user = $this->assertGuruAccount();
+        $guruId = (int) $user->guru_id;
+
+        if (($data['mapel'] ?? '') === '__lainnya__') {
+            throw ValidationException::withMessages([
+                'mapel' => 'Pilih mapel dari daftar. Usulan mapel baru lewat menu usulan admin.',
+            ]);
+        }
+
+        $before = $this->changeLogger->snapshot($jadwal);
+
+        $kelas = $this->jadwalMasterDataService->resolveKelas($data['kode_kelas']);
+        $mapel = $this->jadwalMasterDataService->resolveMapel($data['mapel']);
+        $rangeData = $this->jadwalMasterDataService->mergeJamRangeIntoData($data);
+
+        if ($this->jadwalScheduleService->hasGuruScheduleDuplicate(
+            $guruId,
+            $rangeData['hari'],
+            $rangeData['jam_ke'],
+            $kelas,
+            $rangeData['semester'],
+            $rangeData['tahun_pelajaran'],
+            $jadwal->id,
+        )) {
+            throw ValidationException::withMessages([
+                'jam_ke' => 'Jadwal dengan Guru, Hari, Jam Ke, Kelas, Semester, dan Tahun Pelajaran yang sama sudah ada.',
+            ]);
+        }
+
+        if ($this->jadwalScheduleService->hasTimeConflict(
+            $guruId,
+            $rangeData['hari'],
+            $rangeData['jam_mulai'],
+            $rangeData['jam_selesai'],
+            $jadwal->id,
+        )) {
+            throw ValidationException::withMessages([
+                'jam_ke' => 'Guru sudah memiliki jadwal yang bertabrakan pada waktu tersebut.',
+            ]);
+        }
+
+        $jadwal->update([
+            'kelas' => $kelas,
+            'mapel' => $mapel,
+            'hari' => $rangeData['hari'],
+            'pola_jadwal_id' => $rangeData['pola_jadwal_id'],
+            'jam_ke' => $rangeData['jam_ke'],
+            'jam_mulai' => $rangeData['jam_mulai'],
+            'jam_selesai' => $rangeData['jam_selesai'],
+            'tahun_pelajaran' => $rangeData['tahun_pelajaran'],
+            'semester' => $rangeData['semester'],
+            'is_locked' => false,
+        ]);
+
+        $jadwal->refresh();
+        $this->guruService->syncJumlahJamMengajar(Guru::findOrFail($guruId));
+
+        $this->changeLogger->log(
+            'guru_update',
+            $user,
+            $jadwal,
+            $guruId,
+            $before,
+            $this->changeLogger->snapshot($jadwal),
+            $ipAddress,
+        );
+
+        return $jadwal;
+    }
+
+    public function deleteOwned(Jadwal $jadwal, ?string $ipAddress = null): void
+    {
+        $this->assertOwnership($jadwal);
+        $user = $this->assertGuruAccount();
+
+        $canDelete = $this->adminJadwalService->canDelete($jadwal);
+        if (! $canDelete['allowed']) {
+            throw ValidationException::withMessages([
+                'jadwal' => $canDelete['reason'],
+            ]);
+        }
+
+        $before = $this->changeLogger->snapshot($jadwal);
+        $guruId = (int) $jadwal->guru_id;
+        $guru = $jadwal->guru;
+
+        $this->changeLogger->log(
+            'guru_delete',
+            $user,
+            $jadwal,
+            $guruId,
+            $before,
+            null,
+            $ipAddress,
+        );
+
+        $jadwal->delete();
+
+        if ($guru) {
+            $this->guruService->syncJumlahJamMengajar($guru);
+        }
     }
 
     public function submitPerbaikan(Jadwal $jadwal, string $alasan): JadwalPerbaikanRequest
@@ -168,6 +300,6 @@ class GuruJadwalSayaService
             return 'MENUNGGU PERBAIKAN';
         }
 
-        return $jadwal->is_locked ? 'TERKUNCI' : 'TERBUKA';
+        return 'TERBUKA';
     }
 }
