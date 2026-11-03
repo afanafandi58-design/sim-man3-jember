@@ -8,7 +8,7 @@
         <?php if (!$rows) { ?><tr><td colspan="5">Belum ada kegiatan.</td></tr><?php } ?>
         <?php foreach ($rows as $row) { ?>
             <tr>
-                <td><?php echo absen_e(absen_tanggal_label($row['tanggal'])); ?></td>
+                <td><?php echo absen_e(absen_tanggal_label($row['tanggal'])); ?><?php $rentang = absen_rentang_label($row); if ($rentang !== '') { ?><div class="muted"><?php echo absen_e($rentang); ?></div><?php } ?></td>
                 <td><?php echo absen_e($row['nama']); ?><div class="muted"><?php echo absen_e($row['kode']); ?></div></td>
                 <td><?php echo absen_e(isset($jenisMap[$row['jenis']]) ? $jenisMap[$row['jenis']] : $row['jenis']); ?></td>
                 <td><?php echo (int) $row['hadir']; ?></td>

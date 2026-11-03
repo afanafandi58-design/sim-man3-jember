@@ -18,10 +18,11 @@ if ($method === 'POST') {
 }
 
 if ($path === '/login' && $method === 'GET') {
-    if (absen_user()) {
+    $current = absen_user();
+    if ($current && $current['role'] === 'admin') {
         absen_redirect('/absen-digital/kegiatan');
     }
-    absen_render('login', array('title' => 'Masuk'));
+    absen_render('login', array('title' => 'Masuk pengelola'));
     exit;
 }
 
@@ -31,7 +32,7 @@ if ($path === '/login' && $method === 'POST') {
     $stmt = absen_db()->prepare('SELECT id, password, is_active, role FROM users WHERE email = ?');
     $stmt->execute(array($email));
     $row = $stmt->fetch();
-    $ok = $row && (int) $row['is_active'] === 1 && in_array($row['role'], absen_roles_absen(), true) && password_verify($password, $row['password']);
+    $ok = $row && (int) $row['is_active'] === 1 && $row['role'] === 'admin' && is_string($row['password']) && $row['password'] !== '' && password_verify($password, $row['password']);
     if (!$ok) {
         absen_flash_error(array('email' => 'Email atau kata sandi tidak sesuai.'), '/login');
     }
@@ -43,12 +44,11 @@ if ($path === '/login' && $method === 'POST') {
 if ($path === '/logout' && $method === 'POST') {
     $_SESSION = array();
     session_destroy();
-    absen_redirect('/login');
+    absen_redirect('/absen-digital/scan');
 }
 
 if ($path === '/' || $path === '/absen-digital') {
-    $user = absen_require_user();
-    absen_redirect('/absen-digital/kegiatan');
+    absen_redirect('/absen-digital/scan');
 }
 
 if ($path === '/absen-digital/kegiatan' && $method === 'GET') {
@@ -80,7 +80,7 @@ if ($path === '/absen-digital/kegiatan-baru' && $method === 'GET') {
     absen_require_admin($user);
     absen_render('kegiatan_form', array(
         'title' => 'Kegiatan baru',
-        'kegiatan' => array('id' => '', 'nama' => '', 'jenis' => 'rapat', 'tanggal' => date('Y-m-d'), 'waktu' => '', 'tempat' => '', 'keterangan' => ''),
+        'kegiatan' => array('id' => '', 'nama' => '', 'jenis' => 'rapat', 'tanggal' => date('Y-m-d'), 'waktu' => '07:00', 'waktu_mulai' => '07:00', 'waktu_selesai' => '15:00', 'tempat' => '', 'keterangan' => ''),
         'authUser' => $user,
     ));
     exit;
@@ -94,8 +94,8 @@ if ($path === '/absen-digital/kegiatan' && $method === 'POST') {
         absen_flash_error($data['errors'], '/absen-digital/kegiatan-baru');
     }
     $now = date('Y-m-d H:i:s');
-    $stmt = absen_db()->prepare('INSERT INTO absen_kegiatans (nama, jenis, tanggal, waktu, tempat, keterangan, kode, dibuat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    $stmt->execute(array($data['nama'], $data['jenis'], $data['tanggal'], $data['waktu'], $data['tempat'], $data['keterangan'], absen_kode_baru(), (int) $user['id'], $now, $now));
+    $stmt = absen_db()->prepare('INSERT INTO absen_kegiatans (nama, jenis, tanggal, waktu, waktu_mulai, waktu_selesai, tempat, keterangan, kode, dibuat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute(array($data['nama'], $data['jenis'], $data['tanggal'], $data['waktu'], $data['waktu_mulai'], $data['waktu_selesai'], $data['tempat'], $data['keterangan'], absen_kode_baru(), (int) $user['id'], $now, $now));
     absen_flash_success('Kegiatan tersimpan. Kode QR siap dipakai.', '/absen-digital/kegiatan/'.absen_db()->lastInsertId());
 }
 
@@ -135,8 +135,8 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)$#', $path, $m) && $method === 'P
     if (isset($data['errors'])) {
         absen_flash_error($data['errors'], '/absen-digital/kegiatan/'.$kegiatan['id'].'/ubah');
     }
-    $stmt = absen_db()->prepare('UPDATE absen_kegiatans SET nama=?, jenis=?, tanggal=?, waktu=?, tempat=?, keterangan=?, updated_at=? WHERE id=?');
-    $stmt->execute(array($data['nama'], $data['jenis'], $data['tanggal'], $data['waktu'], $data['tempat'], $data['keterangan'], date('Y-m-d H:i:s'), $kegiatan['id']));
+    $stmt = absen_db()->prepare('UPDATE absen_kegiatans SET nama=?, jenis=?, tanggal=?, waktu=?, waktu_mulai=?, waktu_selesai=?, tempat=?, keterangan=?, updated_at=? WHERE id=?');
+    $stmt->execute(array($data['nama'], $data['jenis'], $data['tanggal'], $data['waktu'], $data['waktu_mulai'], $data['waktu_selesai'], $data['tempat'], $data['keterangan'], date('Y-m-d H:i:s'), $kegiatan['id']));
     absen_flash_success('Data kegiatan diperbarui.', '/absen-digital/kegiatan/'.$kegiatan['id']);
 }
 
@@ -241,7 +241,6 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)/hasil-berkas/hapus$#', $path, $m
 }
 
 if ($path === '/absen-digital/scan' && $method === 'GET') {
-    $user = absen_require_user();
     $kode = absen_normalize_kode(isset($_GET['kode']) ? $_GET['kode'] : '');
     $kegiatan = null;
     $sudah = array();
@@ -256,22 +255,21 @@ if ($path === '/absen-digital/scan' && $method === 'GET') {
         }
     }
     absen_render('scan', array(
-        'title' => 'Scan Barcode',
+        'title' => 'Absen',
         'kode' => $kode,
         'kegiatan' => $kegiatan,
         'kodeTidakDitemukan' => $kode !== '' && !$kegiatan,
-        'peserta' => absen_peserta(),
+        'peserta' => $kegiatan ? absen_peserta() : array(),
         'sudahHadir' => $sudah,
-        'authUser' => $user,
+        'rentangBlokir' => $kegiatan ? absen_rentang_blokir($kegiatan) : '',
     ));
     exit;
 }
 
 if ($path === '/absen-digital/scan' && $method === 'POST') {
-    $user = absen_require_user();
     $kode = absen_normalize_kode(isset($_POST['kode']) ? $_POST['kode'] : '');
     if ($kode === '') {
-        absen_flash_error(array('kode' => 'Kode hasil scan wajib diisi.'), '/absen-digital/scan');
+        absen_flash_error(array('kode' => 'Pindai barcode atau isi kode kegiatan.'), '/absen-digital/scan');
     }
     $stmt = absen_db()->prepare('SELECT * FROM absen_kegiatans WHERE kode = ?');
     $stmt->execute(array($kode));
@@ -279,96 +277,12 @@ if ($path === '/absen-digital/scan' && $method === 'POST') {
     if (!$kegiatan) {
         absen_flash_error(array('kode' => 'Kode kegiatan tidak ditemukan.'), '/absen-digital/scan');
     }
-    $peserta = absen_find_peserta(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
-    if (!$peserta) {
-        absen_flash_error(array('user_id' => 'Pilih pengguna yang aktif.'), '/absen-digital/scan?kode='.rawurlencode($kegiatan['kode']));
-    }
-    if (absen_sudah_hadir($kegiatan['id'], $peserta['id'], null)) {
-        absen_flash_error(array('user_id' => $peserta['name'].' sudah tercatat hadir.'), '/absen-digital/scan?kode='.rawurlencode($kegiatan['kode']));
-    }
-    $now = date('Y-m-d H:i:s');
-    $ins = absen_db()->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nama, metode, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, "qr", ?, ?, ?)');
-    $ins->execute(array($kegiatan['id'], $peserta['id'], $peserta['name'], (int) $user['id'], $now, $now));
-    absen_flash_success('Kehadiran '.$peserta['name'].' tercatat lewat scan.', '/absen-digital/scan?kode='.rawurlencode($kegiatan['kode']));
+    absen_simpan_publik($kegiatan);
 }
 
-if ($path === '/absen-digital/absen' && $method === 'GET') {
-    $user = absen_require_user();
-    $kegiatan = absen_db()->query('SELECT id, nama, jenis, tanggal FROM absen_kegiatans ORDER BY tanggal DESC, nama')->fetchAll();
-    $riwayatStmt = absen_db()->prepare('SELECT h.*, k.nama AS kegiatan_nama, k.tanggal FROM absen_kehadirans h JOIN absen_kegiatans k ON k.id = h.kegiatan_id WHERE h.user_id = ? OR h.dicatat_oleh = ? ORDER BY h.id DESC LIMIT 15');
-    $riwayatStmt->execute(array((int) $user['id'], (int) $user['id']));
-    absen_render('form', array(
-        'title' => 'Absen Saya',
-        'kegiatans' => $kegiatan,
-        'peserta' => absen_peserta(),
-        'riwayat' => $riwayatStmt->fetchAll(),
-        'authUser' => $user,
-    ));
-    exit;
-}
-
-if ($path === '/absen-digital/absen' && $method === 'POST') {
-    $user = absen_require_user();
-    $kegiatanId = isset($_POST['kegiatan_id']) ? (int) $_POST['kegiatan_id'] : 0;
-    $mode = isset($_POST['mode_peserta']) ? (string) $_POST['mode_peserta'] : '';
-    $stmt = absen_db()->prepare('SELECT id FROM absen_kegiatans WHERE id = ?');
-    $stmt->execute(array($kegiatanId));
-    if (!$stmt->fetch()) {
-        absen_flash_error(array('kegiatan_id' => 'Pilih kegiatan.'), '/absen-digital/absen');
-    }
-    if ($mode !== 'user' && $mode !== 'nik') {
-        absen_flash_error(array('mode_peserta' => 'Pilih cara mencatat peserta.'), '/absen-digital/absen');
-    }
-    $userId = null;
-    $nik = null;
-    $nama = '';
-    if ($mode === 'user') {
-        $peserta = absen_find_peserta(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
-        if (!$peserta) {
-            absen_flash_error(array('user_id' => 'Pilih pengguna yang aktif.'), '/absen-digital/absen');
-        }
-        $userId = (int) $peserta['id'];
-        $nama = $peserta['name'];
-    } else {
-        $nik = preg_replace('/\s+/', '', isset($_POST['nik']) ? (string) $_POST['nik'] : '');
-        $nama = absen_post_text('nama', 150);
-        if (!preg_match('/^[0-9]{16}$/', $nik)) {
-            absen_flash_error(array('nik' => 'NIK harus 16 digit angka.'), '/absen-digital/absen');
-        }
-        if ($nama === '') {
-            absen_flash_error(array('nama' => 'Nama peserta wajib diisi jika memakai NIK.'), '/absen-digital/absen');
-        }
-    }
-    if (absen_sudah_hadir($kegiatanId, $userId, $nik)) {
-        absen_flash_error(array('kegiatan_id' => 'Peserta ini sudah tercatat hadir pada kegiatan tersebut.'), '/absen-digital/absen');
-    }
-    $lat = isset($_POST['latitude']) ? (string) $_POST['latitude'] : '';
-    $lng = isset($_POST['longitude']) ? (string) $_POST['longitude'] : '';
-    if (!is_numeric($lat) || (float) $lat < -90 || (float) $lat > 90 || !is_numeric($lng) || (float) $lng < -180 || (float) $lng > 180) {
-        absen_flash_error(array('latitude' => 'Titik lokasi wajib diisi. Gunakan GPS atau isi lintang dan bujur secara manual.'), '/absen-digital/absen');
-    }
-    $foto = absen_store_upload(isset($_FILES['foto']) ? $_FILES['foto'] : null, 'absen-digital/foto', array('jpg', 'jpeg', 'png', 'webp'), 4 * 1024 * 1024, true);
-    if (isset($foto['empty'])) {
-        absen_flash_error(array('foto' => 'Unggah foto kehadiran.'), '/absen-digital/absen');
-    }
-    if (isset($foto['error'])) {
-        absen_flash_error(array('foto' => $foto['error']), '/absen-digital/absen');
-    }
-    $ttd = absen_decode_ttd(isset($_POST['ttd']) ? $_POST['ttd'] : '');
-    if (isset($ttd['error'])) {
-        absen_unlink_rel($foto['path']);
-        absen_flash_error(array('ttd' => $ttd['error']), '/absen-digital/absen');
-    }
-    try {
-        $now = date('Y-m-d H:i:s');
-        $ins = absen_db()->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nik, nama, metode, foto_path, latitude, longitude, ttd_path, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, "form", ?, ?, ?, ?, ?, ?, ?)');
-        $ins->execute(array($kegiatanId, $userId, $nik, $nama, $foto['path'], $lat, $lng, $ttd['path'], (int) $user['id'], $now, $now));
-    } catch (Exception $e) {
-        absen_unlink_rel($foto['path']);
-        absen_unlink_rel($ttd['path']);
-        absen_flash_error(array('kegiatan_id' => 'Absen gagal disimpan. Periksa apakah peserta sudah tercatat.'), '/absen-digital/absen');
-    }
-    absen_flash_success('Absen tersimpan untuk '.$nama.'.', '/absen-digital/absen');
+if ($path === '/absen-digital/absen') {
+    $kode = absen_normalize_kode(isset($_GET['kode']) ? $_GET['kode'] : '');
+    absen_redirect($kode === '' ? '/absen-digital/scan' : '/absen-digital/scan?kode='.rawurlencode($kode));
 }
 
 if (preg_match('#^/absen-digital/berkas/(foto|ttd|dokumentasi|hasil)/(\d+)$#', $path, $m) && $method === 'GET') {
@@ -473,7 +387,7 @@ if ($path === '/absen-digital/cetak/halaman' && $method === 'GET') {
     }
     $params = array();
     $where = absen_where_kegiatan($filters, $params);
-    $sql = 'SELECT h.*, k.nama AS kegiatan_nama, k.jenis, k.tanggal, k.waktu, k.tempat, k.kode
+    $sql = 'SELECT h.*, k.nama AS kegiatan_nama, k.jenis, k.tanggal, k.waktu, k.waktu_mulai, k.waktu_selesai, k.tempat, k.kode
         FROM absen_kehadirans h
         JOIN absen_kegiatans k ON k.id = h.kegiatan_id
         WHERE h.kegiatan_id IN (SELECT id FROM absen_kegiatans '.$where.')

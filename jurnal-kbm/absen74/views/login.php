@@ -1,5 +1,5 @@
 <div class="card" style="max-width:420px">
-    <p class="muted">Masuk untuk membuka menu Absen Digital.</p>
+    <p class="muted">Halaman ini hanya untuk pengelola absen. Guru dan staf absen lewat barcode, tanpa email atau kata sandi.</p>
     <?php if (absen_error('email') !== '') { ?><div class="alert alert-danger"><?php echo absen_e(absen_error('email')); ?></div><?php } ?>
     <form method="post" action="/login">
         <?php echo absen_csrf_field(); ?>

@@ -1,14 +1,18 @@
 <?php
 $aktif = absen_path();
 $admin = isset($authUser) && $authUser && $authUser['role'] === 'admin';
-$menu = array(
-    array('Kegiatan', '/absen-digital/kegiatan'),
-    array('Scan Barcode', '/absen-digital/scan'),
-    array('Absen Saya', '/absen-digital/absen'),
-);
 if ($admin) {
-    $menu[] = array('Ringkasan', '/absen-digital/ringkasan');
-    $menu[] = array('Cetak', '/absen-digital/cetak');
+    $menu = array(
+        array('Absen', '/absen-digital/scan'),
+        array('Kegiatan', '/absen-digital/kegiatan'),
+        array('Ringkasan', '/absen-digital/ringkasan'),
+        array('Cetak', '/absen-digital/cetak'),
+    );
+} else {
+    $menu = array(
+        array('Absen', '/absen-digital/scan'),
+        array('Masuk pengelola', '/login'),
+    );
 }
 $success = absen_success();
 ?>
@@ -62,14 +66,14 @@ $success = absen_success();
     <aside class="side">
         <p class="brand">Absen Digital</p>
         <p class="school">MAN 3 Jember</p>
-        <?php if (!empty($authUser)) { foreach ($menu as $item) { ?>
+        <?php foreach ($menu as $item) { ?>
             <a class="<?php echo strpos($aktif, $item[1]) === 0 ? 'active' : ''; ?>" href="<?php echo absen_e($item[1]); ?>"><?php echo absen_e($item[0]); ?></a>
-        <?php } } ?>
+        <?php } ?>
     </aside>
     <main class="main">
         <div class="top">
             <h1><?php echo absen_e($title); ?></h1>
-            <?php if (!empty($authUser)) { ?>
+            <?php if ($admin) { ?>
                 <form method="post" action="/logout" class="who">
                     <?php echo absen_csrf_field(); ?>
                     <span><?php echo absen_e($authUser['name']); ?></span>

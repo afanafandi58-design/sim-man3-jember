@@ -2,7 +2,8 @@
 $admin = $authUser['role'] === 'admin';
 $scanUrl = absen_base_url().'/absen-digital/scan?kode='.rawurlencode($kegiatan['kode']);
 ?>
-<p class="muted"><?php echo absen_e(isset($jenisMap[$kegiatan['jenis']]) ? $jenisMap[$kegiatan['jenis']] : $kegiatan['jenis']); ?> · <?php echo absen_e(absen_tanggal_label($kegiatan['tanggal'])); ?><?php echo $kegiatan['waktu'] ? ' · '.absen_e($kegiatan['waktu']) : ''; ?></p>
+<p class="muted"><?php echo absen_e(isset($jenisMap[$kegiatan['jenis']]) ? $jenisMap[$kegiatan['jenis']] : $kegiatan['jenis']); ?> · <?php echo absen_e(absen_tanggal_label($kegiatan['tanggal'])); ?><?php $rentang = absen_rentang_label($kegiatan); echo $rentang !== '' ? ' · absen '.absen_e($rentang) : ''; ?></p>
+<?php if ($rentang === '') { ?><div class="alert alert-warning">Rentang waktu absen belum diatur. Peserta belum bisa menyimpan absen.</div><?php } ?>
 <?php if ($admin) { ?><p><a class="btn" href="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/ubah">Ubah</a></p><?php } ?>
 <div class="row">
     <div>
@@ -10,7 +11,7 @@ $scanUrl = absen_base_url().'/absen-digital/scan?kode='.rawurlencode($kegiatan['
             <strong>Kode QR</strong>
             <div id="qrcode" data-text="<?php echo absen_e($scanUrl); ?>"></div>
             <p><strong>Kode:</strong> <span style="font-size:24px"><?php echo absen_e($kegiatan['kode']); ?></span></p>
-            <p class="muted">Tampilkan QR ini saat acara. Peserta juga bisa mengetik kode di menu Scan Barcode.</p>
+            <p class="muted">Tampilkan barcode ini saat acara. Peserta memindainya, mencari nama, lalu mengambil foto selfie.</p>
         </div>
         <div class="card">
             <p><strong>Tempat:</strong> <?php echo absen_e($kegiatan['tempat'] ? $kegiatan['tempat'] : '—'); ?></p>
@@ -27,7 +28,7 @@ $scanUrl = absen_base_url().'/absen-digital/scan?kode='.rawurlencode($kegiatan['
                 <?php foreach ($hadir as $row) { ?>
                     <tr>
                         <td><?php echo absen_e($row['nama']); ?><?php if ($row['nik']) { ?><div class="muted"><?php echo absen_e($row['nik']); ?></div><?php } ?></td>
-                        <td><?php echo $row['metode'] === 'qr' ? 'QR' : 'Formulir'; ?></td>
+                        <td><?php echo absen_e(absen_metode_label($row['metode'])); ?></td>
                         <td><?php echo absen_e($row['created_at']); ?></td>
                         <?php if ($admin) { ?>
                             <td><?php echo ($row['latitude'] !== null && $row['latitude'] !== '') ? absen_e($row['latitude'].', '.$row['longitude']) : '—'; ?></td>

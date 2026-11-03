@@ -20,18 +20,18 @@
 <?php if (!$groups) { ?><p>Tidak ada kehadiran pada saringan ini.</p><?php } ?>
 <?php foreach ($groups as $rows) { $head = $rows[0]; ?>
     <h3><?php echo absen_e($head['kegiatan_nama']); ?></h3>
-    <p><?php echo absen_e(isset($jenisMap[$head['jenis']]) ? $jenisMap[$head['jenis']] : $head['jenis']); ?> · <?php echo absen_e(absen_tanggal_label($head['tanggal'])); ?><?php echo $head['waktu'] ? ' · '.absen_e($head['waktu']) : ''; ?><?php echo $head['tempat'] ? ' · '.absen_e($head['tempat']) : ''; ?></p>
+    <p><?php echo absen_e(isset($jenisMap[$head['jenis']]) ? $jenisMap[$head['jenis']] : $head['jenis']); ?> · <?php echo absen_e(absen_tanggal_label($head['tanggal'])); ?><?php $rentang = absen_rentang_label($head); echo $rentang !== '' ? ' · '.absen_e($rentang) : ''; ?><?php echo $head['tempat'] ? ' · '.absen_e($head['tempat']) : ''; ?></p>
     <table>
-        <thead><tr><th>No</th><th>Nama</th><th>NIK</th><th>Cara</th><th>Koordinat</th><th>Tanda tangan</th></tr></thead>
+        <thead><tr><th>No</th><th>Nama</th><th>NIP</th><th>Cara</th><th>Koordinat</th><th>Foto selfie</th></tr></thead>
         <tbody>
         <?php $n = 1; foreach ($rows as $row) { ?>
             <tr>
                 <td><?php echo $n++; ?></td>
                 <td><?php echo absen_e($row['nama']); ?></td>
                 <td><?php echo absen_e($row['nik']); ?></td>
-                <td><?php echo $row['metode'] === 'qr' ? 'QR' : 'Formulir'; ?></td>
+                <td><?php echo absen_e(absen_metode_label($row['metode'])); ?></td>
                 <td><?php echo ($row['latitude'] !== null && $row['latitude'] !== '') ? absen_e($row['latitude'].', '.$row['longitude']) : ''; ?></td>
-                <td><?php if ($row['ttd_path']) { ?><img src="/absen-digital/berkas/ttd/<?php echo (int) $row['id']; ?>" alt="Tanda tangan <?php echo absen_e($row['nama']); ?>"><?php } ?></td>
+                <td><?php if ($row['foto_path']) { ?><img src="/absen-digital/berkas/foto/<?php echo (int) $row['id']; ?>" alt="Foto <?php echo absen_e($row['nama']); ?>"><?php } ?></td>
             </tr>
         <?php } ?>
         </tbody>

@@ -23,7 +23,8 @@ $val = function ($key) use ($kegiatan) {
                 </select>
             </p>
             <p><label for="tanggal">Tanggal</label><input id="tanggal" type="date" name="tanggal" required value="<?php echo absen_e($val('tanggal')); ?>"></p>
-            <p><label for="waktu">Waktu</label><input id="waktu" type="time" name="waktu" value="<?php echo absen_e($val('waktu')); ?>"></p>
+            <p><label for="waktu_mulai">Jam mulai absen</label><input id="waktu_mulai" type="time" name="waktu_mulai" required value="<?php echo absen_e($val('waktu_mulai')); ?>"><?php if (absen_error('waktu_mulai')) { ?><span class="error"><?php echo absen_e(absen_error('waktu_mulai')); ?></span><?php } ?></p>
+            <p><label for="waktu_selesai">Jam selesai absen</label><input id="waktu_selesai" type="time" name="waktu_selesai" required value="<?php echo absen_e($val('waktu_selesai')); ?>"><?php if (absen_error('waktu_selesai')) { ?><span class="error"><?php echo absen_e(absen_error('waktu_selesai')); ?></span><?php } ?></p>
         </div>
         <p><label for="tempat">Tempat</label><input id="tempat" name="tempat" maxlength="150" value="<?php echo absen_e($val('tempat')); ?>"></p>
         <p><label for="keterangan">Keterangan</label><textarea id="keterangan" name="keterangan" rows="3" maxlength="2000"><?php echo absen_e($val('keterangan')); ?></textarea></p>

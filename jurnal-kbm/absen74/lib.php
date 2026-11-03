@@ -66,6 +66,7 @@ function absen_storage_root()
 
 function absen_boot()
 {
+    date_default_timezone_set('Asia/Jakarta');
     absen_load_env();
     $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
     if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -119,14 +120,16 @@ function absen_migrate()
         'CREATE TABLE IF NOT EXISTS users (
             id INT UNSIGNED NOT NULL AUTO_INCREMENT,
             name VARCHAR(150) NOT NULL,
-            email VARCHAR(190) NOT NULL,
-            password VARCHAR(255) NOT NULL,
+            nip VARCHAR(32) NULL,
+            email VARCHAR(190) NULL,
+            password VARCHAR(255) NULL,
             role VARCHAR(32) NOT NULL,
             is_active TINYINT(1) NOT NULL DEFAULT 1,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
             PRIMARY KEY (id),
-            UNIQUE KEY users_email_unique (email)
+            UNIQUE KEY users_email_unique (email),
+            UNIQUE KEY users_nip_unique (nip)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
         'CREATE TABLE IF NOT EXISTS absen_kegiatans (
             id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -134,6 +137,8 @@ function absen_migrate()
             jenis VARCHAR(32) NOT NULL,
             tanggal DATE NOT NULL,
             waktu VARCHAR(8) NULL,
+            waktu_mulai VARCHAR(5) NULL,
+            waktu_selesai VARCHAR(5) NULL,
             tempat VARCHAR(150) NULL,
             keterangan TEXT NULL,
             kode VARCHAR(32) NOT NULL,
@@ -153,7 +158,7 @@ function absen_migrate()
             id INT UNSIGNED NOT NULL AUTO_INCREMENT,
             kegiatan_id INT UNSIGNED NOT NULL,
             user_id INT UNSIGNED NULL,
-            nik VARCHAR(16) NULL,
+            nik VARCHAR(32) NULL,
             nama VARCHAR(150) NOT NULL,
             metode VARCHAR(16) NOT NULL,
             foto_path VARCHAR(255) NULL,
@@ -187,35 +192,126 @@ function absen_migrate()
     foreach ($statements as $sql) {
         $db->exec($sql);
     }
+    absen_upgrade_schema();
+    absen_drop_login_roles();
     absen_seed_users();
+    absen_import_orang();
+}
+
+function absen_column_meta($table, $column)
+{
+    $allowed = array('users' => true, 'absen_kegiatans' => true, 'absen_kehadirans' => true);
+    if (!isset($allowed[$table])) {
+        return null;
+    }
+    $stmt = absen_db()->prepare('SHOW COLUMNS FROM `'.$table.'` LIKE ?');
+    $stmt->execute(array($column));
+    $row = $stmt->fetch();
+
+    return $row ? $row : null;
+}
+
+function absen_upgrade_schema()
+{
+    $db = absen_db();
+    $email = absen_column_meta('users', 'email');
+    if ($email && strtoupper((string) $email['Null']) !== 'YES') {
+        $db->exec('ALTER TABLE users MODIFY email VARCHAR(190) NULL');
+    }
+    $password = absen_column_meta('users', 'password');
+    if ($password && strtoupper((string) $password['Null']) !== 'YES') {
+        $db->exec('ALTER TABLE users MODIFY password VARCHAR(255) NULL');
+    }
+    if (!absen_column_meta('users', 'nip')) {
+        $db->exec('ALTER TABLE users ADD COLUMN nip VARCHAR(32) NULL AFTER name');
+    }
+    $idx = $db->query("SHOW INDEX FROM users WHERE Key_name = 'users_nip_unique'")->fetch();
+    if (!$idx) {
+        try {
+            $db->exec('ALTER TABLE users ADD UNIQUE KEY users_nip_unique (nip)');
+        } catch (Exception $e) {
+            if (!$db->query("SHOW INDEX FROM users WHERE Key_name = 'users_nip_unique'")->fetch()) {
+                throw $e;
+            }
+        }
+    }
+    if (!absen_column_meta('absen_kegiatans', 'waktu_mulai')) {
+        $db->exec('ALTER TABLE absen_kegiatans ADD COLUMN waktu_mulai VARCHAR(5) NULL AFTER waktu');
+    }
+    if (!absen_column_meta('absen_kegiatans', 'waktu_selesai')) {
+        $db->exec('ALTER TABLE absen_kegiatans ADD COLUMN waktu_selesai VARCHAR(5) NULL AFTER waktu_mulai');
+    }
+    $db->exec("UPDATE absen_kegiatans SET waktu_mulai = SUBSTRING(waktu, 1, 5) WHERE (waktu_mulai IS NULL OR waktu_mulai = '') AND waktu IS NOT NULL AND waktu <> ''");
+    $nik = absen_column_meta('absen_kehadirans', 'nik');
+    if ($nik && stripos((string) $nik['Type'], 'varchar(32)') === false) {
+        $db->exec('ALTER TABLE absen_kehadirans MODIFY nik VARCHAR(32) NULL');
+    }
+}
+
+function absen_drop_login_roles()
+{
+    absen_db()->exec("DELETE FROM users WHERE role IN ('guru', 'staff', 'kepala')");
 }
 
 function absen_seed_users()
 {
-    $rows = array(
-        array('ABSEN_ADMIN_EMAIL', 'ABSEN_ADMIN_PASSWORD', 'ABSEN_ADMIN_NAME', 'admin', 'Admin Absen'),
-        array('ABSEN_GURU_EMAIL', 'ABSEN_GURU_PASSWORD', 'ABSEN_GURU_NAME', 'guru', 'Guru Absen'),
-        array('ABSEN_STAFF_EMAIL', 'ABSEN_STAFF_PASSWORD', 'ABSEN_STAFF_NAME', 'staff', 'Staff Absen'),
-    );
-    $now = date('Y-m-d H:i:s');
+    $email = trim(absen_env('ABSEN_ADMIN_EMAIL'));
+    $password = absen_env('ABSEN_ADMIN_PASSWORD');
+    $name = trim(absen_env('ABSEN_ADMIN_NAME'));
+    if ($name === '') {
+        $name = 'Admin Absen';
+    }
+    if ($email === '' || $password === '') {
+        return;
+    }
     $db = absen_db();
+    $check = $db->prepare('SELECT id FROM users WHERE email = ?');
+    $check->execute(array($email));
+    if ($check->fetch()) {
+        return;
+    }
+    $now = date('Y-m-d H:i:s');
+    $insert = $db->prepare('INSERT INTO users (name, email, password, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)');
+    $insert->execute(array($name, $email, password_hash($password, PASSWORD_DEFAULT), 'admin', $now, $now));
+}
+
+function absen_import_orang()
+{
+    $path = __DIR__.'/data/orang.php';
+    if (!is_file($path)) {
+        return;
+    }
+    $rows = include $path;
+    if (!is_array($rows)) {
+        return;
+    }
+    $db = absen_db();
+    $now = date('Y-m-d H:i:s');
+    $byNip = $db->prepare('SELECT id FROM users WHERE nip = ?');
+    $byName = $db->prepare("SELECT id FROM users WHERE role = 'user' AND nip IS NULL AND name = ?");
+    $update = $db->prepare('UPDATE users SET name = ?, role = ?, is_active = 1, updated_at = ? WHERE id = ?');
+    $insert = $db->prepare('INSERT INTO users (name, nip, email, password, role, is_active, created_at, updated_at) VALUES (?, ?, NULL, NULL, ?, 1, ?, ?)');
     foreach ($rows as $row) {
-        $email = trim(absen_env($row[0]));
-        $password = absen_env($row[1]);
-        $name = trim(absen_env($row[2]));
+        if (!is_array($row)) {
+            continue;
+        }
+        $name = preg_replace('/\s+/', ' ', trim(isset($row['name']) ? (string) $row['name'] : ''));
+        $nip = preg_replace('/\s+/', '', trim(isset($row['nip']) ? (string) $row['nip'] : ''));
         if ($name === '') {
-            $name = $row[4];
-        }
-        if ($email === '' || $password === '') {
             continue;
         }
-        $check = $db->prepare('SELECT id FROM users WHERE email = ?');
-        $check->execute(array($email));
-        if ($check->fetch()) {
+        if ($nip !== '') {
+            $byNip->execute(array($nip));
+            $found = $byNip->fetch();
+        } else {
+            $byName->execute(array($name));
+            $found = $byName->fetch();
+        }
+        if ($found) {
+            $update->execute(array($name, 'user', $now, $found['id']));
             continue;
         }
-        $insert = $db->prepare('INSERT INTO users (name, email, password, role, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)');
-        $insert->execute(array($name, $email, password_hash($password, PASSWORD_DEFAULT), $row[3], $now, $now));
+        $insert->execute(array($name, $nip === '' ? null : $nip, 'user', $now, $now));
     }
 }
 
@@ -234,9 +330,7 @@ function absen_peran()
 {
     return array(
         'admin' => 'Admin',
-        'guru' => 'Guru',
-        'staff' => 'Staff',
-        'kepala' => 'Kepala',
+        'user' => 'Pengguna',
     );
 }
 
@@ -374,13 +468,13 @@ function absen_user()
 
 function absen_roles_absen()
 {
-    return array('admin', 'guru', 'staff', 'kepala');
+    return array('admin');
 }
 
 function absen_require_user()
 {
     $user = absen_user();
-    if (!$user || !in_array($user['role'], absen_roles_absen(), true)) {
+    if (!$user || $user['role'] !== 'admin') {
         absen_redirect('/login');
     }
 
@@ -566,17 +660,12 @@ function absen_kegiatan($id)
 
 function absen_peserta()
 {
-    $roles = absen_roles_absen();
-    $marks = implode(',', array_fill(0, count($roles), '?'));
-    $stmt = absen_db()->prepare('SELECT id, name, role FROM users WHERE is_active = 1 AND role IN ('.$marks.') ORDER BY name');
-    $stmt->execute($roles);
-
-    return $stmt->fetchAll();
+    return absen_db()->query("SELECT id, name, nip FROM users WHERE is_active = 1 AND role = 'user' ORDER BY name")->fetchAll();
 }
 
 function absen_find_peserta($id)
 {
-    $stmt = absen_db()->prepare("SELECT id, name, role FROM users WHERE id = ? AND is_active = 1 AND role IN ('admin','guru','staff','kepala')");
+    $stmt = absen_db()->prepare("SELECT id, name, nip, role FROM users WHERE id = ? AND is_active = 1 AND role = 'user'");
     $stmt->execute(array((int) $id));
     $row = $stmt->fetch();
 
@@ -611,13 +700,121 @@ function absen_post_text($key, $max)
     return substr($value, 0, $max);
 }
 
+function absen_jam($value)
+{
+    $value = trim((string) $value);
+    if (!preg_match('/^(\d{2}):(\d{2})/', $value, $match)) {
+        return '';
+    }
+    $hour = (int) $match[1];
+    $minute = (int) $match[2];
+    if ($hour < 0 || $hour > 23 || $minute < 0 || $minute > 59) {
+        return '';
+    }
+
+    return sprintf('%02d:%02d', $hour, $minute);
+}
+
+function absen_rentang_label($kegiatan)
+{
+    $mulai = absen_jam(isset($kegiatan['waktu_mulai']) ? $kegiatan['waktu_mulai'] : '');
+    $selesai = absen_jam(isset($kegiatan['waktu_selesai']) ? $kegiatan['waktu_selesai'] : '');
+    if ($mulai === '' || $selesai === '') {
+        return '';
+    }
+
+    return $mulai.'–'.$selesai;
+}
+
+function absen_rentang_blokir($kegiatan)
+{
+    $mulai = absen_jam(isset($kegiatan['waktu_mulai']) ? $kegiatan['waktu_mulai'] : '');
+    $selesai = absen_jam(isset($kegiatan['waktu_selesai']) ? $kegiatan['waktu_selesai'] : '');
+    if ($mulai === '' || $selesai === '') {
+        return 'Admin belum menentukan rentang waktu absen.';
+    }
+    $tanggal = isset($kegiatan['tanggal']) ? (string) $kegiatan['tanggal'] : '';
+    if (strlen($tanggal) > 10) {
+        $tanggal = substr($tanggal, 0, 10);
+    }
+    $label = $mulai.'–'.$selesai;
+    if ($tanggal !== date('Y-m-d')) {
+        return 'Absen hanya bisa pada '.absen_tanggal_label($tanggal).' pukul '.$label.'.';
+    }
+    $now = date('H:i');
+    if ($now < $mulai || $now > $selesai) {
+        return 'Di luar rentang waktu absen ('.$label.').';
+    }
+
+    return '';
+}
+
+function absen_metode_label($metode)
+{
+    if ($metode === 'qr' || $metode === 'barcode') {
+        return 'Barcode';
+    }
+
+    return 'Formulir';
+}
+
+function absen_simpan_publik($kegiatan)
+{
+    $back = '/absen-digital/scan?kode='.rawurlencode($kegiatan['kode']);
+    $blokir = absen_rentang_blokir($kegiatan);
+    if ($blokir !== '') {
+        absen_flash_error(array('rentang' => $blokir), $back);
+    }
+    $peserta = absen_find_peserta(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
+    if (!$peserta) {
+        absen_flash_error(array('user_id' => 'Pilih nama dari hasil pencarian.'), $back);
+    }
+    if (absen_sudah_hadir($kegiatan['id'], $peserta['id'], null)) {
+        absen_flash_error(array('user_id' => $peserta['name'].' sudah tercatat hadir.'), $back);
+    }
+    $lat = isset($_POST['latitude']) ? (string) $_POST['latitude'] : '';
+    $lng = isset($_POST['longitude']) ? (string) $_POST['longitude'] : '';
+    if (!is_numeric($lat) || (float) $lat < -90 || (float) $lat > 90 || !is_numeric($lng) || (float) $lng < -180 || (float) $lng > 180) {
+        absen_flash_error(array('latitude' => 'Titik lokasi wajib diisi. Gunakan GPS atau isi lintang dan bujur secara manual.'), $back);
+    }
+    $foto = absen_store_upload(isset($_FILES['foto']) ? $_FILES['foto'] : null, 'absen-digital/foto', array('jpg', 'jpeg', 'png', 'webp'), 4 * 1024 * 1024, true);
+    if (isset($foto['empty'])) {
+        absen_flash_error(array('foto' => 'Absen tidak bisa disimpan tanpa foto selfie.'), $back);
+    }
+    if (isset($foto['error'])) {
+        absen_flash_error(array('foto' => $foto['error']), $back);
+    }
+    $nip = isset($peserta['nip']) ? trim((string) $peserta['nip']) : '';
+    try {
+        $now = date('Y-m-d H:i:s');
+        $ins = absen_db()->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nik, nama, metode, foto_path, latitude, longitude, ttd_path, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?)');
+        $ins->execute(array(
+            $kegiatan['id'],
+            $peserta['id'],
+            $nip === '' ? null : $nip,
+            $peserta['name'],
+            'barcode',
+            $foto['path'],
+            $lat,
+            $lng,
+            $now,
+            $now,
+        ));
+    } catch (Exception $e) {
+        absen_unlink_rel($foto['path']);
+        absen_flash_error(array('user_id' => 'Absen gagal disimpan. Periksa apakah nama ini sudah tercatat.'), $back);
+    }
+    absen_flash_success('Absen '.$peserta['name'].' tersimpan.', $back);
+}
+
 function absen_valid_kegiatan_input()
 {
     $jenis = absen_jenis();
     $nama = absen_post_text('nama', 150);
     $jenisKey = isset($_POST['jenis']) ? (string) $_POST['jenis'] : '';
     $tanggal = isset($_POST['tanggal']) ? (string) $_POST['tanggal'] : '';
-    $waktu = isset($_POST['waktu']) ? trim((string) $_POST['waktu']) : '';
+    $mulai = absen_jam(isset($_POST['waktu_mulai']) ? $_POST['waktu_mulai'] : '');
+    $selesai = absen_jam(isset($_POST['waktu_selesai']) ? $_POST['waktu_selesai'] : '');
     $tempat = absen_post_text('tempat', 150);
     $keterangan = absen_post_text('keterangan', 2000);
     $errors = array();
@@ -630,21 +827,26 @@ function absen_valid_kegiatan_input()
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) || strtotime($tanggal) === false) {
         $errors['tanggal'] = 'Tanggal kegiatan wajib diisi.';
     }
-    if ($waktu !== '' && !preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $waktu)) {
-        $errors['waktu'] = 'Format waktu tidak valid.';
+    if ($mulai === '') {
+        $errors['waktu_mulai'] = 'Jam mulai wajib diisi.';
+    }
+    if ($selesai === '') {
+        $errors['waktu_selesai'] = 'Jam selesai wajib diisi.';
+    }
+    if ($mulai !== '' && $selesai !== '' && $selesai <= $mulai) {
+        $errors['waktu_selesai'] = 'Jam selesai harus lebih akhir dari jam mulai pada hari yang sama.';
     }
     if ($errors) {
         return array('errors' => $errors);
-    }
-    if (strlen($waktu) > 5) {
-        $waktu = substr($waktu, 0, 5);
     }
 
     return array(
         'nama' => $nama,
         'jenis' => $jenisKey,
         'tanggal' => $tanggal,
-        'waktu' => $waktu === '' ? null : $waktu,
+        'waktu' => $mulai,
+        'waktu_mulai' => $mulai,
+        'waktu_selesai' => $selesai,
         'tempat' => $tempat === '' ? null : $tempat,
         'keterangan' => $keterangan === '' ? null : $keterangan,
     );
