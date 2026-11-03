@@ -54,7 +54,8 @@ $success = absen_success();
         .muted { color: #5f6f64; }
         .error { color: #b71c1c; font-size: 14px; }
         .who { font-size: 14px; }
-        #ttd-canvas { width: 100%; height: 300px; touch-action: none; background: #fff; border: 2px dashed #2e7d32; border-radius: 12px; display: block; }
+        .ttd-kotak { position: relative; z-index: 2; display: block; width: 100%; height: 320px; margin: 8px 0 12px; touch-action: none; }
+        #ttd-canvas { position: relative; z-index: 3; width: 100%; height: 320px; touch-action: none; background: #fff; border: 2px dashed #2e7d32; border-radius: 12px; display: block; pointer-events: auto; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
         #daftar-identitas { max-height: 360px; overflow: auto; border: 1px solid #c9d4cc; border-radius: 8px; margin: 8px 0 12px; }
         .identitas { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #e4ebe6; font-weight: 600; }
         .identitas input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
@@ -91,6 +92,6 @@ $success = absen_success();
     </main>
 </div>
 <script src="/vendor/absen-digital/qrcode.min.js"></script>
-<script src="/js/absen-digital.js"></script>
+<script src="/js/absen-digital.js?v=ttd3"></script>
 </body>
 </html>

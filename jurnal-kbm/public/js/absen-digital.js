@@ -123,6 +123,7 @@
         var input = document.getElementById('ttd-input');
         var clear = document.getElementById('ttd-clear');
         var error = document.getElementById('ttd-error');
+        var box = document.getElementById('ttd-kotak') || canvas;
         var form = document.getElementById('form-absen-scan') || document.getElementById('form-absen');
         if (!canvas || !input || !form) {
             return;
@@ -130,79 +131,175 @@
         var ctx = canvas.getContext('2d');
         var dirty = false;
         var drawing = false;
-        var ratio = 1;
+        var activeId = null;
+        var fitted = false;
+        canvas.style.touchAction = 'none';
+        if (box && box.style) {
+            box.style.touchAction = 'none';
+        }
+
+        function listen(el, name, fn) {
+            try {
+                el.addEventListener(name, fn, { passive: false });
+            } catch (err) {
+                el.addEventListener(name, fn, false);
+            }
+        }
 
         function paintBackground() {
-            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.fillStyle = '#fff';
-            ctx.fillRect(0, 0, canvas.width / ratio, canvas.height / ratio);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.strokeStyle = '#111';
-            ctx.lineWidth = 3.4;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
+            ctx.lineWidth = Math.max(4, Math.round((canvas.width || 300) / 90));
         }
 
-        function resize() {
-            ratio = Math.max(window.devicePixelRatio || 1, 1);
-            var width = canvas.clientWidth || canvas.parentElement.clientWidth || 320;
-            var height = canvas.clientHeight || 300;
-            canvas.width = Math.round(width * ratio);
-            canvas.height = Math.round(height * ratio);
-            paintBackground();
-            dirty = false;
-        }
-
-        var fitted = false;
         function fit() {
-            if (canvas.clientWidth < 20) {
+            if (dirty) {
                 return;
             }
-            resize();
+            var rect = canvas.getBoundingClientRect();
+            if (rect.width < 20 || rect.height < 20) {
+                return;
+            }
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = Math.round(rect.width * ratio);
+            canvas.height = Math.round(rect.height * ratio);
+            paintBackground();
             fitted = true;
         }
-        fit();
+
+        function arm() {
+            fit();
+            if (!fitted) {
+                setTimeout(fit, 60);
+                setTimeout(fit, 280);
+            }
+        }
+        arm();
+        document.addEventListener('ttd-buka', arm);
         var pembuka = document.getElementById('btn-kegiatan');
         if (pembuka) {
             pembuka.addEventListener('click', function () {
-                setTimeout(fit, 40);
+                setTimeout(arm, 0);
             });
         }
 
-        function point(event) {
+        function pointFrom(clientX, clientY) {
             var rect = canvas.getBoundingClientRect();
-            return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+            var scaleX = rect.width ? canvas.width / rect.width : 1;
+            var scaleY = rect.height ? canvas.height / rect.height : 1;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
         }
 
-        canvas.addEventListener('pointerdown', function (event) {
+        function touchPoint(event) {
+            var list = event.touches && event.touches.length ? event.touches : event.changedTouches;
+            if (!list || !list.length) {
+                return null;
+            }
+            var i;
+            var touch = list[0];
+            if (activeId !== null) {
+                for (i = 0; i < list.length; i++) {
+                    if (list[i].identifier === activeId) {
+                        touch = list[i];
+                        break;
+                    }
+                }
+            }
+            return pointFrom(touch.clientX, touch.clientY);
+        }
+
+        function start(p) {
+            if (!p) {
+                return;
+            }
             if (!fitted) {
                 fit();
             }
-            canvas.setPointerCapture(event.pointerId);
             drawing = true;
-            var p = point(event);
+            dirty = true;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
-            event.preventDefault();
-        });
-        canvas.addEventListener('pointermove', function (event) {
-            if (!drawing) {
+            ctx.lineTo(p.x + 0.01, p.y + 0.01);
+            ctx.stroke();
+        }
+
+        function move(p) {
+            if (!drawing || !p) {
                 return;
             }
-            var p = point(event);
             ctx.lineTo(p.x, p.y);
             ctx.stroke();
             dirty = true;
-            event.preventDefault();
+        }
+
+        function stop() {
+            drawing = false;
+            activeId = null;
+        }
+
+        function block(event) {
+            if (event.cancelable) {
+                event.preventDefault();
+            }
+        }
+
+        listen(canvas, 'touchstart', function (event) {
+            block(event);
+            if (event.changedTouches && event.changedTouches[0]) {
+                activeId = event.changedTouches[0].identifier;
+            }
+            start(touchPoint(event));
         });
-        function stop() { drawing = false; }
-        canvas.addEventListener('pointerup', stop);
-        canvas.addEventListener('pointercancel', stop);
+        listen(canvas, 'touchmove', function (event) {
+            block(event);
+            move(touchPoint(event));
+        });
+        listen(box, 'touchmove', function (event) {
+            if (drawing) {
+                block(event);
+            }
+        });
+        listen(canvas, 'touchend', function (event) {
+            block(event);
+            move(touchPoint(event));
+            stop();
+        });
+        listen(canvas, 'touchcancel', function (event) {
+            block(event);
+            stop();
+        });
+
+        canvas.addEventListener('mousedown', function (event) {
+            if (event.button !== 0) {
+                return;
+            }
+            event.preventDefault();
+            start(pointFrom(event.clientX, event.clientY));
+        });
+        window.addEventListener('mousemove', function (event) {
+            if (!drawing || activeId !== null) {
+                return;
+            }
+            move(pointFrom(event.clientX, event.clientY));
+        });
+        window.addEventListener('mouseup', function () {
+            if (activeId === null) {
+                stop();
+            }
+        });
 
         if (clear) {
             clear.addEventListener('click', function () {
-                paintBackground();
                 dirty = false;
                 input.value = '';
+                paintBackground();
                 if (error) {
                     error.textContent = '';
                 }
@@ -217,8 +314,15 @@
                 }
                 return;
             }
-            input.value = canvas.toDataURL('image/png');
-        });
+            try {
+                input.value = canvas.toDataURL('image/png');
+            } catch (err) {
+                event.preventDefault();
+                if (error) {
+                    error.textContent = 'Tanda tangan tidak terbaca. Gambar ulang di kotak.';
+                }
+            }
+        }, true);
     }
 
     function applyScan(raw) {

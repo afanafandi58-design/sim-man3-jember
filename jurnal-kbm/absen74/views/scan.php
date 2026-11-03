@@ -44,10 +44,10 @@
                     </div>
                     <p id="nama-terpilih" class="muted">Belum ada identitas dipilih.</p>
                     <p><label for="foto">Upload foto</label><input id="foto" type="file" name="foto" accept="image/*" capture="user" required><span class="muted">Absen tidak bisa disimpan tanpa foto. Maksimal 4 MB.</span></p>
-                    <p><label for="ttd-canvas">Tanda tangan di layar</label>
-                        <canvas id="ttd-canvas" aria-label="Kanvas tanda tangan"></canvas>
+                    <p><span id="ttd-label">Tanda tangan di layar</span>
+                        <span class="ttd-kotak" id="ttd-kotak"><canvas id="ttd-canvas" width="640" height="320" aria-labelledby="ttd-label"></canvas></span>
                         <input type="hidden" name="ttd" id="ttd-input">
-                        <span class="muted">Gambar dengan jari. Kotaknya bisa digeser tanpa menggulir halaman.</span>
+                        <span class="muted">Gambar dengan jari di dalam kotak. Halaman tidak ikut tergulung.</span>
                         <button type="button" class="btn btn-lg" id="ttd-clear">Hapus tanda tangan</button>
                         <span id="ttd-error" class="error"></span>
                     </p>
@@ -64,6 +64,13 @@
                 if (tombol && langkah) {
                     tombol.addEventListener('click', function () {
                         langkah.hidden = false;
+                        try {
+                            document.dispatchEvent(new Event('ttd-buka'));
+                        } catch (err) {
+                            var legacy = document.createEvent('Event');
+                            legacy.initEvent('ttd-buka', true, true);
+                            document.dispatchEvent(legacy);
+                        }
                         if (langkah.scrollIntoView) {
                             langkah.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
