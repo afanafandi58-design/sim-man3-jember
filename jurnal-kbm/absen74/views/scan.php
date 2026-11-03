@@ -1,5 +1,5 @@
 <div class="card">
-    <p>Pindai barcode, ketuk nama kegiatan, pilih identitas, unggah foto, lalu tanda tangan. Satu kegiatan hanya bisa diabsen dari satu perangkat Android. Satu identitas hanya sekali. Peserta tidak memakai email atau kata sandi.</p>
+    <p>Pindai barcode dari perangkat Android, ketuk nama kegiatan, pilih identitas, unggah foto, lalu tanda tangan. Setelah absen pertama berhasil, perangkat itu tidak bisa dipakai lagi untuk nama lain pada kegiatan yang sama. Satu identitas hanya sekali.</p>
     <button type="button" class="btn btn-success btn-lg" id="btn-kamera">Buka kamera</button>
     <p id="scan-status" class="muted"></p>
     <video id="scan-video" class="absen-video" playsinline muted></video>

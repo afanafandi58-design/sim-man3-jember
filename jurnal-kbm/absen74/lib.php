@@ -166,6 +166,7 @@ function absen_migrate()
             latitude DECIMAL(10,7) NULL,
             longitude DECIMAL(10,7) NULL,
             ttd_path VARCHAR(255) NULL,
+            perangkat_id VARCHAR(64) NULL,
             dicatat_oleh INT UNSIGNED NULL,
             created_at DATETIME NULL,
             updated_at DATETIME NULL,
@@ -250,6 +251,10 @@ function absen_upgrade_schema()
     if (!absen_column_meta('absen_kegiatans', 'perangkat_id')) {
         $db->exec('ALTER TABLE absen_kegiatans ADD COLUMN perangkat_id VARCHAR(64) NULL AFTER kode');
     }
+    if (!absen_column_meta('absen_kehadirans', 'perangkat_id')) {
+        $db->exec('ALTER TABLE absen_kehadirans ADD COLUMN perangkat_id VARCHAR(64) NULL AFTER ttd_path');
+    }
+    $db->exec("UPDATE absen_kehadirans h INNER JOIN absen_kegiatans k ON k.id = h.kegiatan_id SET h.perangkat_id = k.perangkat_id WHERE (h.perangkat_id IS NULL OR h.perangkat_id = '') AND k.perangkat_id IS NOT NULL AND k.perangkat_id <> ''");
 }
 
 function absen_drop_login_roles()
@@ -799,18 +804,29 @@ function absen_set_perangkat_cookie($id)
     $_COOKIE['absen_perangkat'] = $id;
 }
 
+function absen_pesan_perangkat_terpakai()
+{
+    return 'Perangkat Android ini sudah dipakai untuk absen pada kegiatan ini. Perangkat yang sama tidak bisa mengabsenkan nama lain.';
+}
+
+function absen_perangkat_sudah($kegiatanId, $perangkatId)
+{
+    if ($perangkatId === '') {
+        return false;
+    }
+    $stmt = absen_db()->prepare('SELECT id FROM absen_kehadirans WHERE kegiatan_id = ? AND perangkat_id = ? LIMIT 1');
+    $stmt->execute(array((int) $kegiatanId, $perangkatId));
+
+    return (bool) $stmt->fetch();
+}
+
 function absen_pesan_perangkat($kegiatan)
 {
     if (!absen_android()) {
-        return 'Absen hanya bisa dari satu perangkat Android. Perangkat ini bukan Android.';
+        return 'Absen dilakukan dari perangkat Android. Perangkat ini bukan Android.';
     }
-    $locked = isset($kegiatan['perangkat_id']) ? (string) $kegiatan['perangkat_id'] : '';
-    if ($locked === '') {
-        return '';
-    }
-    $mine = absen_perangkat_id();
-    if ($mine === '' || !hash_equals($locked, $mine)) {
-        return 'Kegiatan ini sudah diabsen dari perangkat Android lain. Perangkat ini ditolak.';
+    if (absen_perangkat_sudah($kegiatan['id'], absen_perangkat_id())) {
+        return absen_pesan_perangkat_terpakai();
     }
 
     return '';
@@ -861,23 +877,15 @@ function absen_simpan_publik($kegiatan)
     $db = absen_db();
     try {
         $db->beginTransaction();
-        $kunci = $db->prepare('SELECT perangkat_id FROM absen_kegiatans WHERE id = ? FOR UPDATE');
+        $kunci = $db->prepare('SELECT id FROM absen_kegiatans WHERE id = ? FOR UPDATE');
         $kunci->execute(array($kegiatan['id']));
-        $row = $kunci->fetch();
-        $locked = $row && isset($row['perangkat_id']) ? (string) $row['perangkat_id'] : '';
         $mine = absen_perangkat_id();
-        if ($locked !== '') {
-            if ($mine === '' || !hash_equals($locked, $mine)) {
-                $db->rollBack();
-                absen_unlink_rel($foto['path']);
-                absen_unlink_rel($ttd['path']);
-                absen_flash_error(array('perangkat' => 'Kegiatan ini sudah diabsen dari perangkat Android lain. Perangkat ini ditolak.'), $back);
-            }
-            $pakai = $locked;
-        } else {
-            $pakai = $mine !== '' ? $mine : bin2hex(random_bytes(16));
-            $upd = $db->prepare('UPDATE absen_kegiatans SET perangkat_id = ? WHERE id = ?');
-            $upd->execute(array($pakai, $kegiatan['id']));
+        $pakai = $mine !== '' ? $mine : bin2hex(random_bytes(16));
+        if (absen_perangkat_sudah($kegiatan['id'], $pakai)) {
+            $db->rollBack();
+            absen_unlink_rel($foto['path']);
+            absen_unlink_rel($ttd['path']);
+            absen_flash_error(array('perangkat' => absen_pesan_perangkat_terpakai()), $back);
         }
         if (absen_sudah_hadir($kegiatan['id'], $peserta['id'], null)) {
             $db->rollBack();
@@ -886,7 +894,7 @@ function absen_simpan_publik($kegiatan)
             absen_flash_error(array('user_id' => $peserta['name'].' sudah absen pada kegiatan ini. Satu identitas hanya bisa absen sekali.'), $back);
         }
         $now = date('Y-m-d H:i:s');
-        $ins = $db->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nik, nama, metode, foto_path, latitude, longitude, ttd_path, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)');
+        $ins = $db->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nik, nama, metode, foto_path, latitude, longitude, ttd_path, perangkat_id, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)');
         $ins->execute(array(
             $kegiatan['id'],
             $peserta['id'],
@@ -897,6 +905,7 @@ function absen_simpan_publik($kegiatan)
             $latVal,
             $lngVal,
             $ttd['path'],
+            $pakai,
             $now,
             $now,
         ));
