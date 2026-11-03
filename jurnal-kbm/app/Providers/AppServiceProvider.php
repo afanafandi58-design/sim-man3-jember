@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\AbsensiHarianService;
 use App\Services\OperationalDateService;
+use App\Support\TitikESchema;
+use App\Support\TitikFSchema;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -32,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('role-kepala-or-admin', fn ($user) => $user && in_array($user->role, ['kepala', 'admin'], true));
         Gate::define('role-kepala', fn ($user) => $user && $user->role === 'kepala');
         Gate::define('role-absensi-modul', fn ($user) => $user && in_array($user->role, ['guru', 'staff', 'admin', 'kepala'], true));
+        Gate::define('role-absen-digital', fn ($user) => $user && in_array($user->role, ['admin', 'guru', 'staff', 'kepala'], true));
+        Gate::define('role-absen-admin', fn ($user) => $user && $user->role === 'admin');
         Gate::define('role-lms', fn ($user) => $user && in_array($user->role, ['admin', 'guru', 'kepala'], true));
         Gate::define('role-lms-guru-or-admin', fn ($user) => $user && in_array($user->role, ['admin', 'guru'], true));
         Gate::define('role-lms-kamad-or-admin', fn ($user) => $user && in_array($user->role, ['admin', 'kepala'], true));
@@ -45,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
             try {
-                return app(\App\Services\AbsensiHarianService::class)->isWaliKelas($user);
+                return app(AbsensiHarianService::class)->isWaliKelas($user);
             } catch (\Throwable) {
                 return false;
             }
@@ -53,8 +58,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Titik E/F: pastikan skema ada (shared hosting tanpa artisan).
         try {
-            \App\Support\TitikESchema::ensure();
-            \App\Support\TitikFSchema::ensure();
+            TitikESchema::ensure();
+            TitikFSchema::ensure();
         } catch (\Throwable) {
             // diamkan bila DB belum siap saat boot CLI
         }

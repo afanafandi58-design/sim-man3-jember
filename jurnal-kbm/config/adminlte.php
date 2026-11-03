@@ -1,5 +1,13 @@
 <?php
 
+use JeroenNoten\LaravelAdminLte\Menu\Filters\ActiveFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\HrefFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter;
+use JeroenNoten\LaravelAdminLte\Menu\Filters\SearchFilter;
+
 return [
 
     /*
@@ -319,7 +327,7 @@ return [
         // Dashboard Admin
         [
             'text' => 'Dashboard',
-            'url'  => '/dashboard',
+            'url' => '/dashboard',
             'icon' => 'fas fa-tachometer-alt',
             'can' => 'role-admin',
         ],
@@ -395,6 +403,44 @@ return [
             'route' => 'absensi-modul.staff.manage',
             'icon' => 'fas fa-user-shield',
             'can' => 'role-admin',
+        ],
+
+        [
+            'text' => 'Absen Digital',
+            'icon' => 'fas fa-qrcode',
+            'can' => 'role-absen-digital',
+            'submenu' => [
+                [
+                    'text' => 'Kegiatan',
+                    'route' => 'absen-digital.kegiatan.index',
+                    'icon' => 'fas fa-calendar-alt',
+                    'can' => 'role-absen-digital',
+                ],
+                [
+                    'text' => 'Scan Barcode',
+                    'route' => 'absen-digital.scan',
+                    'icon' => 'fas fa-camera',
+                    'can' => 'role-absen-digital',
+                ],
+                [
+                    'text' => 'Absen Saya',
+                    'route' => 'absen-digital.form',
+                    'icon' => 'fas fa-pen-fancy',
+                    'can' => 'role-absen-digital',
+                ],
+                [
+                    'text' => 'Ringkasan',
+                    'route' => 'absen-digital.ringkasan',
+                    'icon' => 'fas fa-chart-pie',
+                    'can' => 'role-absen-admin',
+                ],
+                [
+                    'text' => 'Cetak',
+                    'route' => 'absen-digital.cetak',
+                    'icon' => 'fas fa-print',
+                    'can' => 'role-absen-admin',
+                ],
+            ],
         ],
 
         ['header' => 'MASTER DATA', 'can' => 'role-admin'],
@@ -628,13 +674,13 @@ return [
     */
 
     'filters' => [
-        JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\HrefFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\SearchFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\ActiveFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter::class,
-        JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter::class,
+        GateFilter::class,
+        HrefFilter::class,
+        SearchFilter::class,
+        ActiveFilter::class,
+        ClassesFilter::class,
+        LangFilter::class,
+        DataFilter::class,
     ],
 
     /*
