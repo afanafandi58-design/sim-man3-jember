@@ -11,7 +11,7 @@ $scanUrl = absen_base_url().'/absen-digital/scan?kode='.rawurlencode($kegiatan['
             <strong>Kode QR</strong>
             <div id="qrcode" data-text="<?php echo absen_e($scanUrl); ?>"></div>
             <p><strong>Kode:</strong> <span style="font-size:24px"><?php echo absen_e($kegiatan['kode']); ?></span></p>
-            <p class="muted">Tampilkan barcode ini saat acara. Peserta memindainya, mencari nama, lalu mengambil foto selfie.</p>
+            <p class="muted">Tampilkan barcode ini saat acara. Peserta mengetuk nama kegiatan, memilih identitas, mengunggah foto, lalu menandatangani di layar.</p>
         </div>
         <div class="card">
             <p><strong>Tempat:</strong> <?php echo absen_e($kegiatan['tempat'] ? $kegiatan['tempat'] : '—'); ?></p>

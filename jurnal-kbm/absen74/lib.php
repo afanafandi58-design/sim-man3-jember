@@ -767,15 +767,21 @@ function absen_simpan_publik($kegiatan)
     }
     $peserta = absen_find_peserta(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
     if (!$peserta) {
-        absen_flash_error(array('user_id' => 'Pilih nama dari hasil pencarian.'), $back);
+        absen_flash_error(array('user_id' => 'Pilih satu identitas.'), $back);
     }
     if (absen_sudah_hadir($kegiatan['id'], $peserta['id'], null)) {
         absen_flash_error(array('user_id' => $peserta['name'].' sudah tercatat hadir.'), $back);
     }
-    $lat = isset($_POST['latitude']) ? (string) $_POST['latitude'] : '';
-    $lng = isset($_POST['longitude']) ? (string) $_POST['longitude'] : '';
-    if (!is_numeric($lat) || (float) $lat < -90 || (float) $lat > 90 || !is_numeric($lng) || (float) $lng < -180 || (float) $lng > 180) {
-        absen_flash_error(array('latitude' => 'Titik lokasi wajib diisi. Gunakan GPS atau isi lintang dan bujur secara manual.'), $back);
+    $lat = isset($_POST['latitude']) ? trim((string) $_POST['latitude']) : '';
+    $lng = isset($_POST['longitude']) ? trim((string) $_POST['longitude']) : '';
+    $latVal = null;
+    $lngVal = null;
+    if ($lat !== '' || $lng !== '') {
+        if (!is_numeric($lat) || (float) $lat < -90 || (float) $lat > 90 || !is_numeric($lng) || (float) $lng < -180 || (float) $lng > 180) {
+            absen_flash_error(array('latitude' => 'Titik lokasi tidak valid.'), $back);
+        }
+        $latVal = $lat;
+        $lngVal = $lng;
     }
     $foto = absen_store_upload(isset($_FILES['foto']) ? $_FILES['foto'] : null, 'absen-digital/foto', array('jpg', 'jpeg', 'png', 'webp'), 4 * 1024 * 1024, true);
     if (isset($foto['empty'])) {
@@ -784,10 +790,15 @@ function absen_simpan_publik($kegiatan)
     if (isset($foto['error'])) {
         absen_flash_error(array('foto' => $foto['error']), $back);
     }
+    $ttd = absen_decode_ttd(isset($_POST['ttd']) ? $_POST['ttd'] : '');
+    if (isset($ttd['error'])) {
+        absen_unlink_rel($foto['path']);
+        absen_flash_error(array('ttd' => $ttd['error']), $back);
+    }
     $nip = isset($peserta['nip']) ? trim((string) $peserta['nip']) : '';
     try {
         $now = date('Y-m-d H:i:s');
-        $ins = absen_db()->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nik, nama, metode, foto_path, latitude, longitude, ttd_path, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?)');
+        $ins = absen_db()->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nik, nama, metode, foto_path, latitude, longitude, ttd_path, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)');
         $ins->execute(array(
             $kegiatan['id'],
             $peserta['id'],
@@ -795,13 +806,15 @@ function absen_simpan_publik($kegiatan)
             $peserta['name'],
             'barcode',
             $foto['path'],
-            $lat,
-            $lng,
+            $latVal,
+            $lngVal,
+            $ttd['path'],
             $now,
             $now,
         ));
     } catch (Exception $e) {
         absen_unlink_rel($foto['path']);
+        absen_unlink_rel($ttd['path']);
         absen_flash_error(array('user_id' => 'Absen gagal disimpan. Periksa apakah nama ini sudah tercatat.'), $back);
     }
     absen_flash_success('Absen '.$peserta['name'].' tersimpan.', $back);

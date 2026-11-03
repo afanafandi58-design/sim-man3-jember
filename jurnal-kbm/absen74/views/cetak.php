@@ -16,6 +16,7 @@
                 </select>
             </p>
         </div>
-        <button class="btn btn-success btn-lg" type="submit">Buka halaman cetak</button>
+        <p class="muted">Laporan ini disusun agar dapat dicetak dan ditandatangani kepala madrasah.</p>
+        <button class="btn btn-success btn-lg" type="submit">Buka laporan absen</button>
     </form>
 </div>

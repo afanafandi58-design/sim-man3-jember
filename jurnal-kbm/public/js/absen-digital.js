@@ -123,7 +123,7 @@
         var input = document.getElementById('ttd-input');
         var clear = document.getElementById('ttd-clear');
         var error = document.getElementById('ttd-error');
-        var form = document.getElementById('form-absen');
+        var form = document.getElementById('form-absen-scan') || document.getElementById('form-absen');
         if (!canvas || !input || !form) {
             return;
         }
@@ -137,22 +137,36 @@
             ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, canvas.width / ratio, canvas.height / ratio);
             ctx.strokeStyle = '#111';
-            ctx.lineWidth = 2.6;
+            ctx.lineWidth = 3.4;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
         }
 
         function resize() {
             ratio = Math.max(window.devicePixelRatio || 1, 1);
-            var rect = canvas.getBoundingClientRect();
-            var width = rect.width || canvas.parentElement.clientWidth || 320;
+            var width = canvas.clientWidth || canvas.parentElement.clientWidth || 320;
+            var height = canvas.clientHeight || 300;
             canvas.width = Math.round(width * ratio);
-            canvas.height = Math.round(220 * ratio);
+            canvas.height = Math.round(height * ratio);
             paintBackground();
             dirty = false;
         }
 
-        resize();
+        var fitted = false;
+        function fit() {
+            if (canvas.clientWidth < 20) {
+                return;
+            }
+            resize();
+            fitted = true;
+        }
+        fit();
+        var pembuka = document.getElementById('btn-kegiatan');
+        if (pembuka) {
+            pembuka.addEventListener('click', function () {
+                setTimeout(fit, 40);
+            });
+        }
 
         function point(event) {
             var rect = canvas.getBoundingClientRect();
@@ -160,6 +174,9 @@
         }
 
         canvas.addEventListener('pointerdown', function (event) {
+            if (!fitted) {
+                fit();
+            }
             canvas.setPointerCapture(event.pointerId);
             drawing = true;
             var p = point(event);
@@ -196,7 +213,7 @@
             if (!dirty) {
                 event.preventDefault();
                 if (error) {
-                    error.textContent = 'Tanda tangan masih kosong.';
+                    error.textContent = 'Tanda tangan masih kosong. Gambar dengan jari di kotak.';
                 }
                 return;
             }

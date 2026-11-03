@@ -37,7 +37,7 @@
                 <td><?php echo (int) $row['hadir']; ?></td>
                 <td>
                     <a href="/absen-digital/kegiatan/<?php echo (int) $row['id']; ?>">Detail</a>
-                    <a href="/absen-digital/cetak/halaman?kegiatan_id=<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">Cetak</a>
+                    <a href="/absen-digital/cetak/halaman?kegiatan_id=<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">Laporan</a>
                 </td>
             </tr>
         <?php } ?>

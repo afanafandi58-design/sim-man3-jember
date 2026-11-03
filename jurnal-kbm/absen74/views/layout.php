@@ -6,7 +6,7 @@ if ($admin) {
         array('Absen', '/absen-digital/scan'),
         array('Kegiatan', '/absen-digital/kegiatan'),
         array('Ringkasan', '/absen-digital/ringkasan'),
-        array('Cetak', '/absen-digital/cetak'),
+        array('Laporan', '/absen-digital/cetak'),
     );
 } else {
     $menu = array(
@@ -54,6 +54,11 @@ $success = absen_success();
         .muted { color: #5f6f64; }
         .error { color: #b71c1c; font-size: 14px; }
         .who { font-size: 14px; }
+        #ttd-canvas { width: 100%; height: 300px; touch-action: none; background: #fff; border: 2px dashed #2e7d32; border-radius: 12px; display: block; }
+        #daftar-identitas { max-height: 360px; overflow: auto; border: 1px solid #c9d4cc; border-radius: 8px; margin: 8px 0 12px; }
+        .identitas { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #e4ebe6; font-weight: 600; }
+        .identitas input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
+        #btn-kegiatan { width: 100%; text-align: left; font-size: 20px; }
         @media (max-width: 800px) {
             .shell { display: block; }
             .side { width: auto; }

@@ -1,5 +1,5 @@
 <div class="card">
-    <p>Pindai barcode kegiatan. Setelah barcode terbaca, cari nama lalu ambil foto selfie. Peserta tidak memakai email atau kata sandi.</p>
+    <p>Pindai barcode. Nama kegiatan akan muncul. Ketuk nama itu, pilih identitas, unggah foto, lalu tanda tangan di layar. Peserta tidak memakai email atau kata sandi.</p>
     <button type="button" class="btn btn-success btn-lg" id="btn-kamera">Buka kamera</button>
     <p id="scan-status" class="muted"></p>
     <video id="scan-video" class="absen-video" playsinline muted></video>
@@ -11,99 +11,84 @@
     </form>
 </div>
 <?php if ($kodeTidakDitemukan) { ?><div class="alert alert-warning">Kode kegiatan tidak ditemukan.</div><?php } ?>
-<?php if ($kegiatan) { ?>
+<?php if ($kegiatan) {
+    $buka = absen_error('user_id') !== '' || absen_error('foto') !== '' || absen_error('ttd') !== '' || absen_error('rentang') !== '';
+    $dipilih = (string) absen_old('user_id');
+?>
     <div class="card">
-        <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
         <p class="muted"><?php echo absen_e(isset($jenisMap[$kegiatan['jenis']]) ? $jenisMap[$kegiatan['jenis']] : $kegiatan['jenis']); ?> · <?php echo absen_e(absen_tanggal_label($kegiatan['tanggal'])); ?><?php $rentangLabel = absen_rentang_label($kegiatan); echo $rentangLabel !== '' ? ' · '.absen_e($rentangLabel) : ''; ?></p>
         <?php if ($rentangBlokir !== '') { ?>
+            <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
             <div class="alert alert-warning"><?php echo absen_e($rentangBlokir); ?></div>
         <?php } else { ?>
-            <?php if (absen_error('user_id')) { ?><p class="error"><?php echo absen_e(absen_error('user_id')); ?></p><?php } ?>
-            <?php if (absen_error('foto')) { ?><p class="error"><?php echo absen_e(absen_error('foto')); ?></p><?php } ?>
-            <?php if (absen_error('latitude')) { ?><p class="error"><?php echo absen_e(absen_error('latitude')); ?></p><?php } ?>
-            <?php if (absen_error('rentang')) { ?><p class="error"><?php echo absen_e(absen_error('rentang')); ?></p><?php } ?>
-            <form method="post" action="/absen-digital/scan" enctype="multipart/form-data" id="form-absen-scan">
-                <?php echo absen_csrf_field(); ?>
-                <input type="hidden" name="kode" value="<?php echo absen_e($kegiatan['kode']); ?>">
-                <input type="hidden" name="user_id" id="user-id" value="<?php echo absen_e(absen_old('user_id')); ?>">
-                <p><label for="cari-nama">Cari nama</label>
-                    <input id="cari-nama" type="search" autocomplete="off" placeholder="Ketik nama guru atau staf">
-                </p>
-                <ul id="hasil-nama" style="list-style:none;padding:0;margin:0 0 12px"></ul>
-                <p id="nama-terpilih"><strong>Belum ada nama dipilih.</strong></p>
-                <p><label for="foto">Foto selfie</label><input id="foto" type="file" name="foto" accept="image/*" capture="user" required><span class="muted">Absen tidak bisa disimpan tanpa foto selfie. Maksimal 4 MB.</span></p>
-                <p><label>Titik lokasi</label>
-                    <button type="button" class="btn btn-success btn-lg" id="btn-lokasi">Ambil lokasi GPS</button>
-                    <span id="lokasi-status" class="muted">Jika GPS tidak tersedia atau ditolak, isi lintang dan bujur di bawah.</span>
-                </p>
-                <div class="row">
-                    <p><label for="latitude">Lintang</label><input id="latitude" name="latitude" type="number" step="any" inputmode="decimal" required value="<?php echo absen_e(absen_old('latitude')); ?>" placeholder="-8.170000"></p>
-                    <p><label for="longitude">Bujur</label><input id="longitude" name="longitude" type="number" step="any" inputmode="decimal" required value="<?php echo absen_e(absen_old('longitude')); ?>" placeholder="113.700000"></p>
-                </div>
-                <p id="lokasi-tampil"></p>
-                <button class="btn btn-success btn-lg" type="submit">Simpan absen</button>
-            </form>
+            <p class="muted">Ketuk nama kegiatan untuk memilih identitas.</p>
+            <button type="button" class="btn btn-success btn-lg" id="btn-kegiatan"><?php echo absen_e($kegiatan['nama']); ?></button>
+            <div id="langkah-absen" <?php echo $buka ? '' : 'hidden'; ?>>
+                <?php if (absen_error('user_id')) { ?><p class="error"><?php echo absen_e(absen_error('user_id')); ?></p><?php } ?>
+                <?php if (absen_error('foto')) { ?><p class="error"><?php echo absen_e(absen_error('foto')); ?></p><?php } ?>
+                <?php if (absen_error('ttd')) { ?><p class="error"><?php echo absen_e(absen_error('ttd')); ?></p><?php } ?>
+                <?php if (absen_error('rentang')) { ?><p class="error"><?php echo absen_e(absen_error('rentang')); ?></p><?php } ?>
+                <form method="post" action="/absen-digital/scan" enctype="multipart/form-data" id="form-absen-scan">
+                    <?php echo absen_csrf_field(); ?>
+                    <input type="hidden" name="kode" value="<?php echo absen_e($kegiatan['kode']); ?>">
+                    <p><label for="saring-identitas">Pilih identitas</label>
+                        <input id="saring-identitas" type="search" autocomplete="off" placeholder="Saring <?php echo count($peserta); ?> nama">
+                    </p>
+                    <div id="daftar-identitas">
+                        <?php foreach ($peserta as $orang) { ?>
+                            <label class="identitas">
+                                <input type="radio" name="user_id" value="<?php echo (int) $orang['id']; ?>" <?php echo $dipilih === (string) $orang['id'] ? 'checked' : ''; ?> required>
+                                <span><?php echo absen_e($orang['name']); ?></span>
+                            </label>
+                        <?php } ?>
+                    </div>
+                    <p id="nama-terpilih" class="muted">Belum ada identitas dipilih.</p>
+                    <p><label for="foto">Upload foto</label><input id="foto" type="file" name="foto" accept="image/*" capture="user" required><span class="muted">Absen tidak bisa disimpan tanpa foto. Maksimal 4 MB.</span></p>
+                    <p><label for="ttd-canvas">Tanda tangan di layar</label>
+                        <canvas id="ttd-canvas" aria-label="Kanvas tanda tangan"></canvas>
+                        <input type="hidden" name="ttd" id="ttd-input">
+                        <span class="muted">Gambar dengan jari. Kotaknya bisa digeser tanpa menggulir halaman.</span>
+                        <button type="button" class="btn btn-lg" id="ttd-clear">Hapus tanda tangan</button>
+                        <span id="ttd-error" class="error"></span>
+                    </p>
+                    <button class="btn btn-success btn-lg" type="submit">Simpan</button>
+                </form>
+            </div>
             <script>
             (function () {
-                var data = <?php echo json_encode(array_map(function ($orang) {
-                    return array('id' => (int) $orang['id'], 'name' => $orang['name']);
-                }, $peserta), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
-                var input = document.getElementById('cari-nama');
-                var list = document.getElementById('hasil-nama');
-                var hidden = document.getElementById('user-id');
-                var label = document.getElementById('nama-terpilih');
-                var form = document.getElementById('form-absen-scan');
-                function pilih(id, name) {
-                    hidden.value = String(id);
-                    label.innerHTML = '<strong>Terpilih: ' + name.replace(/[&<>"']/g, function (ch) {
-                        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
-                    }) + '</strong>';
-                    input.value = name;
-                    list.innerHTML = '';
-                }
-                function render() {
-                    var q = input.value.toLowerCase().trim();
-                    list.innerHTML = '';
-                    if (q.length < 1) {
-                        return;
-                    }
-                    var shown = 0;
-                    for (var i = 0; i < data.length; i++) {
-                        if (data[i].name.toLowerCase().indexOf(q) === -1) {
-                            continue;
+                var tombol = document.getElementById('btn-kegiatan');
+                var langkah = document.getElementById('langkah-absen');
+                var saring = document.getElementById('saring-identitas');
+                var daftar = document.getElementById('daftar-identitas');
+                var status = document.getElementById('nama-terpilih');
+                if (tombol && langkah) {
+                    tombol.addEventListener('click', function () {
+                        langkah.hidden = false;
+                        if (langkah.scrollIntoView) {
+                            langkah.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
-                        var item = document.createElement('li');
-                        var button = document.createElement('button');
-                        button.type = 'button';
-                        button.className = 'btn';
-                        button.style.display = 'block';
-                        button.style.width = '100%';
-                        button.style.textAlign = 'left';
-                        button.style.marginBottom = '6px';
-                        button.textContent = data[i].name;
-                        button.setAttribute('data-id', data[i].id);
-                        button.addEventListener('click', function () {
-                            pilih(this.getAttribute('data-id'), this.textContent);
-                        });
-                        item.appendChild(button);
-                        list.appendChild(item);
-                        shown++;
-                        if (shown >= 8) {
-                            break;
-                        }
-                    }
+                    });
                 }
-                input.addEventListener('input', function () {
-                    hidden.value = '';
-                    label.innerHTML = '<strong>Belum ada nama dipilih.</strong>';
-                    render();
-                });
-                form.addEventListener('submit', function (event) {
-                    if (!hidden.value) {
-                        event.preventDefault();
-                        label.innerHTML = '<strong>Pilih nama dari hasil pencarian.</strong>';
-                    }
-                });
+                if (saring && daftar) {
+                    saring.addEventListener('input', function () {
+                        var q = saring.value.toLowerCase().trim();
+                        var labels = daftar.querySelectorAll('.identitas');
+                        for (var i = 0; i < labels.length; i++) {
+                            var nama = labels[i].textContent.toLowerCase();
+                            labels[i].style.display = q === '' || nama.indexOf(q) !== -1 ? 'flex' : 'none';
+                        }
+                    });
+                }
+                if (daftar && status) {
+                    daftar.addEventListener('change', function (event) {
+                        var target = event.target;
+                        if (!target || target.name !== 'user_id') {
+                            return;
+                        }
+                        var label = target.parentNode ? target.parentNode.textContent : '';
+                        status.textContent = 'Terpilih: ' + label.replace(/\s+/g, ' ').trim();
+                    });
+                }
             })();
             </script>
         <?php } ?>

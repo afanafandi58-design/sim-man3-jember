@@ -369,7 +369,7 @@ if ($path === '/absen-digital/cetak' && $method === 'GET') {
     absen_require_admin($user);
     $filters = absen_filters();
     absen_render('cetak', array(
-        'title' => 'Cetak',
+        'title' => 'Laporan',
         'filters' => $filters,
         'semuaKegiatan' => absen_db()->query('SELECT id, nama, tanggal FROM absen_kegiatans ORDER BY tanggal DESC')->fetchAll(),
         'authUser' => $user,
