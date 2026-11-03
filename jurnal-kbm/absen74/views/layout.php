@@ -1,0 +1,87 @@
+<?php
+$aktif = absen_path();
+$admin = isset($authUser) && $authUser && $authUser['role'] === 'admin';
+$menu = array(
+    array('Kegiatan', '/absen-digital/kegiatan'),
+    array('Scan Barcode', '/absen-digital/scan'),
+    array('Absen Saya', '/absen-digital/absen'),
+);
+if ($admin) {
+    $menu[] = array('Ringkasan', '/absen-digital/ringkasan');
+    $menu[] = array('Cetak', '/absen-digital/cetak');
+}
+$success = absen_success();
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?php echo absen_e($title); ?> · Absen Digital</title>
+    <link rel="stylesheet" href="/css/absen-digital.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f4f6f5; color: #1c2b22; }
+        a { color: #1b5e20; }
+        .shell { display: flex; min-height: 100vh; }
+        .side { width: 240px; background: #1b5e20; color: #fff; padding: 20px 14px; }
+        .brand { font-weight: 700; font-size: 18px; margin: 0 8px 4px; }
+        .school { margin: 0 8px 18px; opacity: .85; font-size: 13px; }
+        .side a { display: block; color: #fff; text-decoration: none; padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; }
+        .side a.active, .side a:hover { background: rgba(255,255,255,.16); }
+        .main { flex: 1; padding: 20px; min-width: 0; }
+        .top { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 16px; }
+        h1 { font-size: 26px; margin: 0; }
+        .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+        label { display: block; font-weight: 600; margin-bottom: 6px; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #c9d4cc; border-radius: 8px; font: inherit; }
+        .row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .row > * { flex: 1; min-width: 180px; }
+        .btn { display: inline-block; border: 0; border-radius: 8px; padding: 10px 16px; font: inherit; cursor: pointer; text-decoration: none; background: #e8eee9; color: #1c2b22; }
+        .btn-lg { padding: 12px 18px; font-size: 16px; }
+        .btn-success { background: #2e7d32; color: #fff; }
+        .btn-danger { background: #b71c1c; color: #fff; }
+        .alert { padding: 12px 14px; border-radius: 8px; margin-bottom: 12px; }
+        .alert-success { background: #e8f5e9; }
+        .alert-danger { background: #ffebee; }
+        .alert-warning { background: #fff8e1; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e4ebe6; vertical-align: top; }
+        .muted { color: #5f6f64; }
+        .error { color: #b71c1c; font-size: 14px; }
+        .who { font-size: 14px; }
+        @media (max-width: 800px) {
+            .shell { display: block; }
+            .side { width: auto; }
+            .btn-lg { width: 100%; margin-bottom: 8px; }
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <aside class="side">
+        <p class="brand">Absen Digital</p>
+        <p class="school">MAN 3 Jember</p>
+        <?php if (!empty($authUser)) { foreach ($menu as $item) { ?>
+            <a class="<?php echo strpos($aktif, $item[1]) === 0 ? 'active' : ''; ?>" href="<?php echo absen_e($item[1]); ?>"><?php echo absen_e($item[0]); ?></a>
+        <?php } } ?>
+    </aside>
+    <main class="main">
+        <div class="top">
+            <h1><?php echo absen_e($title); ?></h1>
+            <?php if (!empty($authUser)) { ?>
+                <form method="post" action="/logout" class="who">
+                    <?php echo absen_csrf_field(); ?>
+                    <span><?php echo absen_e($authUser['name']); ?></span>
+                    <button class="btn" type="submit">Keluar</button>
+                </form>
+            <?php } ?>
+        </div>
+        <?php if ($success !== '') { ?><div class="alert alert-success"><?php echo absen_e($success); ?></div><?php } ?>
+        <?php echo $isi; ?>
+    </main>
+</div>
+<script src="/vendor/absen-digital/qrcode.min.js"></script>
+<script src="/js/absen-digital.js"></script>
+</body>
+</html>
