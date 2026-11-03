@@ -70,6 +70,15 @@ web_modules/
 .env.*
 !.env.example
 
+# Buku Induk secrets & runtime
+buku-induk/config/config.local.php
+buku-induk/vendor/
+buku-induk/storage/db/*.sqlite
+buku-induk/storage/uploads/*
+!buku-induk/storage/uploads/.gitkeep
+buku-induk/storage/cache/*
+!buku-induk/storage/cache/.gitkeep
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

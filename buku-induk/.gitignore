@@ -1,0 +1,9 @@
+/vendor/
+/config/config.local.php
+/storage/db/*.sqlite
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/.env
+*.log
