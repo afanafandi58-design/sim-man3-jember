@@ -1,5 +1,5 @@
 <div class="card">
-    <p>Pindai barcode. Nama kegiatan akan muncul. Ketuk nama itu, pilih identitas, unggah foto, lalu tanda tangan di layar. Peserta tidak memakai email atau kata sandi.</p>
+    <p>Pindai barcode, ketuk nama kegiatan, pilih identitas, unggah foto, lalu tanda tangan. Satu kegiatan hanya bisa diabsen dari satu perangkat Android. Satu identitas hanya sekali. Peserta tidak memakai email atau kata sandi.</p>
     <button type="button" class="btn btn-success btn-lg" id="btn-kamera">Buka kamera</button>
     <p id="scan-status" class="muted"></p>
     <video id="scan-video" class="absen-video" playsinline muted></video>
@@ -20,6 +20,9 @@
         <?php if ($rentangBlokir !== '') { ?>
             <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
             <div class="alert alert-warning"><?php echo absen_e($rentangBlokir); ?></div>
+        <?php } elseif (!empty($pesanPerangkat)) { ?>
+            <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
+            <div class="alert alert-danger"><?php echo absen_e($pesanPerangkat); ?></div>
         <?php } else { ?>
             <p class="muted">Ketuk nama kegiatan untuk memilih identitas.</p>
             <button type="button" class="btn btn-success btn-lg" id="btn-kegiatan"><?php echo absen_e($kegiatan['nama']); ?></button>
@@ -28,6 +31,7 @@
                 <?php if (absen_error('foto')) { ?><p class="error"><?php echo absen_e(absen_error('foto')); ?></p><?php } ?>
                 <?php if (absen_error('ttd')) { ?><p class="error"><?php echo absen_e(absen_error('ttd')); ?></p><?php } ?>
                 <?php if (absen_error('rentang')) { ?><p class="error"><?php echo absen_e(absen_error('rentang')); ?></p><?php } ?>
+                <?php if (absen_error('perangkat')) { ?><p class="error"><?php echo absen_e(absen_error('perangkat')); ?></p><?php } ?>
                 <form method="post" action="/absen-digital/scan" enctype="multipart/form-data" id="form-absen-scan">
                     <?php echo absen_csrf_field(); ?>
                     <input type="hidden" name="kode" value="<?php echo absen_e($kegiatan['kode']); ?>">
@@ -35,10 +39,19 @@
                         <input id="saring-identitas" type="search" autocomplete="off" placeholder="Saring <?php echo count($peserta); ?> nama">
                     </p>
                     <div id="daftar-identitas">
-                        <?php foreach ($peserta as $orang) { ?>
+                        <?php
+                        $sudahId = array();
+                        foreach ($sudahHadir as $hadir) {
+                            if (!empty($hadir['user_id'])) {
+                                $sudahId[(int) $hadir['user_id']] = true;
+                            }
+                        }
+                        foreach ($peserta as $orang) {
+                            $sudah = isset($sudahId[(int) $orang['id']]);
+                        ?>
                             <label class="identitas">
-                                <input type="radio" name="user_id" value="<?php echo (int) $orang['id']; ?>" <?php echo $dipilih === (string) $orang['id'] ? 'checked' : ''; ?> required>
-                                <span><?php echo absen_e($orang['name']); ?></span>
+                                <input type="radio" name="user_id" value="<?php echo (int) $orang['id']; ?>" <?php echo !$sudah && $dipilih === (string) $orang['id'] ? 'checked' : ''; ?> <?php echo $sudah ? 'disabled' : 'required'; ?>>
+                                <span><?php echo absen_e($orang['name']); ?><?php echo $sudah ? ' (sudah absen)' : ''; ?></span>
                             </label>
                         <?php } ?>
                     </div>

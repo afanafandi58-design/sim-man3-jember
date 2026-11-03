@@ -262,6 +262,7 @@ if ($path === '/absen-digital/scan' && $method === 'GET') {
         'peserta' => $kegiatan ? absen_peserta() : array(),
         'sudahHadir' => $sudah,
         'rentangBlokir' => $kegiatan ? absen_rentang_blokir($kegiatan) : '',
+        'pesanPerangkat' => $kegiatan ? absen_pesan_perangkat($kegiatan) : '',
     ));
     exit;
 }

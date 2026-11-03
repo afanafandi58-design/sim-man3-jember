@@ -4,6 +4,7 @@ $scanUrl = absen_base_url().'/absen-digital/scan?kode='.rawurlencode($kegiatan['
 ?>
 <p class="muted"><?php echo absen_e(isset($jenisMap[$kegiatan['jenis']]) ? $jenisMap[$kegiatan['jenis']] : $kegiatan['jenis']); ?> · <?php echo absen_e(absen_tanggal_label($kegiatan['tanggal'])); ?><?php $rentang = absen_rentang_label($kegiatan); echo $rentang !== '' ? ' · absen '.absen_e($rentang) : ''; ?></p>
 <?php if ($rentang === '') { ?><div class="alert alert-warning">Rentang waktu absen belum diatur. Peserta belum bisa menyimpan absen.</div><?php } ?>
+<?php if (!empty($kegiatan['perangkat_id'])) { ?><p class="muted">Absen kegiatan ini terkunci ke satu perangkat Android.</p><?php } ?>
 <?php if ($admin) { ?><p><a class="btn" href="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/ubah">Ubah</a></p><?php } ?>
 <div class="row">
     <div>
