@@ -13,6 +13,10 @@ try {
 $method = absen_method();
 $path = absen_path();
 
+if ($method === 'POST' && $path === '/absen-digital/scan' && absen_unggahan_kosong_karena_ukuran()) {
+    absen_flash_error(array('foto' => 'Foto terlalu besar dan tidak dikirim. Ambil ulang; foto diperkecil otomatis di perangkat sebelum disimpan.'), '/absen-digital/scan');
+}
+
 if ($method === 'POST') {
     absen_csrf();
 }

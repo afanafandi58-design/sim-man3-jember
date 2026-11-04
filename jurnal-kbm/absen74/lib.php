@@ -861,7 +861,7 @@ function absen_simpan_publik($kegiatan)
         $latVal = $lat;
         $lngVal = $lng;
     }
-    $foto = absen_store_upload(isset($_FILES['foto']) ? $_FILES['foto'] : null, 'absen-digital/foto', array('jpg', 'jpeg', 'png', 'webp'), 4 * 1024 * 1024, true);
+    $foto = absen_store_upload(isset($_FILES['foto']) ? $_FILES['foto'] : null, 'absen-digital/foto', array('jpg', 'jpeg', 'png', 'webp'), 1024 * 1024, true);
     if (isset($foto['empty'])) {
         absen_flash_error(array('foto' => 'Absen tidak bisa disimpan tanpa foto selfie.'), $back);
     }
@@ -967,6 +967,16 @@ function absen_valid_kegiatan_input()
     );
 }
 
+function absen_unggahan_kosong_karena_ukuran()
+{
+    $length = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+    if ($length < 1048576) {
+        return false;
+    }
+
+    return empty($_POST) && empty($_FILES);
+}
+
 function absen_store_upload($file, $directory, $allowedExt, $maxBytes, $mustImage)
 {
     if (!is_array($file) || !isset($file['error'])) {
@@ -975,10 +985,19 @@ function absen_store_upload($file, $directory, $allowedExt, $maxBytes, $mustImag
     if ($file['error'] === UPLOAD_ERR_NO_FILE) {
         return array('empty' => true);
     }
+    if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+        return array('error' => $mustImage
+            ? 'Foto terlalu besar. Ambil ulang; foto diperkecil otomatis di perangkat sebelum dikirim.'
+            : 'Berkas terlalu besar.');
+    }
     if ($file['error'] !== UPLOAD_ERR_OK) {
         return array('error' => 'Gagal mengunggah berkas.');
     }
     if ((int) $file['size'] > $maxBytes) {
+        if ($mustImage && $maxBytes <= 1048576) {
+            return array('error' => 'Foto terlalu besar. Ambil ulang; foto diperkecil otomatis di perangkat sebelum dikirim.');
+        }
+
         return array('error' => $mustImage ? 'Ukuran foto maksimal 4 MB.' : 'Berkas hasil rapat maksimal 10 MB.');
     }
     $ext = strtolower(pathinfo((string) $file['name'], PATHINFO_EXTENSION));

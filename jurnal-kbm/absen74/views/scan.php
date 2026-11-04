@@ -56,7 +56,7 @@
                         <?php } ?>
                     </div>
                     <p id="nama-terpilih" class="muted">Belum ada identitas dipilih.</p>
-                    <p><label for="foto">Upload foto</label><input id="foto" type="file" name="foto" accept="image/*" capture="user" required><span class="muted">Absen tidak bisa disimpan tanpa foto. Maksimal 4 MB.</span></p>
+                    <p><label for="foto">Upload foto</label><input id="foto" type="file" name="foto" accept="image/*" capture="user" required><span class="muted">Absen tidak bisa disimpan tanpa foto. Saat diambil atau dipilih, foto diperkecil di perangkat sebelum dikirim agar di bawah 1 MB. File asli yang besar tidak terkirim.</span><span id="foto-status" class="muted"></span><img id="foto-pratinjau" alt="Pratinjau foto yang akan dikirim" hidden style="max-width:100%;max-height:200px;margin-top:8px"></p>
                     <p><span id="ttd-label">Tanda tangan di layar</span>
                         <span class="ttd-kotak" id="ttd-kotak"><canvas id="ttd-canvas" width="640" height="320" aria-labelledby="ttd-label"></canvas></span>
                         <input type="hidden" name="ttd" id="ttd-input">

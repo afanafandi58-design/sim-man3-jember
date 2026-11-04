@@ -426,6 +426,211 @@
         }
     }
 
+    function initFoto() {
+        var input = document.getElementById('foto');
+        var form = document.getElementById('form-absen-scan');
+        var status = document.getElementById('foto-status');
+        var preview = document.getElementById('foto-pratinjau');
+        if (!input || !form || input.getAttribute('data-perkecil') === '1') {
+            return;
+        }
+        input.setAttribute('data-perkecil', '1');
+        input.required = false;
+        var batas = 1024 * 1024;
+        var fotoSiap = false;
+        var sedang = false;
+        var menungguKirim = false;
+        var memasang = false;
+        var generasi = 0;
+        var pratinjauUrl = '';
+
+        function tulis(text) {
+            if (status) {
+                status.textContent = text;
+            }
+        }
+
+        function tampilkan(blob) {
+            if (!preview || !window.URL || !URL.createObjectURL) {
+                return;
+            }
+            if (pratinjauUrl) {
+                URL.revokeObjectURL(pratinjauUrl);
+            }
+            pratinjauUrl = URL.createObjectURL(blob);
+            preview.src = pratinjauUrl;
+            preview.hidden = false;
+        }
+
+        function pasang(blob) {
+            var hasil = new File([blob], 'selfie.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+            var dt = new DataTransfer();
+            dt.items.add(hasil);
+            memasang = true;
+            input.files = dt.files;
+            memasang = false;
+            tampilkan(blob);
+        }
+
+        function muat(file) {
+            if (window.createImageBitmap) {
+                return createImageBitmap(file, { imageOrientation: 'from-image' }).catch(function () {
+                    return createImageBitmap(file);
+                });
+            }
+            return new Promise(function (resolve, reject) {
+                var url = URL.createObjectURL(file);
+                var img = new Image();
+                img.onload = function () {
+                    URL.revokeObjectURL(url);
+                    resolve(img);
+                };
+                img.onerror = function () {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('baca'));
+                };
+                img.src = url;
+            });
+        }
+
+        function jadiBlob(source, width, height, quality) {
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(source, 0, 0, width, height);
+            return new Promise(function (resolve, reject) {
+                if (!canvas.toBlob) {
+                    reject(new Error('blob'));
+                    return;
+                }
+                canvas.toBlob(function (blob) {
+                    if (!blob) {
+                        reject(new Error('blob'));
+                        return;
+                    }
+                    resolve(blob);
+                }, 'image/jpeg', quality);
+            });
+        }
+
+        function perkecil(file) {
+            return muat(file).then(function (source) {
+                var sw = source.width || source.naturalWidth || 0;
+                var sh = source.height || source.naturalHeight || 0;
+                if (!sw || !sh) {
+                    if (source.close) {
+                        source.close();
+                    }
+                    throw new Error('ukuran');
+                }
+                var side = 1600;
+                var quality = 0.82;
+                function coba() {
+                    var scale = Math.min(1, side / Math.max(sw, sh));
+                    var width = Math.max(1, Math.round(sw * scale));
+                    var height = Math.max(1, Math.round(sh * scale));
+                    return jadiBlob(source, width, height, quality).then(function (blob) {
+                        if (blob.size < batas) {
+                            if (source.close) {
+                                source.close();
+                            }
+                            return blob;
+                        }
+                        if (quality > 0.5) {
+                            quality = Math.round((quality - 0.12) * 100) / 100;
+                            return coba();
+                        }
+                        if (side > 640) {
+                            side = Math.round(side * 0.75);
+                            quality = 0.7;
+                            return coba();
+                        }
+                        if (source.close) {
+                            source.close();
+                        }
+                        throw new Error('besar');
+                    });
+                }
+                return coba();
+            });
+        }
+
+        function proses(file) {
+            generasi += 1;
+            var saya = generasi;
+            fotoSiap = false;
+            sedang = true;
+            input.value = '';
+            tulis('Foto sedang diperkecil di perangkat...');
+            perkecil(file).then(function (blob) {
+                if (saya !== generasi) {
+                    return;
+                }
+                if (!blob || blob.size >= batas || typeof DataTransfer === 'undefined') {
+                    throw new Error('besar');
+                }
+                pasang(blob);
+                var terpasang = input.files && input.files[0];
+                if (!terpasang || terpasang.size >= batas || terpasang.type !== 'image/jpeg') {
+                    throw new Error('pasang');
+                }
+                fotoSiap = true;
+                sedang = false;
+                tulis('Foto siap diunggah (' + Math.max(1, Math.round(blob.size / 1024)) + ' KB, di bawah 1 MB).');
+                if (menungguKirim && typeof form.requestSubmit === 'function') {
+                    menungguKirim = false;
+                    form.requestSubmit();
+                }
+            }).catch(function () {
+                if (saya !== generasi) {
+                    return;
+                }
+                input.value = '';
+                fotoSiap = false;
+                sedang = false;
+                menungguKirim = false;
+                tulis('Foto tidak bisa diperkecil. Ambil ulang dengan kamera.');
+            });
+        }
+
+        input.addEventListener('change', function () {
+            if (memasang) {
+                return;
+            }
+            var file = input.files && input.files[0];
+            if (!file) {
+                if (!sedang) {
+                    fotoSiap = false;
+                }
+                return;
+            }
+            menungguKirim = false;
+            proses(file);
+        });
+
+        form.addEventListener('submit', function (event) {
+            var file = input.files && input.files[0];
+            if (fotoSiap && file && file.size < batas && file.type === 'image/jpeg') {
+                return;
+            }
+            event.preventDefault();
+            if (sedang) {
+                menungguKirim = true;
+                tulis('Foto sedang diperkecil. Absen dikirim setelah foto siap, tanpa file asli yang besar.');
+                return;
+            }
+            if (file && (file.size >= batas || file.type !== 'image/jpeg')) {
+                menungguKirim = true;
+                proses(file);
+                return;
+            }
+            tulis('Pilih atau ambil foto selfie. File asli yang besar tidak dikirim.');
+        }, true);
+    }
+
     function initQr() {
         var box = document.getElementById('qrcode');
         if (!box || typeof QRCode === 'undefined') {
@@ -448,6 +653,7 @@
         initModePeserta();
         initLokasi();
         initTtd();
+        initFoto();
         initScanner();
         initQr();
     });
