@@ -83,39 +83,78 @@
     }
 
     function initLokasi() {
+        var petaEl = document.getElementById('peta-lokasi');
         var button = document.getElementById('btn-lokasi');
         var lat = document.getElementById('latitude');
         var lng = document.getElementById('longitude');
         var status = document.getElementById('lokasi-status');
-        var tampil = document.getElementById('lokasi-tampil');
-        if (!button || !lat || !lng) {
+        if (!petaEl || !lat || !lng) {
             return;
         }
-        var render = function (sumber) {
-            if (lat.value === '' || lng.value === '') {
-                tampil.textContent = '';
-                return;
+        if (typeof L === 'undefined') {
+            if (status) {
+                status.textContent = 'Peta online belum bisa dimuat. Periksa koneksi, lalu muat ulang halaman.';
             }
-            tampil.textContent = 'Titik yang akan disimpan (' + sumber + '): ' + lat.value + ', ' + lng.value;
-        };
-        lat.addEventListener('input', function () { render('isian manual'); });
-        lng.addEventListener('input', function () { render('isian manual'); });
-        button.addEventListener('click', function () {
-            if (!navigator.geolocation) {
-                status.textContent = 'GPS tidak tersedia di peramban ini. Isi lintang dan bujur secara manual.';
-                return;
+            return;
+        }
+        function tulis(text) {
+            if (status) {
+                status.textContent = text;
             }
-            status.textContent = 'Mengambil lokasi...';
-            navigator.geolocation.getCurrentPosition(function (pos) {
-                lat.value = Number(pos.coords.latitude).toFixed(6);
-                lng.value = Number(pos.coords.longitude).toFixed(6);
-                status.textContent = 'Lokasi GPS berhasil diambil.';
-                render('GPS');
-            }, function () {
-                status.textContent = 'Lokasi ditolak atau gagal. Isi lintang dan bujur secara manual.';
-            }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+        }
+        var ada = lat.value !== '' && lng.value !== '' && !isNaN(parseFloat(lat.value)) && !isNaN(parseFloat(lng.value));
+        var awal = ada ? [parseFloat(lat.value), parseFloat(lng.value)] : [-8.173, 113.7];
+        var map = L.map(petaEl).setView(awal, ada ? 17 : 13);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+        var marker = null;
+        var circle = null;
+        var icon = L.divIcon({ className: 'pin-absen', iconSize: [22, 22], iconAnchor: [11, 11] });
+        function pasang(la, ln, sumber) {
+            var nomorLat = Number(la);
+            var nomorLng = Number(ln);
+            lat.value = nomorLat.toFixed(6);
+            lng.value = nomorLng.toFixed(6);
+            if (!marker) {
+                marker = L.marker([nomorLat, nomorLng], { draggable: true, icon: icon }).addTo(map);
+                marker.on('dragend', function () {
+                    var titik = marker.getLatLng();
+                    pasang(titik.lat, titik.lng, 'geser pin');
+                });
+            } else if (sumber !== 'geser pin') {
+                marker.setLatLng([nomorLat, nomorLng]);
+            }
+            if (!circle) {
+                circle = L.circle([nomorLat, nomorLng], { radius: 75, color: '#2e7d32', weight: 2, fillColor: '#2e7d32', fillOpacity: 0.15 }).addTo(map);
+            } else {
+                circle.setLatLng([nomorLat, nomorLng]);
+            }
+            tulis('Koordinat terisi dari ' + sumber + '. Radius absen 75 meter.');
+        }
+        map.on('click', function (event) {
+            pasang(event.latlng.lat, event.latlng.lng, 'klik peta');
         });
-        render('isian');
+        if (ada) {
+            pasang(awal[0], awal[1], 'data tersimpan');
+        }
+        if (button) {
+            button.addEventListener('click', function () {
+                if (!navigator.geolocation) {
+                    tulis('GPS tidak tersedia di peramban ini. Klik peta atau geser pin.');
+                    return;
+                }
+                tulis('Mengambil lokasi GPS...');
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    pasang(pos.coords.latitude, pos.coords.longitude, 'GPS');
+                    map.setView([pos.coords.latitude, pos.coords.longitude], 17);
+                }, function () {
+                    tulis('GPS ditolak atau gagal. Klik peta atau geser pin.');
+                }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+            });
+        }
+        setTimeout(function () { map.invalidateSize(); }, 250);
     }
 
     function initLokasiPeserta() {

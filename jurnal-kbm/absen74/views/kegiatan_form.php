@@ -9,6 +9,7 @@ $val = function ($key) use ($kegiatan) {
     return isset($kegiatan[$key]) ? $kegiatan[$key] : '';
 };
 ?>
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
 <div class="card">
     <form method="post" action="<?php echo absen_e($action); ?>">
         <?php echo absen_csrf_field(); ?>
@@ -27,18 +28,21 @@ $val = function ($key) use ($kegiatan) {
             <p><label for="waktu_selesai">Jam selesai absen</label><input id="waktu_selesai" type="time" name="waktu_selesai" required value="<?php echo absen_e($val('waktu_selesai')); ?>"><?php if (absen_error('waktu_selesai')) { ?><span class="error"><?php echo absen_e(absen_error('waktu_selesai')); ?></span><?php } ?></p>
         </div>
         <p><label for="tempat">Tempat</label><input id="tempat" name="tempat" maxlength="150" value="<?php echo absen_e($val('tempat')); ?>"></p>
-        <p><label>Titik lokasi kegiatan</label>
-            <span class="muted">Peserta hanya bisa absen dalam radius 75 meter dari titik ini. Ambil GPS di tempat kegiatan, atau isi lintang dan bujur.</span>
+        <p><label for="peta-lokasi">Titik lokasi kegiatan</label>
+            <span class="muted">Klik peta atau geser pin. Lingkaran menunjukkan radius 75 meter. Tombol GPS memindahkan pin ke posisi perangkat. Koordinat terisi dari peta.</span>
+        </p>
+        <div id="peta-lokasi"></div>
+        <p>
             <button type="button" class="btn btn-success" id="btn-lokasi">Ambil titik dari GPS</button>
-            <span id="lokasi-status" class="muted"></span>
+            <span id="lokasi-status" class="muted">Klik peta untuk meletakkan pin.</span>
         </p>
         <div class="row">
-            <p><label for="latitude">Lintang</label><input id="latitude" name="lokasi_lat" type="number" step="any" inputmode="decimal" required value="<?php echo absen_e($val('lokasi_lat')); ?>" placeholder="-8.170000"><?php if (absen_error('lokasi_lat')) { ?><span class="error"><?php echo absen_e(absen_error('lokasi_lat')); ?></span><?php } ?></p>
-            <p><label for="longitude">Bujur</label><input id="longitude" name="lokasi_lng" type="number" step="any" inputmode="decimal" required value="<?php echo absen_e($val('lokasi_lng')); ?>" placeholder="113.700000"></p>
+            <p><label for="latitude">Lintang</label><input id="latitude" name="lokasi_lat" type="text" inputmode="decimal" readonly required value="<?php echo absen_e($val('lokasi_lat')); ?>" placeholder="Dari peta"><?php if (absen_error('lokasi_lat')) { ?><span class="error"><?php echo absen_e(absen_error('lokasi_lat')); ?></span><?php } ?></p>
+            <p><label for="longitude">Bujur</label><input id="longitude" name="lokasi_lng" type="text" inputmode="decimal" readonly required value="<?php echo absen_e($val('lokasi_lng')); ?>" placeholder="Dari peta"></p>
         </div>
-        <p id="lokasi-tampil" class="muted"></p>
         <p><label for="keterangan">Keterangan</label><textarea id="keterangan" name="keterangan" rows="3" maxlength="2000"><?php echo absen_e($val('keterangan')); ?></textarea></p>
         <button class="btn btn-success btn-lg" type="submit">Simpan</button>
         <a class="btn btn-lg" href="<?php echo $id ? '/absen-digital/kegiatan/'.$id : '/absen-digital/kegiatan'; ?>">Batal</a>
     </form>
 </div>
+<script src="/vendor/leaflet/leaflet.js"></script>
