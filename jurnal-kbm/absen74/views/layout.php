@@ -52,6 +52,7 @@ $success = absen_success();
         table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e4ebe6; vertical-align: top; }
         .muted { color: #5f6f64; }
+        .catatan { background: #e8f5e9; border-radius: 8px; padding: 10px 12px; margin: 0 0 16px; font-size: 14px; }
         .error { color: #b71c1c; font-size: 14px; }
         .who { font-size: 14px; }
         .ttd-kotak { position: relative; z-index: 2; display: block; width: 100%; height: 320px; margin: 8px 0 12px; touch-action: none; }
@@ -88,6 +89,9 @@ $success = absen_success();
                 </form>
             <?php } ?>
         </div>
+        <?php if (strpos($aktif, '/absen-digital') === 0) { ?>
+            <p class="catatan">Catatan: Buka tautan atau QR. Nama kegiatan tampil di atas QR. Pilih identitas, foto di bawah 1 MB, lalu tanda tangan. GPS harus dalam 75 meter dari titik pengelola, dan hanya dalam rentang waktu. Satu Android hanya satu absen, lalu terkunci. Satu identitas hanya sekali.</p>
+        <?php } ?>
         <?php if ($success !== '') { ?><div class="alert alert-success"><?php echo absen_e($success); ?></div><?php } ?>
         <?php echo $isi; ?>
     </main>

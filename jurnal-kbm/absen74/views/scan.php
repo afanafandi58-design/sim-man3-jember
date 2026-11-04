@@ -1,6 +1,6 @@
 <?php if (empty($halamanKegiatan)) { ?>
 <div class="card">
-    <p>Memindai barcode tidak wajib. Buka tautan halaman kegiatan dari pengelola, lalu pilih identitas, unggah foto, dan tanda tangan. Setelah absen pertama berhasil, perangkat itu tidak bisa dipakai lagi untuk nama lain pada kegiatan yang sama. Satu identitas hanya sekali.</p>
+    <p>Tempel tautan kegiatan, atau pindai barcode bila tautan belum dibuka.</p>
     <form method="get" action="/absen-digital/scan" id="form-cari-kode">
         <p><label for="kode-input">Tautan atau kode kegiatan</label><input id="kode-input" name="kode" value="<?php echo absen_e($kode); ?>" placeholder="Tempel tautan absen atau kode" autocomplete="off"></p>
         <button class="btn btn-success" type="submit">Buka kegiatan</button>
