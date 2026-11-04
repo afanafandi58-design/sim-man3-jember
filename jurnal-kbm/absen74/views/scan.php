@@ -26,18 +26,25 @@
         <?php } elseif (!empty($pesanPerangkat)) { ?>
             <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
             <div class="alert alert-danger"><?php echo absen_e($pesanPerangkat); ?></div>
+        <?php } elseif (absen_lokasi_kegiatan($kegiatan) === null) { ?>
+            <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
+            <div class="alert alert-warning">Titik lokasi kegiatan belum ditentukan. Absen belum bisa disimpan.</div>
         <?php } else { ?>
             <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
-            <p class="muted">Halaman kegiatan ini bisa dibuka dari tautan, tanpa memindai barcode.</p>
+            <p class="muted">Halaman kegiatan ini bisa dibuka dari tautan, tanpa memindai barcode. Absen hanya berlaku dalam radius 75 meter dari titik lokasi.</p>
             <div id="langkah-absen">
                 <?php if (absen_error('user_id')) { ?><p class="error"><?php echo absen_e(absen_error('user_id')); ?></p><?php } ?>
                 <?php if (absen_error('foto')) { ?><p class="error"><?php echo absen_e(absen_error('foto')); ?></p><?php } ?>
                 <?php if (absen_error('ttd')) { ?><p class="error"><?php echo absen_e(absen_error('ttd')); ?></p><?php } ?>
                 <?php if (absen_error('rentang')) { ?><p class="error"><?php echo absen_e(absen_error('rentang')); ?></p><?php } ?>
                 <?php if (absen_error('perangkat')) { ?><p class="error"><?php echo absen_e(absen_error('perangkat')); ?></p><?php } ?>
+                <?php if (absen_error('lokasi')) { ?><p class="error"><?php echo absen_e(absen_error('lokasi')); ?></p><?php } ?>
                 <form method="post" action="/absen-digital/k/<?php echo absen_e(rawurlencode($kegiatan['kode'])); ?>" enctype="multipart/form-data" id="form-absen-scan">
                     <?php echo absen_csrf_field(); ?>
                     <input type="hidden" name="kode" value="<?php echo absen_e($kegiatan['kode']); ?>">
+                    <input type="hidden" name="latitude" id="latitude" value="">
+                    <input type="hidden" name="longitude" id="longitude" value="">
+                    <p id="lokasi-status" class="muted">Lokasi perangkat sedang dibaca. Absen hanya berlaku dalam radius 75 meter.</p>
                     <p><label for="saring-identitas">Pilih identitas</label>
                         <input id="saring-identitas" type="search" autocomplete="off" placeholder="Saring <?php echo count($peserta); ?> nama">
                     </p>

@@ -141,6 +141,8 @@ function absen_migrate()
             waktu_selesai VARCHAR(5) NULL,
             tempat VARCHAR(150) NULL,
             keterangan TEXT NULL,
+            lokasi_lat DECIMAL(10,7) NULL,
+            lokasi_lng DECIMAL(10,7) NULL,
             kode VARCHAR(32) NOT NULL,
             perangkat_id VARCHAR(64) NULL,
             hasil_drive_url VARCHAR(500) NULL,
@@ -253,6 +255,12 @@ function absen_upgrade_schema()
     }
     if (!absen_column_meta('absen_kehadirans', 'perangkat_id')) {
         $db->exec('ALTER TABLE absen_kehadirans ADD COLUMN perangkat_id VARCHAR(64) NULL AFTER ttd_path');
+    }
+    if (!absen_column_meta('absen_kegiatans', 'lokasi_lat')) {
+        $db->exec('ALTER TABLE absen_kegiatans ADD COLUMN lokasi_lat DECIMAL(10,7) NULL AFTER keterangan');
+    }
+    if (!absen_column_meta('absen_kegiatans', 'lokasi_lng')) {
+        $db->exec('ALTER TABLE absen_kegiatans ADD COLUMN lokasi_lng DECIMAL(10,7) NULL AFTER lokasi_lat');
     }
     $db->exec("UPDATE absen_kehadirans h INNER JOIN absen_kegiatans k ON k.id = h.kegiatan_id SET h.perangkat_id = k.perangkat_id WHERE (h.perangkat_id IS NULL OR h.perangkat_id = '') AND k.perangkat_id IS NOT NULL AND k.perangkat_id <> ''");
 }
@@ -850,6 +858,46 @@ function absen_pesan_perangkat($kegiatan)
     return '';
 }
 
+function absen_lokasi_kegiatan($kegiatan)
+{
+    $lat = isset($kegiatan['lokasi_lat']) ? $kegiatan['lokasi_lat'] : null;
+    $lng = isset($kegiatan['lokasi_lng']) ? $kegiatan['lokasi_lng'] : null;
+    if ($lat === null || $lat === '' || $lng === null || $lng === '' || !is_numeric($lat) || !is_numeric($lng)) {
+        return null;
+    }
+
+    return array((float) $lat, (float) $lng);
+}
+
+function absen_jarak_meter($lat1, $lng1, $lat2, $lng2)
+{
+    $bumi = 6371000;
+    $p1 = deg2rad((float) $lat1);
+    $p2 = deg2rad((float) $lat2);
+    $dp = deg2rad((float) $lat2 - (float) $lat1);
+    $dl = deg2rad((float) $lng2 - (float) $lng1);
+    $a = sin($dp / 2) * sin($dp / 2) + cos($p1) * cos($p2) * sin($dl / 2) * sin($dl / 2);
+    $c = 2 * atan2(sqrt($a), sqrt(max(0, 1 - $a)));
+
+    return $bumi * $c;
+}
+
+function absen_koordinat_peserta()
+{
+    $lat = isset($_POST['latitude']) ? trim((string) $_POST['latitude']) : '';
+    $lng = isset($_POST['longitude']) ? trim((string) $_POST['longitude']) : '';
+    if ($lat === '' || $lng === '' || !is_numeric($lat) || !is_numeric($lng)) {
+        return null;
+    }
+    $lat = (float) $lat;
+    $lng = (float) $lng;
+    if ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+        return null;
+    }
+
+    return array($lat, $lng);
+}
+
 function absen_simpan_publik($kegiatan)
 {
     $back = '/absen-digital/k/'.rawurlencode(absen_normalize_kode($kegiatan['kode']));
@@ -868,17 +916,19 @@ function absen_simpan_publik($kegiatan)
     if (absen_sudah_hadir($kegiatan['id'], $peserta['id'], null)) {
         absen_flash_error(array('user_id' => $peserta['name'].' sudah absen pada kegiatan ini. Satu identitas hanya bisa absen sekali.'), $back);
     }
-    $lat = isset($_POST['latitude']) ? trim((string) $_POST['latitude']) : '';
-    $lng = isset($_POST['longitude']) ? trim((string) $_POST['longitude']) : '';
-    $latVal = null;
-    $lngVal = null;
-    if ($lat !== '' || $lng !== '') {
-        if (!is_numeric($lat) || (float) $lat < -90 || (float) $lat > 90 || !is_numeric($lng) || (float) $lng < -180 || (float) $lng > 180) {
-            absen_flash_error(array('latitude' => 'Titik lokasi tidak valid.'), $back);
-        }
-        $latVal = $lat;
-        $lngVal = $lng;
+    $pusat = absen_lokasi_kegiatan($kegiatan);
+    if ($pusat === null) {
+        absen_flash_error(array('lokasi' => 'Titik lokasi kegiatan belum ditentukan. Absen belum bisa disimpan.'), $back);
     }
+    $pesertaLokasi = absen_koordinat_peserta();
+    if ($pesertaLokasi === null) {
+        absen_flash_error(array('lokasi' => 'Lokasi perangkat belum terbaca. Izinkan GPS, lalu coba lagi.'), $back);
+    }
+    if (absen_jarak_meter($pusat[0], $pusat[1], $pesertaLokasi[0], $pesertaLokasi[1]) > 75) {
+        absen_flash_error(array('lokasi' => 'Posisi Anda di luar radius 75 meter dari titik lokasi kegiatan. Absen ditolak.'), $back);
+    }
+    $latVal = $pesertaLokasi[0];
+    $lngVal = $pesertaLokasi[1];
     $foto = absen_store_upload(isset($_FILES['foto']) ? $_FILES['foto'] : null, 'absen-digital/foto', array('jpg', 'jpeg', 'png', 'webp'), 1024 * 1024, true);
     if (isset($foto['empty'])) {
         absen_flash_error(array('foto' => 'Absen tidak bisa disimpan tanpa foto selfie.'), $back);
@@ -950,6 +1000,8 @@ function absen_valid_kegiatan_input()
     $selesai = absen_jam(isset($_POST['waktu_selesai']) ? $_POST['waktu_selesai'] : '');
     $tempat = absen_post_text('tempat', 150);
     $keterangan = absen_post_text('keterangan', 2000);
+    $lat = isset($_POST['lokasi_lat']) ? trim((string) $_POST['lokasi_lat']) : '';
+    $lng = isset($_POST['lokasi_lng']) ? trim((string) $_POST['lokasi_lng']) : '';
     $errors = array();
     if ($nama === '') {
         $errors['nama'] = 'Nama kegiatan wajib diisi.';
@@ -969,6 +1021,11 @@ function absen_valid_kegiatan_input()
     if ($mulai !== '' && $selesai !== '' && $selesai <= $mulai) {
         $errors['waktu_selesai'] = 'Jam selesai harus lebih akhir dari jam mulai pada hari yang sama.';
     }
+    if ($lat === '' || $lng === '') {
+        $errors['lokasi_lat'] = 'Titik lokasi kegiatan wajib diisi.';
+    } elseif (!is_numeric($lat) || !is_numeric($lng) || (float) $lat < -90 || (float) $lat > 90 || (float) $lng < -180 || (float) $lng > 180) {
+        $errors['lokasi_lat'] = 'Titik lokasi tidak valid. Isi lintang dan bujur yang benar.';
+    }
     if ($errors) {
         return array('errors' => $errors);
     }
@@ -982,6 +1039,8 @@ function absen_valid_kegiatan_input()
         'waktu_selesai' => $selesai,
         'tempat' => $tempat === '' ? null : $tempat,
         'keterangan' => $keterangan === '' ? null : $keterangan,
+        'lokasi_lat' => $lat,
+        'lokasi_lng' => $lng,
     );
 }
 

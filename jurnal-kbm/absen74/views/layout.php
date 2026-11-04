@@ -93,6 +93,6 @@ $success = absen_success();
     </main>
 </div>
 <script src="/vendor/absen-digital/qrcode.min.js"></script>
-<script src="/js/absen-digital.js?v=qr1"></script>
+<script src="/js/absen-digital.js?v=lokasi1"></script>
 </body>
 </html>

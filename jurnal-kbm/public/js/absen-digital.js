@@ -118,6 +118,54 @@
         render('isian');
     }
 
+    function initLokasiPeserta() {
+        var form = document.getElementById('form-absen-scan');
+        var lat = document.getElementById('latitude');
+        var lng = document.getElementById('longitude');
+        var status = document.getElementById('lokasi-status');
+        if (!form || !lat || !lng || lat.type !== 'hidden') {
+            return;
+        }
+        function tulis(text) {
+            if (status) {
+                status.textContent = text;
+            }
+        }
+        function ambil() {
+            return new Promise(function (resolve, reject) {
+                if (!navigator.geolocation) {
+                    tulis('GPS tidak tersedia di peramban ini. Absen tidak bisa disimpan.');
+                    reject();
+                    return;
+                }
+                tulis('Membaca lokasi perangkat...');
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    lat.value = Number(pos.coords.latitude).toFixed(6);
+                    lng.value = Number(pos.coords.longitude).toFixed(6);
+                    tulis('Lokasi terbaca. Absen hanya berlaku dalam radius 75 meter dari titik kegiatan.');
+                    resolve();
+                }, function () {
+                    lat.value = '';
+                    lng.value = '';
+                    tulis('Lokasi perangkat belum terbaca. Izinkan GPS, lalu ketuk Simpan lagi.');
+                    reject();
+                }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+            });
+        }
+        ambil().catch(function () {});
+        form.addEventListener('submit', function (event) {
+            if (lat.value !== '' && lng.value !== '') {
+                return;
+            }
+            event.preventDefault();
+            ambil().then(function () {
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                }
+            }).catch(function () {});
+        }, true);
+    }
+
     function initTtd() {
         var canvas = document.getElementById('ttd-canvas');
         var input = document.getElementById('ttd-input');
@@ -652,6 +700,7 @@
         initJenisFilter();
         initModePeserta();
         initLokasi();
+        initLokasiPeserta();
         initTtd();
         initFoto();
         initScanner();

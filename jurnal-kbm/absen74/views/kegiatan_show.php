@@ -19,6 +19,9 @@ $scanUrl = absen_tautan_absen($kegiatan);
         </div>
         <div class="card">
             <p><strong>Tempat:</strong> <?php echo absen_e($kegiatan['tempat'] ? $kegiatan['tempat'] : '—'); ?></p>
+            <?php $pusat = absen_lokasi_kegiatan($kegiatan); ?>
+            <p><strong>Titik lokasi:</strong> <?php echo $pusat ? absen_e($pusat[0].', '.$pusat[1]) : 'Belum ditentukan'; ?></p>
+            <p class="muted">Peserta hanya bisa absen dalam radius 75 meter dari titik lokasi.</p>
             <p><strong>Keterangan:</strong> <?php echo absen_e($kegiatan['keterangan'] ? $kegiatan['keterangan'] : '—'); ?></p>
         </div>
     </div>
