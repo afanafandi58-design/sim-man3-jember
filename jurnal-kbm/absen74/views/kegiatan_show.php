@@ -4,7 +4,7 @@ $scanUrl = absen_tautan_absen($kegiatan);
 ?>
 <p class="muted"><?php echo absen_e(isset($jenisMap[$kegiatan['jenis']]) ? $jenisMap[$kegiatan['jenis']] : $kegiatan['jenis']); ?> · <?php echo absen_e(absen_tanggal_label($kegiatan['tanggal'])); ?><?php $rentang = absen_rentang_label($kegiatan); echo $rentang !== '' ? ' · absen '.absen_e($rentang) : ''; ?></p>
 <?php if ($rentang === '') { ?><div class="alert alert-warning">Rentang waktu absen belum diatur. Peserta belum bisa menyimpan absen.</div><?php } ?>
-<p class="muted">Setiap perangkat Android hanya dapat menyimpan satu absen pada kegiatan ini.</p>
+<p class="muted">Setiap perangkat Android hanya dapat menyimpan satu absen pada kegiatan ini. Kunci tetap ada walaupun cache atau cookie dihapus.</p>
 <?php if ($admin) { ?><p><a class="btn" href="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/ubah">Ubah</a></p><?php } ?>
 <div class="row">
     <div>

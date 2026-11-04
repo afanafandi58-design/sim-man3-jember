@@ -756,6 +756,142 @@
         }, true);
     }
 
+    function hashSidik(text) {
+        var h1 = 2166136261;
+        var h2 = 2166136261 ^ 0x9e3779b9;
+        var i;
+        for (i = 0; i < text.length; i++) {
+            var c = text.charCodeAt(i);
+            h1 ^= c;
+            h1 = Math.imul(h1, 16777619);
+            h2 ^= c;
+            h2 = Math.imul(h2, 2246822519);
+        }
+        function hex(n) {
+            return ('00000000' + (n >>> 0).toString(16)).slice(-8);
+        }
+        return hex(h1) + hex(h2);
+    }
+
+    function sidikKanvas() {
+        try {
+            var kanvas = document.createElement('canvas');
+            kanvas.width = 240;
+            kanvas.height = 60;
+            var gambar = kanvas.getContext('2d');
+            if (!gambar) {
+                return '0';
+            }
+            gambar.fillStyle = '#f4f6f5';
+            gambar.fillRect(0, 0, 240, 60);
+            gambar.fillStyle = '#1b5e20';
+            gambar.font = '16px Arial';
+            gambar.fillText('Absen MAN 3 Jember', 8, 24);
+            gambar.strokeStyle = '#b71c1c';
+            gambar.beginPath();
+            gambar.arc(200, 30, 18, 0, Math.PI * 2);
+            gambar.stroke();
+            return hashSidik(kanvas.toDataURL());
+        } catch (err) {
+            return '0';
+        }
+    }
+
+    function sidikGrafis() {
+        try {
+            var kanvas = document.createElement('canvas');
+            var gl = kanvas.getContext('webgl') || kanvas.getContext('experimental-webgl');
+            if (!gl) {
+                return '0';
+            }
+            var ext = gl.getExtension('WEBGL_debug_renderer_info');
+            var vendor = ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR);
+            var renderer = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+            return String(vendor || '0') + '/' + String(renderer || '0');
+        } catch (err) {
+            return '0';
+        }
+    }
+
+    function sidikModel() {
+        var ua = navigator.userAgent || '';
+        var cocok = ua.match(/Android ([0-9.]+);\s*([^;)]+)/i);
+        if (!cocok) {
+            return 'android';
+        }
+        return ('Android ' + cocok[1] + ' ' + cocok[2].replace(/\s+Build\/.*$/i, '')).trim();
+    }
+
+    function buatSidik() {
+        var zona = '';
+        try {
+            zona = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+        } catch (err) {
+            zona = '';
+        }
+        var layar = window.screen || {};
+        var lebar = layar.width || 0;
+        var tinggi = layar.height || 0;
+        var bagian = [
+            'v1',
+            sidikModel(),
+            String(Math.min(lebar, tinggi)) + 'x' + String(Math.max(lebar, tinggi)),
+            String(layar.colorDepth || 0),
+            String(navigator.hardwareConcurrency || 0),
+            String(navigator.deviceMemory || 0),
+            String(navigator.maxTouchPoints || 0),
+            zona,
+            sidikGrafis(),
+            sidikKanvas()
+        ];
+        return bagian.join('|').replace(/[^\x20-\x7E]/g, '').slice(0, 780);
+    }
+
+    function initSidik() {
+        var form = document.getElementById('form-absen-scan');
+        var input = document.getElementById('sidik-perangkat');
+        if (!form || !input) {
+            return;
+        }
+        function isi() {
+            input.value = buatSidik();
+            return input.value;
+        }
+        isi();
+        form.addEventListener('submit', function () {
+            isi();
+        }, true);
+        var token = form.querySelector('input[name="_token"]');
+        var kode = form.querySelector('input[name="kode"]');
+        if (!token || !kode || !window.fetch) {
+            return;
+        }
+        var body = new URLSearchParams();
+        body.set('_token', token.value);
+        body.set('sidik', input.value);
+        fetch('/absen-digital/k/' + encodeURIComponent(kode.value) + '/sidik', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString(),
+            credentials: 'same-origin'
+        }).then(function (res) {
+            return res.json();
+        }).then(function (data) {
+            if (!data || !data.terkunci) {
+                return;
+            }
+            var langkah = document.getElementById('langkah-absen');
+            if (!langkah) {
+                return;
+            }
+            langkah.textContent = '';
+            var alert = document.createElement('div');
+            alert.className = 'alert alert-danger';
+            alert.textContent = data.pesan || 'Perangkat Android ini sudah dipakai untuk absen pada kegiatan ini. Perangkat yang sama tidak bisa mengabsenkan nama lain.';
+            langkah.appendChild(alert);
+        }).catch(function () {});
+    }
+
     function initKonfirmasi() {
         Array.prototype.forEach.call(document.querySelectorAll('form[data-konfirmasi]'), function (form) {
             form.addEventListener('submit', function (event) {
@@ -796,6 +932,7 @@
         initLokasi();
         initLokasiPeserta();
         initTtd();
+        initSidik();
         initFoto();
         initScanner();
         initKonfirmasi();

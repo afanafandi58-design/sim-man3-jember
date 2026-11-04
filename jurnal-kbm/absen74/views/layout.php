@@ -92,13 +92,13 @@ $success = absen_success();
             <?php } ?>
         </div>
         <?php if (strpos($aktif, '/absen-digital') === 0) { ?>
-            <p class="catatan">Catatan: Buka tautan atau QR. Nama kegiatan tampil di atas QR. Pilih identitas, foto di bawah 1 MB, lalu tanda tangan. GPS harus dalam 75 meter dari titik pengelola, dan hanya dalam rentang waktu. Satu Android hanya satu absen, lalu terkunci. Satu identitas hanya sekali.</p>
+            <p class="catatan">Catatan: Buka tautan atau QR. Nama kegiatan tampil di atas QR. Pilih identitas, foto di bawah 1 MB, lalu tanda tangan. GPS harus dalam 75 meter dari titik pengelola, dan hanya dalam rentang waktu. Satu Android hanya satu absen, lalu terkunci. Menghapus cache atau cookie tidak membuka kunci itu. Satu identitas hanya sekali.</p>
         <?php } ?>
         <?php if ($success !== '') { ?><div class="alert alert-success"><?php echo absen_e($success); ?></div><?php } ?>
         <?php echo $isi; ?>
     </main>
 </div>
 <script src="/vendor/absen-digital/qrcode.min.js"></script>
-<script src="/js/absen-digital.js?v=aman1"></script>
+<script src="/js/absen-digital.js?v=sidik1"></script>
 </body>
 </html>

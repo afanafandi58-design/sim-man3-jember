@@ -315,6 +315,20 @@ if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)$#', $path, $m) && $method === 
     exit;
 }
 
+if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)/sidik$#', $path, $m) && $method === 'POST') {
+    $kode = absen_normalize_kode($m[1]);
+    $stmt = absen_db()->prepare('SELECT * FROM absen_kegiatans WHERE kode = ?');
+    $stmt->execute(array($kode));
+    $kegiatan = $stmt->fetch();
+    $terkunci = $kegiatan && absen_android() && absen_perangkat_terkunci($kegiatan['id']);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(array(
+        'terkunci' => $terkunci,
+        'pesan' => $terkunci ? absen_pesan_perangkat_terpakai() : '',
+    ));
+    exit;
+}
+
 if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)$#', $path, $m) && $method === 'POST') {
     $_POST['kode'] = absen_normalize_kode($m[1]);
     $path = '/absen-digital/scan';

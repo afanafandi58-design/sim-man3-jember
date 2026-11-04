@@ -906,19 +906,50 @@ function absen_android()
     return stripos($ua, 'Android') !== false;
 }
 
+function absen_id_perangkat_valid($id)
+{
+    return is_string($id) && preg_match('/^[a-f0-9]{32}(?:[a-f0-9]{32})?$/', $id) === 1;
+}
+
 function absen_perangkat_id()
 {
-    $id = isset($_COOKIE['absen_perangkat']) ? (string) $_COOKIE['absen_perangkat'] : '';
-    if (!preg_match('/^[a-f0-9]{32}$/', $id)) {
+    $id = isset($_COOKIE['absen_perangkat']) ? strtolower((string) $_COOKIE['absen_perangkat']) : '';
+    if (!absen_id_perangkat_valid($id)) {
         return '';
     }
 
     return $id;
 }
 
+function absen_sidik_mentah()
+{
+    if (!isset($_POST['sidik'])) {
+        return '';
+    }
+    $raw = trim((string) $_POST['sidik']);
+    if (strlen($raw) < 20 || strlen($raw) > 800 || !preg_match('/\Av1\|[\x20-\x7E]{10,780}\z/', $raw)) {
+        return '';
+    }
+    if (substr_count($raw, '|') < 8) {
+        return '';
+    }
+
+    return $raw;
+}
+
+function absen_sidik_id()
+{
+    $raw = absen_sidik_mentah();
+    if ($raw === '') {
+        return '';
+    }
+
+    return hash('sha256', $raw);
+}
+
 function absen_set_perangkat_cookie($id)
 {
-    if (!preg_match('/^[a-f0-9]{32}$/', (string) $id)) {
+    if (!absen_id_perangkat_valid((string) $id)) {
         return;
     }
     $secure = absen_https();
@@ -952,12 +983,26 @@ function absen_perangkat_sudah($kegiatanId, $perangkatId)
     return (bool) $stmt->fetch();
 }
 
+function absen_perangkat_terkunci($kegiatanId)
+{
+    $sidik = absen_sidik_id();
+    if ($sidik !== '' && absen_perangkat_sudah($kegiatanId, $sidik)) {
+        return true;
+    }
+    $cookie = absen_perangkat_id();
+    if ($cookie !== '' && absen_perangkat_sudah($kegiatanId, $cookie)) {
+        return true;
+    }
+
+    return false;
+}
+
 function absen_pesan_perangkat($kegiatan)
 {
     if (!absen_android()) {
         return 'Absen dilakukan dari perangkat Android. Perangkat ini bukan Android.';
     }
-    if (absen_perangkat_sudah($kegiatan['id'], absen_perangkat_id())) {
+    if (absen_perangkat_terkunci($kegiatan['id'])) {
         return absen_pesan_perangkat_terpakai();
     }
 
@@ -1077,7 +1122,10 @@ function absen_simpan_publik($kegiatan)
     if (!absen_batas('absen-ip', $ip, 150, 600, true)) {
         absen_flash_error(array('user_id' => 'Terlalu banyak percobaan absen dari jaringan ini. Tunggu beberapa menit lalu coba lagi.'), $back);
     }
-    $perangkat = absen_perangkat_id();
+    $perangkat = absen_sidik_id();
+    if ($perangkat === '') {
+        $perangkat = absen_perangkat_id();
+    }
     if ($perangkat !== '' && !absen_batas('absen-perangkat', $perangkat, 25, 600, true)) {
         absen_flash_error(array('perangkat' => 'Terlalu banyak percobaan dari perangkat ini. Tunggu beberapa menit lalu coba lagi.'), $back);
     }
@@ -1088,6 +1136,9 @@ function absen_simpan_publik($kegiatan)
     $pesanPerangkat = absen_pesan_perangkat($kegiatan);
     if ($pesanPerangkat !== '') {
         absen_flash_error(array('perangkat' => $pesanPerangkat), $back);
+    }
+    if (absen_sidik_id() === '') {
+        absen_flash_error(array('perangkat' => 'Perangkat tidak dikenali. Muat ulang halaman absen, lalu coba lagi.'), $back);
     }
     $peserta = absen_find_peserta(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
     if (!$peserta) {
@@ -1130,13 +1181,15 @@ function absen_simpan_publik($kegiatan)
         $db->beginTransaction();
         $kunci = $db->prepare('SELECT id FROM absen_kegiatans WHERE id = ? FOR UPDATE');
         $kunci->execute(array($kegiatan['id']));
-        $mine = absen_perangkat_id();
-        $pakai = $mine !== '' ? $mine : bin2hex(random_bytes(16));
-        if (absen_perangkat_sudah($kegiatan['id'], $pakai)) {
+        $pakai = absen_sidik_id();
+        if ($pakai === '' || absen_perangkat_terkunci($kegiatan['id'])) {
             $db->rollBack();
             absen_unlink_rel($foto['path']);
             absen_unlink_rel($ttd['path']);
-            absen_flash_error(array('perangkat' => absen_pesan_perangkat_terpakai()), $back);
+            $pesanKunci = $pakai === ''
+                ? 'Perangkat tidak dikenali. Muat ulang halaman absen, lalu coba lagi.'
+                : absen_pesan_perangkat_terpakai();
+            absen_flash_error(array('perangkat' => $pesanKunci), $back);
         }
         if (absen_sudah_hadir($kegiatan['id'], $peserta['id'], null)) {
             $db->rollBack();

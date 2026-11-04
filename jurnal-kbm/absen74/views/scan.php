@@ -45,6 +45,7 @@
                     <input type="hidden" name="latitude" id="latitude" value="">
                     <input type="hidden" name="longitude" id="longitude" value="">
                     <input type="hidden" name="lokasi_palsu" id="lokasi-palsu" value="0">
+                    <input type="hidden" name="sidik" id="sidik-perangkat" value="">
                     <p id="lokasi-status" class="muted">Lokasi perangkat sedang dibaca. Absen hanya berlaku dalam radius 75 meter.</p>
                     <p><label for="saring-identitas">Pilih identitas</label>
                         <input id="saring-identitas" type="search" autocomplete="off" placeholder="Saring <?php echo count($peserta); ?> nama">
