@@ -882,6 +882,16 @@ function absen_jarak_meter($lat1, $lng1, $lat2, $lng2)
     return $bumi * $c;
 }
 
+function absen_lokasi_dilaporkan_palsu()
+{
+    if (!isset($_POST['lokasi_palsu'])) {
+        return false;
+    }
+    $nilai = strtolower(trim((string) $_POST['lokasi_palsu']));
+
+    return in_array($nilai, array('1', 'true', 'ya', 'palsu'), true);
+}
+
 function absen_koordinat_peserta()
 {
     $lat = isset($_POST['latitude']) ? trim((string) $_POST['latitude']) : '';
@@ -919,6 +929,9 @@ function absen_simpan_publik($kegiatan)
     $pusat = absen_lokasi_kegiatan($kegiatan);
     if ($pusat === null) {
         absen_flash_error(array('lokasi' => 'Titik lokasi kegiatan belum ditentukan. Absen belum bisa disimpan.'), $back);
+    }
+    if (absen_lokasi_dilaporkan_palsu()) {
+        absen_flash_error(array('lokasi' => 'Lokasi perangkat terdeteksi sebagai GPS palsu. Absen ditolak. Matikan mock location, lalu coba lagi.'), $back);
     }
     $pesertaLokasi = absen_koordinat_peserta();
     if ($pesertaLokasi === null) {

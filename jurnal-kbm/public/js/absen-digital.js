@@ -165,10 +165,32 @@
         if (!form || !lat || !lng || lat.type !== 'hidden') {
             return;
         }
+        var tanda = document.getElementById('lokasi-palsu');
         function tulis(text) {
             if (status) {
                 status.textContent = text;
             }
+        }
+        function lokasiPalsu(pos) {
+            var coords = pos && pos.coords ? pos.coords : {};
+            if (coords.mocked === true || (pos && pos.mocked === true)) {
+                return true;
+            }
+            if (typeof coords.isTrusted === 'boolean' && coords.isTrusted === false) {
+                return true;
+            }
+            if (pos && typeof pos.isTrusted === 'boolean' && pos.isTrusted === false) {
+                return true;
+            }
+            return false;
+        }
+        function tolakPalsu() {
+            lat.value = '';
+            lng.value = '';
+            if (tanda) {
+                tanda.value = '1';
+            }
+            tulis('Lokasi perangkat terdeteksi sebagai GPS palsu. Absen ditolak. Matikan mock location, lalu coba lagi.');
         }
         function ambil() {
             return new Promise(function (resolve, reject) {
@@ -179,13 +201,24 @@
                 }
                 tulis('Membaca lokasi perangkat...');
                 navigator.geolocation.getCurrentPosition(function (pos) {
+                    if (lokasiPalsu(pos)) {
+                        tolakPalsu();
+                        reject();
+                        return;
+                    }
                     lat.value = Number(pos.coords.latitude).toFixed(6);
                     lng.value = Number(pos.coords.longitude).toFixed(6);
+                    if (tanda) {
+                        tanda.value = '0';
+                    }
                     tulis('Lokasi terbaca. Absen hanya berlaku dalam radius 75 meter dari titik kegiatan.');
                     resolve();
                 }, function () {
                     lat.value = '';
                     lng.value = '';
+                    if (tanda) {
+                        tanda.value = '0';
+                    }
                     tulis('Lokasi perangkat belum terbaca. Izinkan GPS, lalu ketuk Simpan lagi.');
                     reject();
                 }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
@@ -193,6 +226,11 @@
         }
         ambil().catch(function () {});
         form.addEventListener('submit', function (event) {
+            if (tanda && tanda.value === '1') {
+                event.preventDefault();
+                tolakPalsu();
+                return;
+            }
             if (lat.value !== '' && lng.value !== '') {
                 return;
             }
