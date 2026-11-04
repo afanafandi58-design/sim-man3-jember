@@ -47,7 +47,7 @@
     </style>
 </head>
 <body>
-<p class="no-print"><button type="button" onclick="window.print()">Cetak laporan</button></p>
+<p class="no-print"><button type="button" id="cetak-laporan">Cetak laporan</button></p>
 <?php if (!$groups) { ?><div class="lembar"><p>Tidak ada kehadiran pada saringan ini.</p></div><?php } ?>
 <?php foreach ($groups as $rows) { $head = $rows[0]; ?>
     <section class="grup">
@@ -92,5 +92,6 @@
         </div>
     </section>
 <?php } ?>
+<script src="/js/absen-digital.js?v=aman1"></script>
 </body>
 </html>

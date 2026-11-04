@@ -756,6 +756,23 @@
         }, true);
     }
 
+    function initKonfirmasi() {
+        Array.prototype.forEach.call(document.querySelectorAll('form[data-konfirmasi]'), function (form) {
+            form.addEventListener('submit', function (event) {
+                var pesan = form.getAttribute('data-konfirmasi') || 'Lanjutkan?';
+                if (!window.confirm(pesan)) {
+                    event.preventDefault();
+                }
+            });
+        });
+        var cetak = document.getElementById('cetak-laporan');
+        if (cetak) {
+            cetak.addEventListener('click', function () {
+                window.print();
+            });
+        }
+    }
+
     function initQr() {
         var box = document.getElementById('qrcode');
         if (!box || typeof QRCode === 'undefined') {
@@ -781,6 +798,7 @@
         initTtd();
         initFoto();
         initScanner();
+        initKonfirmasi();
         initQr();
     });
 })();

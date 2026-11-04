@@ -64,11 +64,43 @@ function absen_storage_root()
     return absen_root().'/storage/app';
 }
 
+function absen_https()
+{
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        return true;
+    }
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') {
+        return true;
+    }
+    if (isset($_SERVER['SERVER_PORT']) && (string) $_SERVER['SERVER_PORT'] === '443') {
+        return true;
+    }
+
+    return false;
+}
+
+function absen_header_aman()
+{
+    if (headers_sent()) {
+        return;
+    }
+    header('X-Frame-Options: DENY');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(self), camera=(self), microphone=()');
+    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org; font-src 'self' data:; connect-src 'self'");
+    if (absen_https()) {
+        header('Strict-Transport-Security: max-age=15552000');
+    }
+}
+
 function absen_boot()
 {
     date_default_timezone_set('Asia/Jakarta');
     absen_load_env();
-    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    absen_header_aman();
+    absen_lindungi_penyimpanan();
+    $secure = absen_https();
     if (session_status() !== PHP_SESSION_ACTIVE) {
         if (PHP_VERSION_ID >= 70300) {
             session_set_cookie_params(array(
@@ -83,7 +115,7 @@ function absen_boot()
         }
         session_start();
     }
-    if (empty($_SESSION['_token'])) {
+    if (empty($_SESSION['_token']) || !is_string($_SESSION['_token'])) {
         $_SESSION['_token'] = bin2hex(random_bytes(16));
     }
 }
@@ -399,12 +431,27 @@ function absen_csrf_field()
     return '<input type="hidden" name="_token" value="'.absen_e($_SESSION['_token']).'">';
 }
 
+function absen_path_aman($path)
+{
+    if (!is_string($path)) {
+        return '/';
+    }
+    if (strlen($path) > 2048 || preg_match('/[\x00-\x1F\x7F\\\\]/', $path)) {
+        return '/';
+    }
+    if ($path === '' || $path[0] !== '/' || (isset($path[1]) && $path[1] === '/')) {
+        return '/';
+    }
+    if (strpos($path, '://') !== false) {
+        return '/';
+    }
+
+    return $path;
+}
+
 function absen_redirect($path)
 {
-    if (!is_string($path) || $path === '' || $path[0] !== '/') {
-        $path = '/';
-    }
-    header('Location: '.$path);
+    header('Location: '.absen_path_aman($path));
     exit;
 }
 
@@ -419,10 +466,10 @@ function absen_back($fallback)
             $path .= '?'.$parts['query'];
         }
 
-        return $path;
+        return absen_path_aman($path);
     }
 
-    return $fallback;
+    return absen_path_aman($fallback);
 }
 
 function absen_flash_error($errors, $fallback)
@@ -546,13 +593,25 @@ function absen_tanggal_label($ymd)
 function absen_base_url()
 {
     $host = isset($_SERVER['HTTP_HOST']) ? trim((string) $_SERVER['HTTP_HOST']) : '';
-    $local = $host === '' || stripos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false;
-    if (!$local) {
-        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
-            || (isset($_SERVER['SERVER_PORT']) && (string) $_SERVER['SERVER_PORT'] === '443');
-
-        return ($https ? 'https' : 'http').'://'.$host;
+    $hostOnly = strtolower((string) preg_replace('/:\d+$/', '', $host));
+    $cfg = trim(absen_env('APP_URL'));
+    $cfgHost = '';
+    if ($cfg !== '') {
+        $parsedCfg = parse_url($cfg);
+        if (is_array($parsedCfg) && isset($parsedCfg['host'])) {
+            $cfgHost = strtolower((string) $parsedCfg['host']);
+        }
+    }
+    $allowed = array(
+        'absendigital.man3jember.sch.id' => true,
+        'localhost' => true,
+        '127.0.0.1' => true,
+    );
+    if ($cfgHost !== '') {
+        $allowed[$cfgHost] = true;
+    }
+    if ($hostOnly !== '' && isset($allowed[$hostOnly])) {
+        return (absen_https() ? 'https' : 'http').'://'.$host;
     }
     $cfg = trim(absen_env('APP_URL'));
     if ($cfg !== '') {
@@ -593,9 +652,49 @@ function absen_safe_name($name, $fallback)
     return substr($name, 0, 150);
 }
 
+function absen_rel_aman($path)
+{
+    if (!is_string($path) || $path === '' || strlen($path) > 255) {
+        return '';
+    }
+    if (strpos($path, "\0") !== false || strpos($path, '\\') !== false || strpos($path, '..') !== false) {
+        return '';
+    }
+    if (strpos($path, 'absen-digital/') !== 0) {
+        return '';
+    }
+    if (!preg_match('#^absen-digital/(foto|ttd|dokumentasi|hasil)/[A-Za-z0-9._-]+$#', $path)) {
+        return '';
+    }
+
+    return $path;
+}
+
+function absen_file_penuh($path)
+{
+    $rel = absen_rel_aman($path);
+    if ($rel === '') {
+        return '';
+    }
+    $root = realpath(absen_storage_root());
+    if ($root === false) {
+        return '';
+    }
+    $full = realpath($root.'/'.$rel);
+    if ($full === false || !is_file($full)) {
+        return '';
+    }
+    $prefix = rtrim($root, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+    if (strpos($full, $prefix) !== 0) {
+        return '';
+    }
+
+    return $full;
+}
+
 function absen_assert_rel($path)
 {
-    if (!is_string($path) || strpos($path, 'absen-digital/') !== 0 || strpos($path, '..') !== false) {
+    if (absen_rel_aman($path) === '') {
         http_response_code(404);
         echo 'Berkas tidak ditemukan.';
         exit;
@@ -604,11 +703,8 @@ function absen_assert_rel($path)
 
 function absen_unlink_rel($path)
 {
-    if (!is_string($path) || $path === '' || strpos($path, 'absen-digital/') !== 0 || strpos($path, '..') !== false) {
-        return;
-    }
-    $full = absen_storage_root().'/'.$path;
-    if (is_file($full)) {
+    $full = absen_file_penuh($path);
+    if ($full !== '') {
         unlink($full);
     }
 }
@@ -640,18 +736,28 @@ function absen_normalize_kode($raw)
         $query = array();
         parse_str($parts['query'], $query);
         if (!empty($query['kode']) && is_string($query['kode'])) {
-            return strtoupper(trim($query['kode']));
+            return absen_kode_bersih($query['kode']);
         }
     }
     if (preg_match('/(?:^|[?&])kode=([A-Za-z0-9]+)/', $raw, $matches) === 1) {
-        return strtoupper($matches[1]);
+        return absen_kode_bersih($matches[1]);
     }
     $path = is_array($parts) && isset($parts['path']) ? (string) $parts['path'] : $raw;
     if (preg_match('#/absen-digital/k/([A-Za-z0-9]+)#', $path, $matches) === 1) {
-        return strtoupper($matches[1]);
+        return absen_kode_bersih($matches[1]);
     }
 
-    return strtoupper($raw);
+    return absen_kode_bersih($raw);
+}
+
+function absen_kode_bersih($kode)
+{
+    $kode = strtoupper(trim((string) $kode));
+    if (!preg_match('/^[A-Z0-9]{4,32}$/', $kode)) {
+        return '';
+    }
+
+    return $kode;
 }
 
 function absen_drive_ok($url)
@@ -815,7 +921,7 @@ function absen_set_perangkat_cookie($id)
     if (!preg_match('/^[a-f0-9]{32}$/', (string) $id)) {
         return;
     }
-    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    $secure = absen_https();
     if (PHP_VERSION_ID >= 70300) {
         setcookie('absen_perangkat', $id, array(
             'expires' => time() + 365 * 24 * 3600,
@@ -908,9 +1014,73 @@ function absen_koordinat_peserta()
     return array($lat, $lng);
 }
 
+function absen_klien_ip()
+{
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+        return '0';
+    }
+
+    return $ip;
+}
+
+function absen_batas($nama, $kunci, $maks, $detik, $catat)
+{
+    $maks = (int) $maks;
+    $detik = (int) $detik;
+    if ($maks < 1 || $detik < 1) {
+        return true;
+    }
+    $dir = absen_storage_root().'/absen-digital/_batas';
+    if (!is_dir($dir) && !mkdir($dir, 0700, true)) {
+        return true;
+    }
+    $file = $dir.'/'.hash('sha256', $nama.'|'.$kunci);
+    $fh = @fopen($file, 'c+');
+    if (!$fh) {
+        return true;
+    }
+    if (!flock($fh, LOCK_EX)) {
+        fclose($fh);
+
+        return true;
+    }
+    $raw = stream_get_contents($fh);
+    $now = time();
+    $hits = array();
+    if (is_string($raw) && $raw !== '') {
+        foreach (explode(',', $raw) as $part) {
+            $ts = (int) $part;
+            if ($ts > 0 && $ts > $now - $detik) {
+                $hits[] = $ts;
+            }
+        }
+    }
+    $boleh = count($hits) < $maks;
+    if ($catat && $boleh) {
+        $hits[] = $now;
+    }
+    ftruncate($fh, 0);
+    rewind($fh);
+    fwrite($fh, implode(',', $hits));
+    fflush($fh);
+    flock($fh, LOCK_UN);
+    fclose($fh);
+
+    return $boleh;
+}
+
 function absen_simpan_publik($kegiatan)
 {
     $back = '/absen-digital/k/'.rawurlencode(absen_normalize_kode($kegiatan['kode']));
+    $ip = absen_klien_ip();
+    if (!absen_batas('absen-ip', $ip, 150, 600, true)) {
+        absen_flash_error(array('user_id' => 'Terlalu banyak percobaan absen dari jaringan ini. Tunggu beberapa menit lalu coba lagi.'), $back);
+    }
+    $perangkat = absen_perangkat_id();
+    if ($perangkat !== '' && !absen_batas('absen-perangkat', $perangkat, 25, 600, true)) {
+        absen_flash_error(array('perangkat' => 'Terlalu banyak percobaan dari perangkat ini. Tunggu beberapa menit lalu coba lagi.'), $back);
+    }
     $blokir = absen_rentang_blokir($kegiatan);
     if ($blokir !== '') {
         absen_flash_error(array('rentang' => $blokir), $back);
@@ -1067,9 +1237,100 @@ function absen_unggahan_kosong_karena_ukuran()
     return empty($_POST) && empty($_FILES);
 }
 
+function absen_jenis_gambar($path)
+{
+    $info = @getimagesize($path);
+    if (!is_array($info) || empty($info[0]) || empty($info[1]) || empty($info[2])) {
+        return '';
+    }
+    $lebar = (int) $info[0];
+    $tinggi = (int) $info[1];
+    if ($lebar < 1 || $tinggi < 1 || $lebar > 8000 || $tinggi > 8000 || ($lebar * $tinggi) > 24000000) {
+        return '';
+    }
+    $map = array(
+        IMAGETYPE_JPEG => 'jpg',
+        IMAGETYPE_PNG => 'png',
+    );
+    if (defined('IMAGETYPE_WEBP')) {
+        $map[IMAGETYPE_WEBP] = 'webp';
+    }
+    if (!isset($map[$info[2]])) {
+        return '';
+    }
+
+    return $map[$info[2]];
+}
+
+function absen_tulis_gambar($src, $dest, $jenis)
+{
+    $gambar = null;
+    if ($jenis === 'jpg') {
+        $gambar = @imagecreatefromjpeg($src);
+    } elseif ($jenis === 'png') {
+        $gambar = @imagecreatefrompng($src);
+    } elseif ($jenis === 'webp' && function_exists('imagecreatefromwebp')) {
+        $gambar = @imagecreatefromwebp($src);
+    }
+    if (!$gambar) {
+        return false;
+    }
+    $ok = false;
+    if ($jenis === 'jpg') {
+        $ok = imagejpeg($gambar, $dest, 85);
+    } elseif ($jenis === 'png') {
+        imagealphablending($gambar, false);
+        imagesavealpha($gambar, true);
+        $ok = imagepng($gambar, $dest, 6);
+    } elseif ($jenis === 'webp' && function_exists('imagewebp')) {
+        $ok = imagewebp($gambar, $dest, 85);
+    }
+    imagedestroy($gambar);
+
+    return $ok && is_file($dest);
+}
+
+function absen_berkas_diterima($path, $ext)
+{
+    $fh = @fopen($path, 'rb');
+    $head = $fh ? (string) fread($fh, 16) : '';
+    if ($fh) {
+        fclose($fh);
+    }
+    if ($head === '') {
+        return false;
+    }
+    $awal = ltrim($head);
+    if (stripos($awal, '<?php') === 0 || stripos($awal, '<html') === 0 || stripos($awal, '<svg') === 0 || stripos($awal, '<script') === 0 || stripos($awal, '<!doctype') === 0) {
+        return false;
+    }
+    if ($ext === 'pdf') {
+        return strncmp($head, '%PDF', 4) === 0;
+    }
+    if ($ext === 'zip' || $ext === 'docx' || $ext === 'xlsx' || $ext === 'pptx') {
+        return strncmp($head, "PK\x03\x04", 4) === 0 || strncmp($head, "PK\x05\x06", 4) === 0 || strncmp($head, "PK\x07\x08", 4) === 0;
+    }
+    if ($ext === 'doc' || $ext === 'xls' || $ext === 'ppt') {
+        return strncmp($head, "\xD0\xCF\x11\xE0", 4) === 0;
+    }
+    if ($ext === 'jpg' || $ext === 'jpeg' || $ext === 'png' || $ext === 'webp') {
+        $jenis = absen_jenis_gambar($path);
+        if ($jenis === '') {
+            return false;
+        }
+        if ($ext === 'jpg' || $ext === 'jpeg') {
+            return $jenis === 'jpg';
+        }
+
+        return $jenis === $ext;
+    }
+
+    return false;
+}
+
 function absen_store_upload($file, $directory, $allowedExt, $maxBytes, $mustImage)
 {
-    if (!is_array($file) || !isset($file['error'])) {
+    if (!is_array($file) || !isset($file['error']) || !isset($file['tmp_name'])) {
         return array('error' => 'Berkas tidak ditemukan.');
     }
     if ($file['error'] === UPLOAD_ERR_NO_FILE) {
@@ -1080,7 +1341,7 @@ function absen_store_upload($file, $directory, $allowedExt, $maxBytes, $mustImag
             ? 'Foto terlalu besar. Ambil ulang; foto diperkecil otomatis di perangkat sebelum dikirim.'
             : 'Berkas terlalu besar.');
     }
-    if ($file['error'] !== UPLOAD_ERR_OK) {
+    if ($file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($file['tmp_name'])) {
         return array('error' => 'Gagal mengunggah berkas.');
     }
     if ((int) $file['size'] > $maxBytes) {
@@ -1091,22 +1352,40 @@ function absen_store_upload($file, $directory, $allowedExt, $maxBytes, $mustImag
         return array('error' => $mustImage ? 'Ukuran foto maksimal 4 MB.' : 'Berkas hasil rapat maksimal 10 MB.');
     }
     $ext = strtolower(pathinfo((string) $file['name'], PATHINFO_EXTENSION));
-    $ext = preg_replace('/[^a-z0-9]/', '', $ext);
-    if (!in_array($ext, $allowedExt, true)) {
-        return array('error' => $mustImage ? 'Berkas harus berupa gambar.' : 'Tipe berkas tidak didukung. Gunakan PDF, dokumen kantor, gambar, atau ZIP.');
+    $ext = preg_replace('/[^a-z0-9]/', '', (string) $ext);
+    if (!in_array($ext, $allowedExt, true) || !absen_berkas_diterima($file['tmp_name'], $ext)) {
+        return array('error' => $mustImage ? 'Berkas harus berupa gambar JPEG, PNG, atau WebP.' : 'Tipe berkas tidak didukung. Gunakan PDF, dokumen kantor, gambar, atau ZIP.');
     }
-    if ($mustImage) {
-        $info = @getimagesize($file['tmp_name']);
-        if ($info === false) {
-            return array('error' => 'Berkas harus berupa gambar.');
+    $jenisGambar = '';
+    if ($ext === 'jpg' || $ext === 'jpeg' || $ext === 'png' || $ext === 'webp') {
+        $jenisGambar = absen_jenis_gambar($file['tmp_name']);
+        if ($jenisGambar === '' || ($mustImage && !in_array($jenisGambar, array('jpg', 'png', 'webp'), true))) {
+            return array('error' => 'Berkas harus berupa gambar JPEG, PNG, atau WebP.');
         }
     }
     $dir = absen_storage_root().'/'.trim($directory, '/');
     if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
         return array('error' => 'Folder penyimpanan tidak bisa dibuat.');
     }
-    $rel = trim($directory, '/').'/'.absen_uuid().'.'.$ext;
-    if (!move_uploaded_file($file['tmp_name'], absen_storage_root().'/'.$rel)) {
+    $simpanExt = $jenisGambar !== '' ? $jenisGambar : $ext;
+    $rel = trim($directory, '/').'/'.absen_uuid().'.'.$simpanExt;
+    $dest = absen_storage_root().'/'.$rel;
+    if ($jenisGambar !== '') {
+        if (!absen_tulis_gambar($file['tmp_name'], $dest, $jenisGambar)) {
+            if (is_file($dest)) {
+                unlink($dest);
+            }
+
+            return array('error' => 'Berkas harus berupa gambar JPEG, PNG, atau WebP.');
+        }
+    } elseif (!move_uploaded_file($file['tmp_name'], $dest)) {
+        return array('error' => 'Berkas tidak tersimpan.');
+    }
+    if (absen_rel_aman($rel) === '') {
+        if (is_file($dest)) {
+            unlink($dest);
+        }
+
         return array('error' => 'Berkas tidak tersimpan.');
     }
 
@@ -1136,6 +1415,11 @@ function absen_decode_ttd($dataUrl)
     $ink = 0;
     $width = imagesx($image);
     $height = imagesy($image);
+    if ($width < 1 || $height < 1 || $width > 4096 || $height > 4096) {
+        imagedestroy($image);
+
+        return array('error' => 'Tanda tangan tidak valid atau terlalu besar.');
+    }
     for ($y = 0; $y < $height; $y += 3) {
         for ($x = 0; $x < $width; $x += 3) {
             $color = imagecolorat($image, $x, $y);
@@ -1151,8 +1435,9 @@ function absen_decode_ttd($dataUrl)
             }
         }
     }
-    imagedestroy($image);
     if ($ink < 8) {
+        imagedestroy($image);
+
         return array('error' => 'Tanda tangan masih kosong. Gambar di kotak yang tersedia.');
     }
     $dir = absen_storage_root().'/absen-digital/ttd';
@@ -1160,7 +1445,16 @@ function absen_decode_ttd($dataUrl)
         return array('error' => 'Folder penyimpanan tidak bisa dibuat.');
     }
     $rel = 'absen-digital/ttd/'.absen_uuid().'.png';
-    if (file_put_contents(absen_storage_root().'/'.$rel, $raw) === false) {
+    $dest = absen_storage_root().'/'.$rel;
+    imagealphablending($image, false);
+    imagesavealpha($image, true);
+    $tersimpan = imagepng($image, $dest, 6);
+    imagedestroy($image);
+    if (!$tersimpan || absen_rel_aman($rel) === '') {
+        if (is_file($dest)) {
+            unlink($dest);
+        }
+
         return array('error' => 'Tanda tangan tidak tersimpan.');
     }
 
@@ -1235,11 +1529,22 @@ function absen_where_kegiatan($filters, &$params)
     return $sql;
 }
 
+function absen_lindungi_penyimpanan()
+{
+    $dir = absen_storage_root();
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true)) {
+        return;
+    }
+    $ht = $dir.'/.htaccess';
+    if (!is_file($ht)) {
+        @file_put_contents($ht, "Options -Indexes\nRequire all denied\nDeny from all\n");
+    }
+}
+
 function absen_send_file($rel, $name, $inline)
 {
-    absen_assert_rel($rel);
-    $full = absen_storage_root().'/'.$rel;
-    if (!is_file($full)) {
+    $full = absen_file_penuh($rel);
+    if ($full === '') {
         http_response_code(404);
         echo 'Berkas tidak ditemukan.';
         exit;
@@ -1255,10 +1560,23 @@ function absen_send_file($rel, $name, $inline)
             $mime = $detected;
         }
     }
+    $gambar = array('image/jpeg' => true, 'image/png' => true, 'image/webp' => true, 'image/gif' => true);
+    $berbahaya = (isset($gambar[$mime]) === false) && (
+        strpos($mime, 'html') !== false
+        || strpos($mime, 'xml') !== false
+        || strpos($mime, 'svg') !== false
+        || strpos($mime, 'php') !== false
+        || strpos($mime, 'javascript') !== false
+    );
+    if ($berbahaya) {
+        $mime = 'application/octet-stream';
+    }
+    $tampil = $inline && isset($gambar[$mime]);
     $safe = str_replace(array('"', "\r", "\n"), '', absen_safe_name($name, 'berkas'));
-    header('Content-Type: '.$mime);
+    header('Content-Security-Policy: default-src \'none\'; sandbox');
     header('X-Content-Type-Options: nosniff');
-    header('Content-Disposition: '.($inline ? 'inline' : 'attachment').'; filename="'.$safe.'"');
+    header('Content-Type: '.$mime);
+    header('Content-Disposition: '.($tampil ? 'inline' : 'attachment').'; filename="'.$safe.'"');
     header('Content-Length: '.filesize($full));
     readfile($full);
     exit;

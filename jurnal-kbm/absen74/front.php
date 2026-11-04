@@ -2,6 +2,7 @@
 
 require __DIR__.'/lib.php';
 
+try {
 absen_boot();
 
 try {
@@ -16,7 +17,8 @@ $path = absen_path();
 if ($method === 'POST' && absen_unggahan_kosong_karena_ukuran() && ($path === '/absen-digital/scan' || preg_match('#^/absen-digital/k/[A-Za-z0-9]+$#', $path))) {
     $kembali = '/absen-digital/scan';
     if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)$#', $path, $unggahan)) {
-        $kembali = '/absen-digital/k/'.rawurlencode(strtoupper($unggahan[1]));
+        $kodeUnggahan = absen_kode_bersih($unggahan[1]);
+        $kembali = $kodeUnggahan === '' ? '/absen-digital/scan' : '/absen-digital/k/'.rawurlencode($kodeUnggahan);
     }
     absen_flash_error(array('foto' => 'Foto terlalu besar dan tidak dikirim. Ambil ulang; foto diperkecil otomatis di perangkat sebelum disimpan.'), $kembali);
 }
@@ -35,6 +37,10 @@ if ($path === '/login' && $method === 'GET') {
 }
 
 if ($path === '/login' && $method === 'POST') {
+    $ipMasuk = absen_klien_ip();
+    if (!absen_batas('masuk', $ipMasuk, 20, 900, false)) {
+        absen_flash_error(array('email' => 'Terlalu banyak percobaan masuk. Tunggu beberapa menit lalu coba lagi.'), '/login');
+    }
     $email = trim(isset($_POST['email']) ? (string) $_POST['email'] : '');
     $password = isset($_POST['password']) ? (string) $_POST['password'] : '';
     $stmt = absen_db()->prepare('SELECT id, password, is_active, role FROM users WHERE email = ?');
@@ -42,6 +48,7 @@ if ($path === '/login' && $method === 'POST') {
     $row = $stmt->fetch();
     $ok = $row && (int) $row['is_active'] === 1 && $row['role'] === 'admin' && is_string($row['password']) && $row['password'] !== '' && password_verify($password, $row['password']);
     if (!$ok) {
+        absen_batas('masuk', $ipMasuk, 20, 900, true);
         absen_flash_error(array('email' => 'Email atau kata sandi tidak sesuai.'), '/login');
     }
     session_regenerate_id(true);
@@ -51,6 +58,22 @@ if ($path === '/login' && $method === 'POST') {
 
 if ($path === '/logout' && $method === 'POST') {
     $_SESSION = array();
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        $habis = time() - 42000;
+        if (PHP_VERSION_ID >= 70300) {
+            setcookie(session_name(), '', array(
+                'expires' => $habis,
+                'path' => $params['path'],
+                'domain' => $params['domain'],
+                'secure' => $params['secure'],
+                'httponly' => $params['httponly'],
+                'samesite' => isset($params['samesite']) ? $params['samesite'] : 'Lax',
+            ));
+        } else {
+            setcookie(session_name(), '', $habis, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+        }
+    }
     session_destroy();
     absen_redirect('/absen-digital/scan');
 }
@@ -440,3 +463,10 @@ if ($path === '/absen-digital/cetak/halaman' && $method === 'GET') {
 
 http_response_code(404);
 echo 'Halaman tidak ditemukan.';
+} catch (Throwable $e) {
+    error_log('absen gagal: '.get_class($e));
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+    echo 'Permintaan tidak bisa diproses.';
+}

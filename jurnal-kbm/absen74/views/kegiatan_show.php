@@ -63,7 +63,7 @@ $scanUrl = absen_tautan_absen($kegiatan);
                     <p>
                         <a href="/absen-digital/berkas/dokumentasi/<?php echo (int) $foto['id']; ?>" target="_blank" rel="noopener"><?php echo absen_e($foto['keterangan'] ? $foto['keterangan'] : 'Foto dokumentasi'); ?></a>
                     </p>
-                    <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/foto/<?php echo (int) $foto['id']; ?>/hapus" onsubmit="return confirm('Hapus foto ini?')">
+                    <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/foto/<?php echo (int) $foto['id']; ?>/hapus" data-konfirmasi="Hapus foto ini?">
                         <?php echo absen_csrf_field(); ?>
                         <button class="btn" type="submit">Hapus foto</button>
                     </form>
@@ -83,17 +83,17 @@ $scanUrl = absen_tautan_absen($kegiatan);
                     <button class="btn btn-success" type="submit">Simpan hasil</button>
                 </form>
                 <?php if ($kegiatan['hasil_file_path']) { ?>
-                    <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/hasil-berkas/hapus" onsubmit="return confirm('Hapus berkas hasil rapat dari hosting?')">
+                    <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/hasil-berkas/hapus" data-konfirmasi="Hapus berkas hasil rapat dari hosting?">
                         <?php echo absen_csrf_field(); ?>
                         <button class="btn" type="submit">Hapus berkas hosting</button>
                     </form>
                 <?php } ?>
             </div>
-            <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/hapus" onsubmit="return confirm('Hapus kegiatan ini beserta daftar hadirnya?')">
+            <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/hapus" data-konfirmasi="Hapus kegiatan ini beserta daftar hadirnya?">
                 <?php echo absen_csrf_field(); ?>
                 <button class="btn btn-danger" type="submit">Hapus kegiatan</button>
             </form>
-        <?php } elseif ($kegiatan['hasil_drive_url']) { ?>
+        <?php } elseif ($kegiatan['hasil_drive_url'] && absen_drive_ok($kegiatan['hasil_drive_url'])) { ?>
             <div class="card"><a href="<?php echo absen_e($kegiatan['hasil_drive_url']); ?>" target="_blank" rel="noopener">Hasil di Google Drive</a></div>
         <?php } ?>
     </div>
