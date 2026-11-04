@@ -1,20 +1,17 @@
 <?php
 
-use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
+/**
+ * Gerbang masuk.
+ * PHP di bawah 8.0, atau folder vendor Laravel yang tidak ada,
+ * dilayani runtime Absen Digital di absen74/ (aman untuk PHP 7.4).
+ * PHP 8.3 dengan vendor tetap membuka aplikasi Laravel.
+ */
+$absenFront = __DIR__.'/../absen74/front.php';
+$laravelAutoload = __DIR__.'/../vendor/autoload.php';
 
-define('LARAVEL_START', microtime(true));
-
-// Determine if the application is in maintenance mode...
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
-    require $maintenance;
+if ((PHP_VERSION_ID < 80000 || ! is_file($laravelAutoload)) && is_file($absenFront)) {
+    require $absenFront;
+    exit;
 }
 
-// Register the Composer autoloader...
-require __DIR__.'/../vendor/autoload.php';
-
-// Bootstrap Laravel and handle the request...
-/** @var Application $app */
-$app = require_once __DIR__.'/../bootstrap/app.php';
-
-$app->handleRequest(Request::capture());
+require __DIR__.'/laravel.php';
