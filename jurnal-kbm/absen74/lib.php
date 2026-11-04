@@ -175,6 +175,7 @@ function absen_migrate()
             keterangan TEXT NULL,
             lokasi_lat DECIMAL(10,7) NULL,
             lokasi_lng DECIMAL(10,7) NULL,
+            lokasi_mode VARCHAR(8) NOT NULL DEFAULT \'titik\',
             kode VARCHAR(32) NOT NULL,
             perangkat_id VARCHAR(64) NULL,
             hasil_drive_url VARCHAR(500) NULL,
@@ -293,6 +294,9 @@ function absen_upgrade_schema()
     }
     if (!absen_column_meta('absen_kegiatans', 'lokasi_lng')) {
         $db->exec('ALTER TABLE absen_kegiatans ADD COLUMN lokasi_lng DECIMAL(10,7) NULL AFTER lokasi_lat');
+    }
+    if (!absen_column_meta('absen_kegiatans', 'lokasi_mode')) {
+        $db->exec("ALTER TABLE absen_kegiatans ADD COLUMN lokasi_mode VARCHAR(8) NOT NULL DEFAULT 'titik' AFTER lokasi_lng");
     }
     $db->exec("UPDATE absen_kehadirans h INNER JOIN absen_kegiatans k ON k.id = h.kegiatan_id SET h.perangkat_id = k.perangkat_id WHERE (h.perangkat_id IS NULL OR h.perangkat_id = '') AND k.perangkat_id IS NOT NULL AND k.perangkat_id <> ''");
 }
@@ -1020,6 +1024,13 @@ function absen_lokasi_kegiatan($kegiatan)
     return array((float) $lat, (float) $lng);
 }
 
+function absen_lokasi_wajib($kegiatan)
+{
+    $mode = isset($kegiatan['lokasi_mode']) ? (string) $kegiatan['lokasi_mode'] : 'titik';
+
+    return $mode !== 'bebas';
+}
+
 function absen_jarak_meter($lat1, $lng1, $lat2, $lng2)
 {
     $bumi = 6371000;
@@ -1147,22 +1158,28 @@ function absen_simpan_publik($kegiatan)
     if (absen_sudah_hadir($kegiatan['id'], $peserta['id'], null)) {
         absen_flash_error(array('user_id' => $peserta['name'].' sudah absen pada kegiatan ini. Satu identitas hanya bisa absen sekali.'), $back);
     }
-    $pusat = absen_lokasi_kegiatan($kegiatan);
-    if ($pusat === null) {
-        absen_flash_error(array('lokasi' => 'Titik lokasi kegiatan belum ditentukan. Absen belum bisa disimpan.'), $back);
+    if (absen_lokasi_wajib($kegiatan)) {
+        $pusat = absen_lokasi_kegiatan($kegiatan);
+        if ($pusat === null) {
+            absen_flash_error(array('lokasi' => 'Titik lokasi kegiatan belum ditentukan. Absen belum bisa disimpan.'), $back);
+        }
+        if (absen_lokasi_dilaporkan_palsu()) {
+            absen_flash_error(array('lokasi' => 'Lokasi perangkat terdeteksi sebagai GPS palsu. Absen ditolak. Matikan mock location, lalu coba lagi.'), $back);
+        }
+        $pesertaLokasi = absen_koordinat_peserta();
+        if ($pesertaLokasi === null) {
+            absen_flash_error(array('lokasi' => 'Lokasi perangkat belum terbaca. Izinkan GPS, lalu coba lagi.'), $back);
+        }
+        if (absen_jarak_meter($pusat[0], $pusat[1], $pesertaLokasi[0], $pesertaLokasi[1]) > 75) {
+            absen_flash_error(array('lokasi' => 'Posisi Anda di luar radius 75 meter dari titik lokasi kegiatan. Absen ditolak.'), $back);
+        }
+        $latVal = $pesertaLokasi[0];
+        $lngVal = $pesertaLokasi[1];
+    } else {
+        $pesertaLokasi = absen_lokasi_dilaporkan_palsu() ? null : absen_koordinat_peserta();
+        $latVal = $pesertaLokasi ? $pesertaLokasi[0] : null;
+        $lngVal = $pesertaLokasi ? $pesertaLokasi[1] : null;
     }
-    if (absen_lokasi_dilaporkan_palsu()) {
-        absen_flash_error(array('lokasi' => 'Lokasi perangkat terdeteksi sebagai GPS palsu. Absen ditolak. Matikan mock location, lalu coba lagi.'), $back);
-    }
-    $pesertaLokasi = absen_koordinat_peserta();
-    if ($pesertaLokasi === null) {
-        absen_flash_error(array('lokasi' => 'Lokasi perangkat belum terbaca. Izinkan GPS, lalu coba lagi.'), $back);
-    }
-    if (absen_jarak_meter($pusat[0], $pusat[1], $pesertaLokasi[0], $pesertaLokasi[1]) > 75) {
-        absen_flash_error(array('lokasi' => 'Posisi Anda di luar radius 75 meter dari titik lokasi kegiatan. Absen ditolak.'), $back);
-    }
-    $latVal = $pesertaLokasi[0];
-    $lngVal = $pesertaLokasi[1];
     $foto = absen_store_upload(isset($_FILES['foto']) ? $_FILES['foto'] : null, 'absen-digital/foto', array('jpg', 'jpeg', 'png', 'webp'), 1024 * 1024, true);
     if (isset($foto['empty'])) {
         absen_flash_error(array('foto' => 'Absen tidak bisa disimpan tanpa foto selfie.'), $back);
@@ -1238,7 +1255,11 @@ function absen_valid_kegiatan_input()
     $keterangan = absen_post_text('keterangan', 2000);
     $lat = isset($_POST['lokasi_lat']) ? trim((string) $_POST['lokasi_lat']) : '';
     $lng = isset($_POST['lokasi_lng']) ? trim((string) $_POST['lokasi_lng']) : '';
+    $modeLokasi = isset($_POST['lokasi_mode']) ? (string) $_POST['lokasi_mode'] : 'titik';
     $errors = array();
+    if ($modeLokasi !== 'titik' && $modeLokasi !== 'bebas') {
+        $errors['lokasi_mode'] = 'Pilih aturan lokasi kegiatan.';
+    }
     if ($nama === '') {
         $errors['nama'] = 'Nama kegiatan wajib diisi.';
     }
@@ -1257,9 +1278,13 @@ function absen_valid_kegiatan_input()
     if ($mulai !== '' && $selesai !== '' && $selesai <= $mulai) {
         $errors['waktu_selesai'] = 'Jam selesai harus lebih akhir dari jam mulai pada hari yang sama.';
     }
-    if ($lat === '' || $lng === '') {
+    $koordinatValid = is_numeric($lat) && is_numeric($lng) && (float) $lat >= -90 && (float) $lat <= 90 && (float) $lng >= -180 && (float) $lng <= 180;
+    if ($modeLokasi === 'bebas') {
+        $lat = null;
+        $lng = null;
+    } elseif ($lat === '' || $lng === '') {
         $errors['lokasi_lat'] = 'Titik lokasi kegiatan wajib diisi.';
-    } elseif (!is_numeric($lat) || !is_numeric($lng) || (float) $lat < -90 || (float) $lat > 90 || (float) $lng < -180 || (float) $lng > 180) {
+    } elseif (!$koordinatValid) {
         $errors['lokasi_lat'] = 'Titik lokasi tidak valid. Isi lintang dan bujur yang benar.';
     }
     if ($errors) {
@@ -1277,6 +1302,7 @@ function absen_valid_kegiatan_input()
         'keterangan' => $keterangan === '' ? null : $keterangan,
         'lokasi_lat' => $lat,
         'lokasi_lng' => $lng,
+        'lokasi_mode' => $modeLokasi === 'bebas' ? 'bebas' : 'titik',
     );
 }
 

@@ -60,6 +60,9 @@ $success = absen_success();
         #daftar-identitas { max-height: 360px; overflow: auto; border: 1px solid #c9d4cc; border-radius: 8px; margin: 8px 0 12px; }
         .identitas { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #e4ebe6; font-weight: 600; }
         .identitas input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
+        .pilihan-lokasi { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 12px; }
+        .pilihan-lokasi label { display: flex; align-items: flex-start; gap: 10px; font-weight: 600; }
+        .pilihan-lokasi input { width: 22px; height: 22px; margin: 2px 0 0; flex: 0 0 auto; }
         #btn-kegiatan, #nama-qr { width: 100%; text-align: center; font-size: 28px; margin: 0 0 8px; }
         #qrcode { display: inline-block; margin: 8px auto; background: #fff; padding: 8px; }
         #peta-lokasi { height: 340px; border: 1px solid #c9d4cc; border-radius: 8px; margin: 8px 0 12px; background: #e8eee9; }
@@ -92,13 +95,13 @@ $success = absen_success();
             <?php } ?>
         </div>
         <?php if (strpos($aktif, '/absen-digital') === 0) { ?>
-            <p class="catatan">Catatan: Buka tautan atau QR. Nama kegiatan tampil di atas QR. Pilih identitas, foto di bawah 1 MB, lalu tanda tangan. GPS harus dalam 75 meter dari titik pengelola, dan hanya dalam rentang waktu. Satu Android hanya satu absen, lalu terkunci. Menghapus cache atau cookie tidak membuka kunci itu. Satu identitas hanya sekali.</p>
+            <p class="catatan">Catatan: Buka tautan atau QR. Nama kegiatan tampil di atas QR. Pilih identitas, foto di bawah 1 MB, lalu tanda tangan. Jika kegiatan memakai titik lokasi, GPS harus dalam 75 meter. Jika kegiatan bebas lokasi, absen boleh dari mana saja dan GPS tidak menolak. Absen hanya dalam rentang waktu. Satu Android hanya satu absen, lalu terkunci. Menghapus cache atau cookie tidak membuka kunci itu. Satu identitas hanya sekali.</p>
         <?php } ?>
         <?php if ($success !== '') { ?><div class="alert alert-success"><?php echo absen_e($success); ?></div><?php } ?>
         <?php echo $isi; ?>
     </main>
 </div>
 <script src="/vendor/absen-digital/qrcode.min.js"></script>
-<script src="/js/absen-digital.js?v=sidik1"></script>
+<script src="/js/absen-digital.js?v=lokasi1"></script>
 </body>
 </html>

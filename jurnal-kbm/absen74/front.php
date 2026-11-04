@@ -111,7 +111,7 @@ if ($path === '/absen-digital/kegiatan-baru' && $method === 'GET') {
     absen_require_admin($user);
     absen_render('kegiatan_form', array(
         'title' => 'Kegiatan baru',
-        'kegiatan' => array('id' => '', 'nama' => '', 'jenis' => 'rapat', 'tanggal' => date('Y-m-d'), 'waktu' => '07:00', 'waktu_mulai' => '07:00', 'waktu_selesai' => '15:00', 'tempat' => '', 'keterangan' => '', 'lokasi_lat' => '', 'lokasi_lng' => ''),
+        'kegiatan' => array('id' => '', 'nama' => '', 'jenis' => 'rapat', 'tanggal' => date('Y-m-d'), 'waktu' => '07:00', 'waktu_mulai' => '07:00', 'waktu_selesai' => '15:00', 'tempat' => '', 'keterangan' => '', 'lokasi_lat' => '', 'lokasi_lng' => '', 'lokasi_mode' => 'titik'),
         'authUser' => $user,
     ));
     exit;
@@ -125,8 +125,8 @@ if ($path === '/absen-digital/kegiatan' && $method === 'POST') {
         absen_flash_error($data['errors'], '/absen-digital/kegiatan-baru');
     }
     $now = date('Y-m-d H:i:s');
-    $stmt = absen_db()->prepare('INSERT INTO absen_kegiatans (nama, jenis, tanggal, waktu, waktu_mulai, waktu_selesai, tempat, keterangan, lokasi_lat, lokasi_lng, kode, dibuat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    $stmt->execute(array($data['nama'], $data['jenis'], $data['tanggal'], $data['waktu'], $data['waktu_mulai'], $data['waktu_selesai'], $data['tempat'], $data['keterangan'], $data['lokasi_lat'], $data['lokasi_lng'], absen_kode_baru(), (int) $user['id'], $now, $now));
+    $stmt = absen_db()->prepare('INSERT INTO absen_kegiatans (nama, jenis, tanggal, waktu, waktu_mulai, waktu_selesai, tempat, keterangan, lokasi_lat, lokasi_lng, lokasi_mode, kode, dibuat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute(array($data['nama'], $data['jenis'], $data['tanggal'], $data['waktu'], $data['waktu_mulai'], $data['waktu_selesai'], $data['tempat'], $data['keterangan'], $data['lokasi_lat'], $data['lokasi_lng'], $data['lokasi_mode'], absen_kode_baru(), (int) $user['id'], $now, $now));
     absen_flash_success('Kegiatan tersimpan. Kode QR siap dipakai.', '/absen-digital/kegiatan/'.absen_db()->lastInsertId());
 }
 
@@ -166,8 +166,8 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)$#', $path, $m) && $method === 'P
     if (isset($data['errors'])) {
         absen_flash_error($data['errors'], '/absen-digital/kegiatan/'.$kegiatan['id'].'/ubah');
     }
-    $stmt = absen_db()->prepare('UPDATE absen_kegiatans SET nama=?, jenis=?, tanggal=?, waktu=?, waktu_mulai=?, waktu_selesai=?, tempat=?, keterangan=?, lokasi_lat=?, lokasi_lng=?, updated_at=? WHERE id=?');
-    $stmt->execute(array($data['nama'], $data['jenis'], $data['tanggal'], $data['waktu'], $data['waktu_mulai'], $data['waktu_selesai'], $data['tempat'], $data['keterangan'], $data['lokasi_lat'], $data['lokasi_lng'], date('Y-m-d H:i:s'), $kegiatan['id']));
+    $stmt = absen_db()->prepare('UPDATE absen_kegiatans SET nama=?, jenis=?, tanggal=?, waktu=?, waktu_mulai=?, waktu_selesai=?, tempat=?, keterangan=?, lokasi_lat=?, lokasi_lng=?, lokasi_mode=?, updated_at=? WHERE id=?');
+    $stmt->execute(array($data['nama'], $data['jenis'], $data['tanggal'], $data['waktu'], $data['waktu_mulai'], $data['waktu_selesai'], $data['tempat'], $data['keterangan'], $data['lokasi_lat'], $data['lokasi_lng'], $data['lokasi_mode'], date('Y-m-d H:i:s'), $kegiatan['id']));
     absen_flash_success('Data kegiatan diperbarui.', '/absen-digital/kegiatan/'.$kegiatan['id']);
 }
 

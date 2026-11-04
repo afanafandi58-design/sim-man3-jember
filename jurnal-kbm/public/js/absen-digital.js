@@ -88,13 +88,51 @@
         var lat = document.getElementById('latitude');
         var lng = document.getElementById('longitude');
         var status = document.getElementById('lokasi-status');
-        if (!petaEl || !lat || !lng) {
+        var blok = document.getElementById('blok-peta');
+        var catatanBebas = document.getElementById('catatan-bebas');
+        var modeRadios = document.querySelectorAll('input[name="lokasi_mode"]');
+        var map = null;
+        function modeBebas() {
+            for (var i = 0; i < modeRadios.length; i++) {
+                if (modeRadios[i].checked && modeRadios[i].value === 'bebas') {
+                    return true;
+                }
+            }
+            return false;
+        }
+        function syncMode() {
+            if (!modeRadios.length) {
+                return;
+            }
+            var bebas = modeBebas();
+            if (blok) {
+                blok.hidden = bebas;
+            }
+            if (catatanBebas) {
+                catatanBebas.hidden = !bebas;
+            }
+            if (lat && lat.type !== 'hidden') {
+                lat.required = !bebas;
+            }
+            if (lng && lng.type !== 'hidden') {
+                lng.required = !bebas;
+            }
+            if (!bebas && map) {
+                setTimeout(function () { map.invalidateSize(); }, 50);
+            }
+        }
+        for (var r = 0; r < modeRadios.length; r++) {
+            modeRadios[r].addEventListener('change', syncMode);
+        }
+        if (!petaEl || !lat || !lng || lat.type === 'hidden') {
+            syncMode();
             return;
         }
         if (typeof L === 'undefined') {
             if (status) {
                 status.textContent = 'Peta online belum bisa dimuat. Periksa koneksi, lalu muat ulang halaman.';
             }
+            syncMode();
             return;
         }
         function tulis(text) {
@@ -104,7 +142,7 @@
         }
         var ada = lat.value !== '' && lng.value !== '' && !isNaN(parseFloat(lat.value)) && !isNaN(parseFloat(lng.value));
         var awal = ada ? [parseFloat(lat.value), parseFloat(lng.value)] : [-8.173, 113.7];
-        var map = L.map(petaEl).setView(awal, ada ? 17 : 13);
+        map = L.map(petaEl).setView(awal, ada ? 17 : 13);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
@@ -154,6 +192,7 @@
                 }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
             });
         }
+        syncMode();
         setTimeout(function () { map.invalidateSize(); }, 250);
     }
 
@@ -166,6 +205,7 @@
             return;
         }
         var tanda = document.getElementById('lokasi-palsu');
+        var bebas = form.getAttribute('data-lokasi') === 'bebas';
         function tulis(text) {
             if (status) {
                 status.textContent = text;
@@ -195,13 +235,28 @@
         function ambil() {
             return new Promise(function (resolve, reject) {
                 if (!navigator.geolocation) {
+                    if (bebas) {
+                        tulis('Kegiatan ini bebas lokasi. Absen boleh dari mana saja. GPS tidak menolak.');
+                        resolve();
+                        return;
+                    }
                     tulis('GPS tidak tersedia di peramban ini. Absen tidak bisa disimpan.');
                     reject();
                     return;
                 }
-                tulis('Membaca lokasi perangkat...');
+                tulis(bebas ? 'Membaca lokasi perangkat. Absen tetap bisa disimpan dari mana saja.' : 'Membaca lokasi perangkat...');
                 navigator.geolocation.getCurrentPosition(function (pos) {
                     if (lokasiPalsu(pos)) {
+                        if (bebas) {
+                            lat.value = '';
+                            lng.value = '';
+                            if (tanda) {
+                                tanda.value = '0';
+                            }
+                            tulis('Kegiatan ini bebas lokasi. Absen boleh dari mana saja. GPS tidak menolak.');
+                            resolve();
+                            return;
+                        }
                         tolakPalsu();
                         reject();
                         return;
@@ -211,7 +266,7 @@
                     if (tanda) {
                         tanda.value = '0';
                     }
-                    tulis('Lokasi terbaca. Absen hanya berlaku dalam radius 75 meter dari titik kegiatan.');
+                    tulis(bebas ? 'Lokasi terbaca. Kegiatan ini bebas lokasi, jadi GPS tidak menolak absen.' : 'Lokasi terbaca. Absen hanya berlaku dalam radius 75 meter dari titik kegiatan.');
                     resolve();
                 }, function () {
                     lat.value = '';
@@ -219,10 +274,20 @@
                     if (tanda) {
                         tanda.value = '0';
                     }
+                    if (bebas) {
+                        tulis('Lokasi tidak terbaca. Kegiatan ini bebas lokasi, jadi absen tetap bisa disimpan.');
+                        resolve();
+                        return;
+                    }
                     tulis('Lokasi perangkat belum terbaca. Izinkan GPS, lalu ketuk Simpan lagi.');
                     reject();
                 }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
             });
+        }
+        if (bebas) {
+            tulis('Kegiatan ini bebas lokasi. Absen boleh dari mana saja. GPS tidak menolak.');
+            ambil().catch(function () {});
+            return;
         }
         ambil().catch(function () {});
         form.addEventListener('submit', function (event) {
