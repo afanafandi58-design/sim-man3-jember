@@ -59,7 +59,8 @@ $success = absen_success();
         #daftar-identitas { max-height: 360px; overflow: auto; border: 1px solid #c9d4cc; border-radius: 8px; margin: 8px 0 12px; }
         .identitas { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #e4ebe6; font-weight: 600; }
         .identitas input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
-        #btn-kegiatan { width: 100%; text-align: left; font-size: 20px; }
+        #btn-kegiatan, #nama-qr { width: 100%; text-align: center; font-size: 28px; margin: 0 0 8px; }
+        #qrcode { display: inline-block; margin: 8px auto; background: #fff; padding: 8px; }
         @media (max-width: 800px) {
             .shell { display: block; }
             .side { width: auto; }
@@ -92,6 +93,6 @@ $success = absen_success();
     </main>
 </div>
 <script src="/vendor/absen-digital/qrcode.min.js"></script>
-<script src="/js/absen-digital.js?v=foto1"></script>
+<script src="/js/absen-digital.js?v=qr1"></script>
 </body>
 </html>

@@ -642,8 +642,8 @@
         }
         new QRCode(box, {
             text: text,
-            width: 220,
-            height: 220,
+            width: 280,
+            height: 280,
             correctLevel: QRCode.CorrectLevel.M
         });
     }

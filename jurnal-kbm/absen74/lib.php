@@ -537,14 +537,28 @@ function absen_tanggal_label($ymd)
 
 function absen_base_url()
 {
+    $host = isset($_SERVER['HTTP_HOST']) ? trim((string) $_SERVER['HTTP_HOST']) : '';
+    $local = $host === '' || stripos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false;
+    if (!$local) {
+        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
+            || (isset($_SERVER['SERVER_PORT']) && (string) $_SERVER['SERVER_PORT'] === '443');
+
+        return ($https ? 'https' : 'http').'://'.$host;
+    }
     $cfg = trim(absen_env('APP_URL'));
     if ($cfg !== '') {
         return rtrim($cfg, '/');
     }
-    $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
 
-    return ($https ? 'https' : 'http').'://'.$host;
+    return 'http://localhost';
+}
+
+function absen_tautan_absen($kegiatan)
+{
+    $kode = isset($kegiatan['kode']) ? absen_normalize_kode($kegiatan['kode']) : '';
+
+    return absen_base_url().'/absen-digital/k/'.rawurlencode($kode);
 }
 
 function absen_uuid()
@@ -622,6 +636,10 @@ function absen_normalize_kode($raw)
         }
     }
     if (preg_match('/(?:^|[?&])kode=([A-Za-z0-9]+)/', $raw, $matches) === 1) {
+        return strtoupper($matches[1]);
+    }
+    $path = is_array($parts) && isset($parts['path']) ? (string) $parts['path'] : $raw;
+    if (preg_match('#/absen-digital/k/([A-Za-z0-9]+)#', $path, $matches) === 1) {
         return strtoupper($matches[1]);
     }
 
@@ -834,7 +852,7 @@ function absen_pesan_perangkat($kegiatan)
 
 function absen_simpan_publik($kegiatan)
 {
-    $back = '/absen-digital/scan?kode='.rawurlencode($kegiatan['kode']);
+    $back = '/absen-digital/k/'.rawurlencode(absen_normalize_kode($kegiatan['kode']));
     $blokir = absen_rentang_blokir($kegiatan);
     if ($blokir !== '') {
         absen_flash_error(array('rentang' => $blokir), $back);

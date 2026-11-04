@@ -1,15 +1,18 @@
+<?php if (empty($halamanKegiatan)) { ?>
 <div class="card">
-    <p>Pindai barcode dari perangkat Android, ketuk nama kegiatan, pilih identitas, unggah foto, lalu tanda tangan. Setelah absen pertama berhasil, perangkat itu tidak bisa dipakai lagi untuk nama lain pada kegiatan yang sama. Satu identitas hanya sekali.</p>
-    <button type="button" class="btn btn-success btn-lg" id="btn-kamera">Buka kamera</button>
+    <p>Memindai barcode tidak wajib. Buka tautan halaman kegiatan dari pengelola, lalu pilih identitas, unggah foto, dan tanda tangan. Setelah absen pertama berhasil, perangkat itu tidak bisa dipakai lagi untuk nama lain pada kegiatan yang sama. Satu identitas hanya sekali.</p>
+    <form method="get" action="/absen-digital/scan" id="form-cari-kode">
+        <p><label for="kode-input">Tautan atau kode kegiatan</label><input id="kode-input" name="kode" value="<?php echo absen_e($kode); ?>" placeholder="Tempel tautan absen atau kode" autocomplete="off"></p>
+        <button class="btn btn-success" type="submit">Buka kegiatan</button>
+        <?php if (absen_error('kode')) { ?><span class="error"><?php echo absen_e(absen_error('kode')); ?></span><?php } ?>
+    </form>
+    <p class="muted">Pindai hanya bila tautan belum dibuka.</p>
+    <button type="button" class="btn" id="btn-kamera">Pindai barcode</button>
     <p id="scan-status" class="muted"></p>
     <video id="scan-video" class="absen-video" playsinline muted></video>
     <p><label for="scan-file">Atau pilih gambar barcode</label><input id="scan-file" type="file" accept="image/*" capture="environment"></p>
-    <form method="get" action="/absen-digital/scan" id="form-cari-kode">
-        <p><label for="kode-input">Kode atau hasil scan</label><input id="kode-input" name="kode" value="<?php echo absen_e($kode); ?>" placeholder="Tempel kode atau URL" autocomplete="off"></p>
-        <button class="btn btn-success" type="submit">Cari kegiatan</button>
-        <?php if (absen_error('kode')) { ?><span class="error"><?php echo absen_e(absen_error('kode')); ?></span><?php } ?>
-    </form>
 </div>
+<?php } ?>
 <?php if ($kodeTidakDitemukan) { ?><div class="alert alert-warning">Kode kegiatan tidak ditemukan.</div><?php } ?>
 <?php if ($kegiatan) {
     $buka = absen_error('user_id') !== '' || absen_error('foto') !== '' || absen_error('ttd') !== '' || absen_error('rentang') !== '';
@@ -24,15 +27,15 @@
             <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
             <div class="alert alert-danger"><?php echo absen_e($pesanPerangkat); ?></div>
         <?php } else { ?>
-            <p class="muted">Ketuk nama kegiatan untuk memilih identitas.</p>
-            <button type="button" class="btn btn-success btn-lg" id="btn-kegiatan"><?php echo absen_e($kegiatan['nama']); ?></button>
-            <div id="langkah-absen" <?php echo $buka ? '' : 'hidden'; ?>>
+            <h2><?php echo absen_e($kegiatan['nama']); ?></h2>
+            <p class="muted">Halaman kegiatan ini bisa dibuka dari tautan, tanpa memindai barcode.</p>
+            <div id="langkah-absen">
                 <?php if (absen_error('user_id')) { ?><p class="error"><?php echo absen_e(absen_error('user_id')); ?></p><?php } ?>
                 <?php if (absen_error('foto')) { ?><p class="error"><?php echo absen_e(absen_error('foto')); ?></p><?php } ?>
                 <?php if (absen_error('ttd')) { ?><p class="error"><?php echo absen_e(absen_error('ttd')); ?></p><?php } ?>
                 <?php if (absen_error('rentang')) { ?><p class="error"><?php echo absen_e(absen_error('rentang')); ?></p><?php } ?>
                 <?php if (absen_error('perangkat')) { ?><p class="error"><?php echo absen_e(absen_error('perangkat')); ?></p><?php } ?>
-                <form method="post" action="/absen-digital/scan" enctype="multipart/form-data" id="form-absen-scan">
+                <form method="post" action="/absen-digital/k/<?php echo absen_e(rawurlencode($kegiatan['kode'])); ?>" enctype="multipart/form-data" id="form-absen-scan">
                     <?php echo absen_csrf_field(); ?>
                     <input type="hidden" name="kode" value="<?php echo absen_e($kegiatan['kode']); ?>">
                     <p><label for="saring-identitas">Pilih identitas</label>

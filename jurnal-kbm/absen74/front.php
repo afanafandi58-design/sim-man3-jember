@@ -13,8 +13,12 @@ try {
 $method = absen_method();
 $path = absen_path();
 
-if ($method === 'POST' && $path === '/absen-digital/scan' && absen_unggahan_kosong_karena_ukuran()) {
-    absen_flash_error(array('foto' => 'Foto terlalu besar dan tidak dikirim. Ambil ulang; foto diperkecil otomatis di perangkat sebelum disimpan.'), '/absen-digital/scan');
+if ($method === 'POST' && absen_unggahan_kosong_karena_ukuran() && ($path === '/absen-digital/scan' || preg_match('#^/absen-digital/k/[A-Za-z0-9]+$#', $path))) {
+    $kembali = '/absen-digital/scan';
+    if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)$#', $path, $unggahan)) {
+        $kembali = '/absen-digital/k/'.rawurlencode(strtoupper($unggahan[1]));
+    }
+    absen_flash_error(array('foto' => 'Foto terlalu besar dan tidak dikirim. Ambil ulang; foto diperkecil otomatis di perangkat sebelum disimpan.'), $kembali);
 }
 
 if ($method === 'POST') {
@@ -246,35 +250,57 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)/hasil-berkas/hapus$#', $path, $m
 
 if ($path === '/absen-digital/scan' && $method === 'GET') {
     $kode = absen_normalize_kode(isset($_GET['kode']) ? $_GET['kode'] : '');
-    $kegiatan = null;
-    $sudah = array();
     if ($kode !== '') {
-        $stmt = absen_db()->prepare('SELECT * FROM absen_kegiatans WHERE kode = ?');
-        $stmt->execute(array($kode));
-        $kegiatan = $stmt->fetch();
-        if ($kegiatan) {
-            $list = absen_db()->prepare('SELECT id, user_id, nama, created_at FROM absen_kehadirans WHERE kegiatan_id = ? ORDER BY nama');
-            $list->execute(array($kegiatan['id']));
-            $sudah = $list->fetchAll();
-        }
+        absen_redirect('/absen-digital/k/'.rawurlencode($kode));
     }
     absen_render('scan', array(
         'title' => 'Absen',
+        'kode' => '',
+        'kegiatan' => null,
+        'kodeTidakDitemukan' => false,
+        'peserta' => array(),
+        'sudahHadir' => array(),
+        'rentangBlokir' => '',
+        'pesanPerangkat' => '',
+        'halamanKegiatan' => false,
+    ));
+    exit;
+}
+
+if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)$#', $path, $m) && $method === 'GET') {
+    $kode = absen_normalize_kode($m[1]);
+    $stmt = absen_db()->prepare('SELECT * FROM absen_kegiatans WHERE kode = ?');
+    $stmt->execute(array($kode));
+    $kegiatan = $stmt->fetch();
+    $sudah = array();
+    if ($kegiatan) {
+        $list = absen_db()->prepare('SELECT id, user_id, nama, created_at FROM absen_kehadirans WHERE kegiatan_id = ? ORDER BY nama');
+        $list->execute(array($kegiatan['id']));
+        $sudah = $list->fetchAll();
+    }
+    absen_render('scan', array(
+        'title' => $kegiatan ? $kegiatan['nama'] : 'Absen',
         'kode' => $kode,
         'kegiatan' => $kegiatan,
-        'kodeTidakDitemukan' => $kode !== '' && !$kegiatan,
+        'kodeTidakDitemukan' => !$kegiatan,
         'peserta' => $kegiatan ? absen_peserta() : array(),
         'sudahHadir' => $sudah,
         'rentangBlokir' => $kegiatan ? absen_rentang_blokir($kegiatan) : '',
         'pesanPerangkat' => $kegiatan ? absen_pesan_perangkat($kegiatan) : '',
+        'halamanKegiatan' => true,
     ));
     exit;
+}
+
+if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)$#', $path, $m) && $method === 'POST') {
+    $_POST['kode'] = absen_normalize_kode($m[1]);
+    $path = '/absen-digital/scan';
 }
 
 if ($path === '/absen-digital/scan' && $method === 'POST') {
     $kode = absen_normalize_kode(isset($_POST['kode']) ? $_POST['kode'] : '');
     if ($kode === '') {
-        absen_flash_error(array('kode' => 'Pindai barcode atau isi kode kegiatan.'), '/absen-digital/scan');
+        absen_flash_error(array('kode' => 'Buka tautan kegiatan atau tempel kodenya.'), '/absen-digital/scan');
     }
     $stmt = absen_db()->prepare('SELECT * FROM absen_kegiatans WHERE kode = ?');
     $stmt->execute(array($kode));

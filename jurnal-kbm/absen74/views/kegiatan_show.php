@@ -1,6 +1,6 @@
 <?php
 $admin = $authUser['role'] === 'admin';
-$scanUrl = absen_base_url().'/absen-digital/scan?kode='.rawurlencode($kegiatan['kode']);
+$scanUrl = absen_tautan_absen($kegiatan);
 ?>
 <p class="muted"><?php echo absen_e(isset($jenisMap[$kegiatan['jenis']]) ? $jenisMap[$kegiatan['jenis']] : $kegiatan['jenis']); ?> · <?php echo absen_e(absen_tanggal_label($kegiatan['tanggal'])); ?><?php $rentang = absen_rentang_label($kegiatan); echo $rentang !== '' ? ' · absen '.absen_e($rentang) : ''; ?></p>
 <?php if ($rentang === '') { ?><div class="alert alert-warning">Rentang waktu absen belum diatur. Peserta belum bisa menyimpan absen.</div><?php } ?>
@@ -9,10 +9,13 @@ $scanUrl = absen_base_url().'/absen-digital/scan?kode='.rawurlencode($kegiatan['
 <div class="row">
     <div>
         <div class="card" style="text-align:center">
-            <strong>Kode QR</strong>
+            <h2 id="nama-qr"><?php echo absen_e($kegiatan['nama']); ?></h2>
+            <p class="muted"><?php echo absen_e(absen_tanggal_label($kegiatan['tanggal'])); ?><?php echo $rentang !== '' ? ' · absen '.absen_e($rentang) : ''; ?></p>
             <div id="qrcode" data-text="<?php echo absen_e($scanUrl); ?>"></div>
+            <p>QR ini berisi tautan absen untuk kegiatan di atas. Nama dan rentang waktu mengikuti data terbaru.</p>
+            <p><a class="btn btn-success" href="<?php echo absen_e($scanUrl); ?>">Buka halaman absen</a></p>
+            <p class="muted">Peserta dapat memindai QR atau membuka tautan yang sama. Memindai tidak wajib.</p>
             <p><strong>Kode:</strong> <span style="font-size:24px"><?php echo absen_e($kegiatan['kode']); ?></span></p>
-            <p class="muted">Tampilkan barcode ini saat acara. Peserta mengetuk nama kegiatan, memilih identitas, mengunggah foto, lalu menandatangani di layar.</p>
         </div>
         <div class="card">
             <p><strong>Tempat:</strong> <?php echo absen_e($kegiatan['tempat'] ? $kegiatan['tempat'] : '—'); ?></p>
