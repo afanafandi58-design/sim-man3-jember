@@ -9,7 +9,7 @@ $val = function ($key) use ($kegiatan) {
     return isset($kegiatan[$key]) ? $kegiatan[$key] : '';
 };
 ?>
-<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="/vendor/leaflet.css">
 <div class="card">
     <form method="post" action="<?php echo absen_e($action); ?>">
         <?php echo absen_csrf_field(); ?>
@@ -45,4 +45,4 @@ $val = function ($key) use ($kegiatan) {
         <a class="btn btn-lg" href="<?php echo $id ? '/absen-digital/kegiatan/'.$id : '/absen-digital/kegiatan'; ?>">Batal</a>
     </form>
 </div>
-<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/vendor/leaflet.js"></script>
