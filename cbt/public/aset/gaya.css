@@ -1,0 +1,123 @@
+:root {
+  --tinta: #1c2430;
+  --kertas: #f4f1ea;
+  --kartu: #fffdf8;
+  --garis: #d9d1c3;
+  --hijau: #0f6e56;
+  --hijau-lembut: #d8f3e8;
+  --kuning: #f3d48a;
+  --merah: #9f1239;
+  --redup: #5c6670;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 16px/1.5 "Segoe UI", system-ui, sans-serif;
+  color: var(--tinta);
+  background: var(--kertas);
+}
+a { color: var(--hijau); }
+h1, h2 { line-height: 1.25; }
+.atas, .kepala-ujian {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1.2rem;
+  background: #17342c;
+  color: #f7f4ee;
+}
+.atas a, .kepala-ujian button.teks { color: #f7f4ee; }
+.merek { font-weight: 700; text-decoration: none; }
+nav, .aksi, .aksi-kecil, .baris-form { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: end; }
+.isi { max-width: 960px; margin: 0 auto; padding: 1.2rem; }
+.kartu, table {
+  background: var(--kartu);
+  border: 1px solid var(--garis);
+  border-radius: 10px;
+}
+.kartu { padding: 1rem; margin: 0 0 1rem; }
+table { width: 100%; border-collapse: collapse; margin: 0 0 1rem; }
+th, td { text-align: left; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--garis); vertical-align: top; }
+label { display: block; margin: 0 0 0.8rem; font-weight: 600; }
+input, select, textarea, button, .tombol {
+  font: inherit;
+  border-radius: 8px;
+}
+input, select, textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--garis);
+  background: #fff;
+  font-weight: 400;
+}
+button, .tombol {
+  border: 0;
+  background: var(--hijau);
+  color: white;
+  padding: 0.55rem 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+  min-height: 44px;
+}
+button.teks { background: transparent; color: var(--hijau); padding: 0.2rem 0.4rem; min-height: 0; }
+button.bahaya, .bahaya { background: var(--merah); }
+button.teks.bahaya { background: transparent; color: var(--merah); }
+.centang { font-weight: 500; }
+.centang input { display: inline-block; width: auto; margin-right: 0.35rem; }
+.flash { background: #e7f6ef; border: 1px solid #b7e0cf; padding: 0.7rem 0.9rem; border-radius: 8px; }
+.redup { color: var(--redup); }
+.token-ujian {
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  background: var(--hijau-lembut);
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+}
+.token-ujian strong { font-size: 1.8rem; }
+.skor { font-size: 2.4rem; font-weight: 700; margin: 0.2rem 0; }
+.kaki { text-align: center; color: var(--redup); padding: 1rem; }
+.tersulit { background: #fff4d6; }
+.halaman { display: flex; gap: 0.8rem; align-items: center; }
+.layar-ujian { background: #efeae2; }
+.kepala-ujian strong, .kepala-ujian span { display: block; }
+.waktu {
+  font-variant-numeric: tabular-nums;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: #fffdf8;
+  color: var(--tinta);
+  border-radius: 8px;
+  padding: 0.2rem 0.8rem;
+}
+.spanduk { margin: 0; padding: 0.8rem 1rem; background: var(--merah); color: white; }
+.badan-ujian { display: grid; grid-template-columns: 220px 1fr; gap: 1rem; padding: 1rem; }
+.daftar { display: flex; flex-wrap: wrap; gap: 0.4rem; align-content: start; }
+.judul-daftar { width: 100%; margin: 0 0 0.3rem; font-weight: 700; }
+button.nomor {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: white;
+  color: var(--tinta);
+  border: 1px solid var(--garis);
+}
+button.nomor.terjawab { background: var(--hijau-lembut); }
+button.nomor.ragu { background: var(--kuning); }
+button.nomor.aktif { outline: 3px solid var(--hijau); }
+#soal { background: var(--kartu); border: 1px solid var(--garis); border-radius: 10px; padding: 1rem; min-height: 240px; }
+.pertanyaan { white-space: pre-wrap; font-size: 1.15rem; }
+.opsi, .jodoh { display: flex; gap: 0.6rem; align-items: center; margin: 0.45rem 0; font-weight: 500; }
+.opsi input { width: auto; margin: 0; }
+.kode-opsi { width: 1.4rem; font-weight: 700; }
+.jodoh select { width: auto; min-width: 220px; margin: 0; }
+audio { width: 100%; margin: 0.6rem 0; }
+.aksi { margin-top: 0.8rem; }
+#btn-ragu.sedang-ragu { background: #a16207; }
+.peringatan { color: var(--merah); }
+@media (max-width: 720px) {
+  .badan-ujian { grid-template-columns: 1fr; }
+  .atas { flex-wrap: wrap; }
+}

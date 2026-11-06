@@ -1,0 +1,6 @@
+.env
+storage/log/*
+!storage/log/.gitkeep
+public/unggah/audio/*
+!public/unggah/audio/.gitkeep
+!public/unggah/audio/.htaccess
