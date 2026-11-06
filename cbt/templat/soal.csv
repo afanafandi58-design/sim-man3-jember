@@ -1,0 +1,4 @@
+nomor,tipe,pertanyaan,audio,opsi_a,opsi_b,opsi_c,opsi_d,opsi_e,kunci,kiri_1,kanan_1,kiri_2,kanan_2,kiri_3,kanan_3,kiri_4,kanan_4,kiri_5,kanan_5
+1,pg,Berapakah hasil 2 + 2?,,3,4,5,6,,B,,,,,,,,,,
+2,pgk,Pilih hewan yang hidup di air.,,Kucing,Ikan,Burung,Udang,Kuda,"B,D",,,,,,,,,,
+3,menjodohkan,Pasangkan sapaan.,listening-contoh.mp3,,,,,,"1-B;2-A",Selamat pagi,Good night,Selamat malam,Good morning,,,,,
