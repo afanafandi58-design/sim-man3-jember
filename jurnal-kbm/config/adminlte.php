@@ -543,6 +543,8 @@ return [
             'can' => 'role-admin',
         ],
 
+        // Menu LMS ditunda sampai route lms.* di-deploy (cegah 500 RouteNotFound).
+
     ],
 
     /*
@@ -587,6 +589,16 @@ return [
                     'type' => 'css',
                     'asset' => true,
                     'location' => 'css/pagination-fix.css',
+                ],
+            ],
+        ],
+        'NavbarSuccessContrast' => [
+            'active' => false,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'css/navbar-success-contrast.css',
                 ],
             ],
         ],
