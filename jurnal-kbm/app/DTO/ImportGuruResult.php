@@ -1,0 +1,24 @@
+<?php
+
+namespace App\DTO;
+
+class ImportGuruResult
+{
+    public function __construct(
+        public readonly int $total,
+        public readonly int $success,
+        public readonly int $failed,
+        public readonly array $errors,
+        public readonly int $accountsProvisioned = 0,
+        public readonly int $accountsUpdated = 0,
+    ) {}
+
+    public function progressPercent(): int
+    {
+        if ($this->total === 0) {
+            return 0;
+        }
+
+        return (int) round(($this->success / $this->total) * 100);
+    }
+}
