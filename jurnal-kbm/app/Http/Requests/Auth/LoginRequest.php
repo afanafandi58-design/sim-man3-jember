@@ -12,6 +12,12 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
+    /** Max percobaan per kombinasi email+IP. */
+    private const MAX_ATTEMPTS_PER_EMAIL = 5;
+
+    /** Max percobaan per IP (antisipasi spray banyak akun). */
+    private const MAX_ATTEMPTS_PER_IP = 30;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -43,7 +49,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+            $this->hitThrottles();
 
             throw ValidationException::withMessages([
                 // Pakai terjemahan ID; fallback teks agar tidak tampil raw key "auth.failed".
@@ -55,6 +61,7 @@ class LoginRequest extends FormRequest
 
         if (! Auth::user()->is_active) {
             Auth::logout();
+            $this->hitThrottles();
 
             throw ValidationException::withMessages([
                 'email' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.',
@@ -62,6 +69,7 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+        RateLimiter::clear($this->ipThrottleKey());
     }
 
     /**
@@ -71,13 +79,19 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        $emailLimited = RateLimiter::tooManyAttempts($this->throttleKey(), self::MAX_ATTEMPTS_PER_EMAIL);
+        $ipLimited = RateLimiter::tooManyAttempts($this->ipThrottleKey(), self::MAX_ATTEMPTS_PER_IP);
+
+        if (! $emailLimited && ! $ipLimited) {
             return;
         }
 
         event(new Lockout($this));
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
+        $seconds = max(
+            RateLimiter::availableIn($this->throttleKey()),
+            RateLimiter::availableIn($this->ipThrottleKey())
+        );
 
         $throttle = __('auth.throttle', [
             'seconds' => $seconds,
@@ -97,5 +111,16 @@ class LoginRequest extends FormRequest
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+    }
+
+    public function ipThrottleKey(): string
+    {
+        return 'login-ip|'.$this->ip();
+    }
+
+    private function hitThrottles(): void
+    {
+        RateLimiter::hit($this->throttleKey());
+        RateLimiter::hit($this->ipThrottleKey());
     }
 }

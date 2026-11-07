@@ -140,7 +140,7 @@ class GuruJurnalController extends Controller
             'absensi.keterangan' => 'nullable|array',
             'absensi.keterangan.*' => 'nullable|string|max:255',
             'lampiran' => 'nullable|array|max:'.JurnalAttachment::MAX_PER_JURNAL,
-            'lampiran.*' => 'file|mimes:jpg,jpeg,png,webp|max:2048',
+            'lampiran.*' => 'file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/webp|max:2048',
             'lampiran_caption' => 'nullable|array',
             'lampiran_caption.*' => JurnalAttachmentService::captionFieldRules(),
             'attachment_captions' => 'nullable|array',
@@ -190,7 +190,7 @@ class GuruJurnalController extends Controller
             'absensi.keterangan' => 'nullable|array',
             'absensi.keterangan.*' => 'nullable|string|max:255',
             'lampiran' => 'nullable|array|max:'.JurnalAttachment::MAX_PER_JURNAL,
-            'lampiran.*' => 'file|mimes:jpg,jpeg,png,webp|max:2048',
+            'lampiran.*' => 'file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/webp|max:2048',
             'lampiran_caption' => 'nullable|array',
             'lampiran_caption.*' => JurnalAttachmentService::captionFieldRules(),
         ]);

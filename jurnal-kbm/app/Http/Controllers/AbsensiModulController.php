@@ -66,7 +66,7 @@ class AbsensiModulController extends Controller
             'siswa_id' => 'required|exists:siswas,id',
             'status' => 'required|in:Hadir,Sakit,Izin,Alpha',
             'keterangan' => 'nullable|string|max:255',
-            'bukti' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:2048',
+            'bukti' => 'nullable|file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/webp|max:2048',
             'bukti_caption' => 'nullable|string|max:150',
         ]);
 
@@ -184,12 +184,24 @@ class AbsensiModulController extends Controller
 
     public function bukti(AbsensiHarian $absensiHarian)
     {
+        abort_unless(
+            $this->absensiHarianService->canViewBukti(request()->user(), $absensiHarian),
+            403,
+            'Anda tidak berhak melihat bukti absensi ini.'
+        );
+
         if (! $absensiHarian->hasBukti()) {
             abort(404);
         }
 
-        $path = Storage::disk('public')->path($absensiHarian->bukti_path);
-        if (! is_file($path)) {
+        $relative = (string) $absensiHarian->bukti_path;
+        if ($relative === '' || str_contains($relative, '..') || str_starts_with($relative, '/') || str_contains($relative, "\0")) {
+            abort(404);
+        }
+
+        $diskRoot = realpath(Storage::disk('public')->path(''));
+        $path = realpath(Storage::disk('public')->path($relative));
+        if (! $diskRoot || ! $path || ! str_starts_with($path, $diskRoot.DIRECTORY_SEPARATOR) || ! is_file($path)) {
             abort(404);
         }
 
@@ -251,7 +263,7 @@ class AbsensiModulController extends Controller
         ]);
 
         $plain = $data['password'] ?? ('Stf'.Str::lower(Str::random(8)).'!');
-        $user = User::query()->create([
+        $user = User::forceCreate([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($plain),

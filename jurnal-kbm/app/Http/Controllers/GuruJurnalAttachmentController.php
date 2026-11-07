@@ -34,7 +34,7 @@ class GuruJurnalAttachmentController extends Controller
 
         $request->validate([
             'lampiran' => 'required|array|min:1|max:'.JurnalAttachment::MAX_PER_JURNAL,
-            'lampiran.*' => 'file|mimes:jpg,jpeg,png,webp|max:2048',
+            'lampiran.*' => 'file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/webp|max:2048',
             'lampiran_caption' => 'nullable|array',
             'lampiran_caption.*' => JurnalAttachmentService::captionFieldRules(),
         ]);

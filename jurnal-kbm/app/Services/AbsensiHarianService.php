@@ -14,6 +14,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AbsensiHarianService
 {
@@ -29,6 +31,46 @@ class AbsensiHarianService
     public function canInput(User $user): bool
     {
         return in_array($user->role, ['guru', 'staff', 'admin', 'kepala'], true);
+    }
+
+    /**
+     * Siapa boleh melihat file bukti absensi (cegah IDOR antar guru).
+     */
+    public function canViewBukti(User $user, AbsensiHarian $row): bool
+    {
+        if (in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
+            return true;
+        }
+
+        if ($row->reported_by && (int) $row->reported_by === (int) $user->id) {
+            return true;
+        }
+
+        $row->loadMissing('siswa');
+        if (! $user->guru_id || ! $row->siswa) {
+            return false;
+        }
+
+        $this->ensureSchema();
+
+        $isWali = WaliKelas::query()
+            ->where('guru_id', $user->guru_id)
+            ->where('kelas', $row->siswa->kelas)
+            ->where(function ($q) use ($row) {
+                $q->whereNull('rombel')
+                    ->orWhere('rombel', '')
+                    ->orWhere('rombel', $row->siswa->rombel);
+            })
+            ->exists();
+
+        if ($isWali) {
+            return true;
+        }
+
+        return Jadwal::query()
+            ->where('guru_id', $user->guru_id)
+            ->where('kelas', $row->siswa->kelas)
+            ->exists();
     }
 
     public function isWaliKelas(User $user): bool
@@ -80,10 +122,17 @@ class AbsensiHarianService
             $row->reported_by = $reporter->id;
 
             if ($bukti) {
+                $this->assertSafeImageUpload($bukti);
                 if ($row->bukti_path) {
                     Storage::disk('public')->delete($row->bukti_path);
                 }
-                $path = $bukti->store('absensi-bukti/'.Carbon::parse($tanggal)->format('Y/m'), 'public');
+                $ext = strtolower($bukti->getClientOriginalExtension() ?: 'jpg');
+                if (! in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                    $ext = 'jpg';
+                }
+                $dir = 'absensi-bukti/'.Carbon::parse($tanggal)->format('Y/m');
+                $filename = Str::uuid()->toString().'.'.$ext;
+                $path = $bukti->storeAs($dir, $filename, 'public');
                 $row->bukti_path = $path;
                 $row->bukti_caption = $buktiCaption;
             } elseif ($buktiCaption !== null) {
@@ -283,5 +332,29 @@ class AbsensiHarianService
         }
 
         return ["{$y1}-07-01", "{$y1}-12-31", "Semester Ganjil {$tahunPelajaran}"];
+    }
+
+    private function assertSafeImageUpload(UploadedFile $file): void
+    {
+        if (! $file->isValid()) {
+            throw ValidationException::withMessages([
+                'bukti' => 'Upload bukti gagal. Coba lagi dengan file gambar lain.',
+            ]);
+        }
+
+        $mime = (string) $file->getMimeType();
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        if (! in_array($mime, $allowed, true)) {
+            throw ValidationException::withMessages([
+                'bukti' => 'Bukti harus berupa gambar JPG, PNG, atau WEBP.',
+            ]);
+        }
+
+        $info = @getimagesize($file->getRealPath());
+        if ($info === false) {
+            throw ValidationException::withMessages([
+                'bukti' => 'File bukti bukan gambar yang valid.',
+            ]);
+        }
     }
 }

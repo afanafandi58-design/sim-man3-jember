@@ -12,15 +12,13 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * Mass Assignment
+     * Mass Assignment — role/guru_id/is_active sengaja tidak fillable
+     * (hanya lewat forceFill / forceCreate di layanan admin).
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role',
-        'guru_id',
-        'is_active',
         'password_reset_at',
         'last_login_at',
     ];

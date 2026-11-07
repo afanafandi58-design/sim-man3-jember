@@ -20,13 +20,15 @@ class DatabaseSeeder extends Seeder
             $password = 'Man3Jember!Admin2026';
         }
 
-        User::updateOrCreate(
-            ['email' => 'admin@man3jember.sch.id'],
-            [
-                'name' => 'Administrator SIM MAN 3 Jember',
-                'role' => 'admin',
-                'password' => Hash::make($password),
-            ]
-        );
+        $user = User::query()->firstOrNew(['email' => 'admin@man3jember.sch.id']);
+        $user->fill([
+            'name' => 'Administrator SIM MAN 3 Jember',
+            'password' => Hash::make($password),
+        ]);
+        $user->forceFill([
+            'role' => 'admin',
+            'is_active' => true,
+        ]);
+        $user->save();
     }
 }

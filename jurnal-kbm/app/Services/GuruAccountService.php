@@ -51,7 +51,7 @@ class GuruAccountService
         $password = $this->generateRandomPassword();
         $email = $this->generateUsername($guru);
 
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => $guru->displayName(),
             'email' => $email,
             'password' => Hash::make($password),
@@ -75,10 +75,11 @@ class GuruAccountService
         $user = User::firstOrNew(['guru_id' => $guru->id]);
         $email = $this->generateUsername($guru, $user->id);
 
-        $user->fill([
+        $user->forceFill([
             'name' => $guru->displayName(),
             'email' => $email,
             'role' => 'guru',
+            'guru_id' => $guru->id,
             'is_active' => true,
         ]);
 
@@ -137,7 +138,7 @@ class GuruAccountService
             ]);
         }
 
-        $user->update(['is_active' => false]);
+        $user->forceFill(['is_active' => false])->save();
     }
 
     public function activate(User $user): void
@@ -150,7 +151,7 @@ class GuruAccountService
             ]);
         }
 
-        $user->update(['is_active' => true]);
+        $user->forceFill(['is_active' => true])->save();
     }
 
     public function generateUsername(Guru $guru, ?int $ignoreUserId = null): string

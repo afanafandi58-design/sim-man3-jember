@@ -54,10 +54,16 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
     Route::put('/guru/jurnal/{jurnal}', [GuruJurnalController::class, 'update'])->name('guru.jurnal.update');
     Route::post('/guru/jurnal/{jurnal}/lampiran', [GuruJurnalAttachmentController::class, 'store'])->name('guru.jurnal.lampiran.store');
     Route::delete('/guru/jurnal/{jurnal}/lampiran/{attachment}', [GuruJurnalAttachmentController::class, 'destroy'])->name('guru.jurnal.lampiran.destroy');
-    Route::get('/guru/jurnal/{jurnal}/pdf', [GuruPdfController::class, 'jurnal'])->name('guru.jurnal.pdf');
+    Route::get('/guru/jurnal/{jurnal}/pdf', [GuruPdfController::class, 'jurnal'])
+        ->middleware('throttle:10,1')
+        ->name('guru.jurnal.pdf');
     Route::get('/guru/laporan', [GuruLaporanController::class, 'index'])->name('guru.laporan.index');
-    Route::post('/guru/laporan/pratinjau', [GuruLaporanController::class, 'preview'])->name('guru.laporan.preview');
-    Route::post('/guru/laporan/cetak', [GuruLaporanController::class, 'cetak'])->name('guru.laporan.cetak');
+    Route::post('/guru/laporan/pratinjau', [GuruLaporanController::class, 'preview'])
+        ->middleware('throttle:10,1')
+        ->name('guru.laporan.preview');
+    Route::post('/guru/laporan/cetak', [GuruLaporanController::class, 'cetak'])
+        ->middleware('throttle:6,1')
+        ->name('guru.laporan.cetak');
     Route::get('/guru/data-siswa', [SiswaController::class, 'index'])->name('guru.siswas.index');
     Route::get('/guru/data-siswa/{siswa}', [SiswaController::class, 'show'])->name('guru.siswas.show');
 });
@@ -103,7 +109,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/guru-accounts/{user}/reset-password', [GuruAccountController::class, 'resetPassword'])->name('guru-accounts.reset-password');
     Route::post('/guru-accounts/{user}/deactivate', [GuruAccountController::class, 'deactivate'])->name('guru-accounts.deactivate');
     Route::post('/guru-accounts/{user}/activate', [GuruAccountController::class, 'activate'])->name('guru-accounts.activate');
-    Route::get('/guru-accounts/cetak', [GuruAccountController::class, 'cetak'])->name('guru-accounts.cetak');
+    Route::get('/guru-accounts/cetak', [GuruAccountController::class, 'cetak'])
+        ->middleware('throttle:6,1')
+        ->name('guru-accounts.cetak');
 
     Route::get('/guru-beban-mengajar', [GuruBebanMengajarController::class, 'index'])->name('guru-beban-mengajar.index');
 
@@ -123,10 +131,14 @@ Route::middleware(['auth', 'role:kepala,admin'])->group(function () {
     Route::get('/kepala/dashboard/{type}', [KepalaDashboardController::class, 'detail'])->name('kepala.dashboard.detail');
 
     Route::get('/laporan', [LaporanPdfController::class, 'index'])->name('laporan.index');
-    Route::post('/laporan/cetak', [LaporanPdfController::class, 'cetak'])->name('laporan.cetak');
+    Route::post('/laporan/cetak', [LaporanPdfController::class, 'cetak'])
+        ->middleware('throttle:6,1')
+        ->name('laporan.cetak');
 
     Route::get('/laporan/absensi', [LaporanAbsensiController::class, 'index'])->name('laporan.absensi.index');
-    Route::post('/laporan/absensi/cetak', [LaporanAbsensiController::class, 'cetak'])->name('laporan.absensi.cetak');
+    Route::post('/laporan/absensi/cetak', [LaporanAbsensiController::class, 'cetak'])
+        ->middleware('throttle:6,1')
+        ->name('laporan.absensi.cetak');
 
     Route::get('/kepala/data-siswa', [SiswaController::class, 'index'])->name('kepala.siswas.index');
     Route::get('/kepala/data-siswa/{siswa}', [SiswaController::class, 'show'])->name('kepala.siswas.show');
