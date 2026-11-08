@@ -846,6 +846,59 @@ function absen_peserta()
     return absen_db()->query("SELECT id, name, nip FROM users WHERE is_active = 1 AND role = 'user' ORDER BY name")->fetchAll();
 }
 
+function absen_nama_peserta($value)
+{
+    $name = preg_replace('/\s+/', ' ', trim((string) $value));
+    if (function_exists('mb_substr')) {
+        return mb_substr($name, 0, 150);
+    }
+
+    return substr($name, 0, 150);
+}
+
+function absen_tambah_peserta($name, $nip)
+{
+    $name = absen_nama_peserta($name);
+    $nip = preg_replace('/\s+/', '', trim((string) $nip));
+    $errors = array();
+    if ($name === '') {
+        $errors['name'] = 'Isi nama peserta.';
+    }
+    if ($nip !== '' && preg_match('/^\d{1,32}$/', $nip) !== 1) {
+        $errors['nip'] = 'NIP atau NIK hanya angka, paling banyak 32 digit.';
+    }
+    if ($errors) {
+        return array('errors' => $errors);
+    }
+    $db = absen_db();
+    $byName = $db->prepare("SELECT name FROM users WHERE role = 'user' AND LOWER(name) = LOWER(?) LIMIT 1");
+    $byName->execute(array($name));
+    $samaNama = $byName->fetch();
+    if ($samaNama) {
+        $errors['name'] = 'Nama ini sudah ada: '.$samaNama['name'].'.';
+    }
+    if ($nip !== '') {
+        $byNip = $db->prepare('SELECT name FROM users WHERE nip = ? LIMIT 1');
+        $byNip->execute(array($nip));
+        $samaNip = $byNip->fetch();
+        if ($samaNip) {
+            $errors['nip'] = 'NIP atau NIK ini sudah dipakai oleh '.$samaNip['name'].'.';
+        }
+    }
+    if ($errors) {
+        return array('errors' => $errors);
+    }
+    $now = date('Y-m-d H:i:s');
+    try {
+        $insert = $db->prepare('INSERT INTO users (name, nip, email, password, role, is_active, created_at, updated_at) VALUES (?, ?, NULL, NULL, ?, 1, ?, ?)');
+        $insert->execute(array($name, $nip === '' ? null : $nip, 'user', $now, $now));
+    } catch (Exception $e) {
+        return array('errors' => array('nip' => 'NIP atau NIK ini sudah dipakai. Peserta tidak ditambahkan.'));
+    }
+
+    return array('name' => $name, 'nip' => $nip);
+}
+
 function absen_find_peserta($id)
 {
     $stmt = absen_db()->prepare("SELECT id, name, nip, role FROM users WHERE id = ? AND is_active = 1 AND role = 'user'");

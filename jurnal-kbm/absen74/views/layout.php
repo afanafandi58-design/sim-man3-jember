@@ -5,6 +5,7 @@ if ($admin) {
     $menu = array(
         array('Absen', '/absen-digital/scan'),
         array('Kegiatan', '/absen-digital/kegiatan'),
+        array('Peserta', '/absen-digital/peserta'),
         array('Ringkasan', '/absen-digital/ringkasan'),
         array('Laporan', '/absen-digital/cetak'),
     );

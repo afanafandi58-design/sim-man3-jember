@@ -82,6 +82,28 @@ if ($path === '/' || $path === '/absen-digital') {
     absen_redirect('/absen-digital/scan');
 }
 
+if ($path === '/absen-digital/peserta' && $method === 'GET') {
+    $user = absen_require_user();
+    absen_require_admin($user);
+    absen_render('peserta', array(
+        'title' => 'Peserta',
+        'rows' => absen_peserta(),
+        'authUser' => $user,
+    ));
+    exit;
+}
+
+if ($path === '/absen-digital/peserta' && $method === 'POST') {
+    $user = absen_require_user();
+    absen_require_admin($user);
+    $hasil = absen_tambah_peserta(isset($_POST['name']) ? $_POST['name'] : '', isset($_POST['nip']) ? $_POST['nip'] : '');
+    if (isset($hasil['errors'])) {
+        absen_flash_error($hasil['errors'], '/absen-digital/peserta');
+    }
+    $pesan = $hasil['name'].' ditambahkan. Nama ini langsung bisa dipilih di halaman absen.';
+    absen_flash_success($pesan, '/absen-digital/peserta');
+}
+
 if ($path === '/absen-digital/kegiatan' && $method === 'GET') {
     $user = absen_require_user();
     $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
