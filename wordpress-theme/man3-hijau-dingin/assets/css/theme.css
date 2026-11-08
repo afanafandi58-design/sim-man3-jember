@@ -1039,7 +1039,7 @@ button {
 }
 
 .footer-bottom {
-  margin-top: 2.5rem;
+  margin-top: 1.25rem;
   padding-top: 1.25rem;
   border-top: 1px solid rgba(125, 207, 182, 0.2);
   display: flex;
@@ -1048,6 +1048,153 @@ button {
   justify-content: space-between;
   font-size: 0.85rem;
   color: var(--green-300);
+}
+
+/* Kunjungan situs — strip minimal di footer */
+.man3-kunjungan {
+  margin-top: 2.25rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid rgba(125, 207, 182, 0.18);
+}
+
+.man3-kunjungan__inner {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.man3-kunjungan__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem 1rem;
+}
+
+.man3-kunjungan__title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--green-200);
+}
+
+.man3-kunjungan__hint {
+  font-size: 0.75rem;
+  color: rgba(125, 207, 182, 0.72);
+}
+
+.man3-kunjungan__metrics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 1rem;
+}
+
+@media (min-width: 720px) {
+  .man3-kunjungan__metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem 1.5rem;
+  }
+}
+
+.man3-kunjungan__metrics li {
+  min-width: 0;
+}
+
+.man3-kunjungan__label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green-400);
+  margin-bottom: 0.2rem;
+}
+
+.man3-kunjungan__value {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  animation: man3KunjunganFade 0.7s ease both;
+}
+
+.man3-kunjungan__metrics li:nth-child(2) .man3-kunjungan__value {
+  animation-delay: 0.06s;
+}
+.man3-kunjungan__metrics li:nth-child(3) .man3-kunjungan__value {
+  animation-delay: 0.12s;
+}
+.man3-kunjungan__metrics li:nth-child(4) .man3-kunjungan__value {
+  animation-delay: 0.18s;
+}
+
+.man3-kunjungan__bars {
+  list-style: none;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  align-items: end;
+  height: 2rem;
+  max-width: 14rem;
+}
+
+.man3-kunjungan__bars li {
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.man3-kunjungan__bars span {
+  display: block;
+  width: 100%;
+  height: var(--bar, 8%);
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, var(--green-300), var(--green-700));
+  opacity: 0.85;
+  transform-origin: bottom;
+  animation: man3KunjunganBar 0.55s ease both;
+}
+
+.man3-kunjungan__bars li:nth-child(2) span { animation-delay: 0.04s; }
+.man3-kunjungan__bars li:nth-child(3) span { animation-delay: 0.08s; }
+.man3-kunjungan__bars li:nth-child(4) span { animation-delay: 0.12s; }
+.man3-kunjungan__bars li:nth-child(5) span { animation-delay: 0.16s; }
+.man3-kunjungan__bars li:nth-child(6) span { animation-delay: 0.2s; }
+.man3-kunjungan__bars li:nth-child(7) span { animation-delay: 0.24s; }
+
+@keyframes man3KunjunganFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes man3KunjunganBar {
+  from {
+    transform: scaleY(0.15);
+    opacity: 0.35;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .man3-kunjungan__value,
+  .man3-kunjungan__bars span {
+    animation: none;
+  }
 }
 
 

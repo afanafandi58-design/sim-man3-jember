@@ -27,6 +27,11 @@
 			<a href="https://www.youtube.com/@man3jember510" target="_blank" rel="noreferrer">YouTube MAN 3 Jember</a>
 		</div>
 	</div>
+	<?php
+	if ( function_exists( 'man3_kunjungan_render_footer' ) ) {
+		man3_kunjungan_render_footer();
+	}
+	?>
 	<div class="container footer-bottom">
 		<span>&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?></span>
 		<span><?php esc_html_e( 'Tema Hijau Dingin', 'man3-hijau-dingin' ); ?></span>
