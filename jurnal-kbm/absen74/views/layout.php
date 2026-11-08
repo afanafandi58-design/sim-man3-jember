@@ -23,7 +23,7 @@ $success = absen_success();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo absen_e($title); ?> · Absen Digital</title>
-    <link rel="stylesheet" href="/css/absen-digital.css?v=kartu1">
+    <link rel="stylesheet" href="/css/absen-digital.css?v=lama1">
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f4f6f5; color: #1c2b22; }
@@ -58,20 +58,9 @@ $success = absen_success();
         .who { font-size: 14px; }
         .ttd-kotak { position: relative; z-index: 2; display: block; width: 100%; height: 320px; margin: 8px 0 12px; touch-action: none; }
         #ttd-canvas { position: relative; z-index: 3; width: 100%; height: 320px; touch-action: none; background: #fff; border: 2px dashed #2e7d32; border-radius: 12px; display: block; pointer-events: auto; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-        .dek { display: flex; flex-direction: column; gap: 12px; }
-        .kartu, a.kartu { display: flex; flex-direction: column; justify-content: center; gap: 8px; background: #fff; color: inherit; text-decoration: none; border: 2px solid #d7e3da; border-radius: 18px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-        a.kartu:active, label.kartu:active { border-color: #1b5e20; }
-        .kartu-judul { font-size: 26px; font-weight: 700; line-height: 1.25; margin: 0; }
-        .kartu-meta { color: #5f6f64; font-size: 16px; line-height: 1.4; }
-        .kartu-aksi { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .dek-layar { max-height: 78vh; overflow-y: auto; scroll-snap-type: y mandatory; padding: 2px; }
-        .dek-layar > .kartu, .dek-layar > .identitas { scroll-snap-align: start; min-height: 68vh; }
-        #daftar-identitas { margin: 8px 0 12px; }
-        .identitas { display: flex; flex-direction: row; align-items: center; gap: 14px; font-weight: 700; font-size: 22px; line-height: 1.3; cursor: pointer; }
-        .identitas input { width: 28px; height: 28px; margin: 0; flex: 0 0 auto; }
-        .identitas.terpilih, .identitas:has(input:checked) { border-color: #2e7d32; background: #e8f5e9; }
-        .identitas.kartu-mati { opacity: .6; }
-        .petunjuk-kartu { margin: 0 0 8px; }
+        #daftar-identitas { max-height: 360px; overflow: auto; border: 1px solid #c9d4cc; border-radius: 8px; margin: 8px 0 12px; }
+        .identitas { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #e4ebe6; font-weight: 600; }
+        .identitas input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
         .pilihan-lokasi { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 12px; }
         .pilihan-lokasi label { display: flex; align-items: flex-start; gap: 10px; font-weight: 600; }
         .pilihan-lokasi input { width: 22px; height: 22px; margin: 2px 0 0; flex: 0 0 auto; }
@@ -87,12 +76,6 @@ $success = absen_success();
             .shell { display: block; }
             .side { width: auto; }
             .btn-lg { width: 100%; margin-bottom: 8px; }
-            .kartu-judul { font-size: 28px; }
-            .identitas { font-size: 26px; }
-        }
-        @media (min-width: 900px) {
-            .dek-layar { max-height: none; overflow: visible; scroll-snap-type: none; display: grid; grid-template-columns: 1fr 1fr; }
-            .dek-layar > .kartu, .dek-layar > .identitas { min-height: 160px; }
         }
     </style>
 </head>
@@ -124,6 +107,6 @@ $success = absen_success();
     </main>
 </div>
 <script src="/vendor/absen-digital/qrcode.min.js"></script>
-<script src="/js/absen-digital.js?v=kartu1"></script>
+<script src="/js/absen-digital.js?v=lama1"></script>
 </body>
 </html>

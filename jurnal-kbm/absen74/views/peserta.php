@@ -16,14 +16,18 @@
         <button class="btn btn-success" type="submit">Tambah peserta</button>
     </form>
 </div>
-<p><strong>Daftar peserta (<?php echo count($rows); ?>)</strong></p>
-<p class="muted petunjuk-kartu">Ketuk tidak diperlukan. Geser kartu untuk melihat nama lain.</p>
-<div class="dek dek-layar">
-    <?php if (!$rows) { ?><div class="kartu"><p class="kartu-judul">Belum ada peserta.</p></div><?php } ?>
-    <?php foreach ($rows as $row) { ?>
-        <article class="kartu">
-            <p class="kartu-judul"><?php echo absen_e($row['name']); ?></p>
-            <p class="kartu-meta"><?php echo absen_e($row['nip'] ? $row['nip'] : 'NIP atau NIK belum diisi'); ?></p>
-        </article>
-    <?php } ?>
+<div class="card" style="padding:0">
+    <div style="padding:16px"><strong>Daftar peserta (<?php echo count($rows); ?>)</strong></div>
+    <table>
+        <thead><tr><th>Nama</th><th>NIP atau NIK</th></tr></thead>
+        <tbody>
+        <?php if (!$rows) { ?><tr><td colspan="2">Belum ada peserta.</td></tr><?php } ?>
+        <?php foreach ($rows as $row) { ?>
+            <tr>
+                <td><?php echo absen_e($row['name']); ?></td>
+                <td><?php echo absen_e($row['nip'] ? $row['nip'] : '—'); ?></td>
+            </tr>
+        <?php } ?>
+        </tbody>
+    </table>
 </div>

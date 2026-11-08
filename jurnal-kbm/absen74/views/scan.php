@@ -52,8 +52,7 @@
                     <p><label for="saring-identitas">Pilih identitas</label>
                         <input id="saring-identitas" type="search" autocomplete="off" placeholder="Saring <?php echo count($peserta); ?> nama">
                     </p>
-                    <p class="muted petunjuk-kartu">Ketuk kartu nama. Di ponsel, geser untuk kartu berikutnya.</p>
-                    <div id="daftar-identitas" class="dek dek-layar">
+                    <div id="daftar-identitas">
                         <?php
                         $sudahId = array();
                         foreach ($sudahHadir as $hadir) {
@@ -64,7 +63,7 @@
                         foreach ($peserta as $orang) {
                             $sudah = isset($sudahId[(int) $orang['id']]);
                         ?>
-                            <label class="identitas kartu<?php echo $sudah ? ' kartu-mati' : ''; ?><?php echo !$sudah && $dipilih === (string) $orang['id'] ? ' terpilih' : ''; ?>">
+                            <label class="identitas">
                                 <input type="radio" name="user_id" value="<?php echo (int) $orang['id']; ?>" <?php echo !$sudah && $dipilih === (string) $orang['id'] ? 'checked' : ''; ?> <?php echo $sudah ? 'disabled' : 'required'; ?>>
                                 <span><?php echo absen_e($orang['name']); ?><?php echo $sudah ? ' (sudah absen)' : ''; ?></span>
                             </label>
@@ -122,15 +121,6 @@
                         }
                         var label = target.parentNode ? target.parentNode.textContent : '';
                         status.textContent = 'Terpilih: ' + label.replace(/\s+/g, ' ').trim();
-                        var kartu = daftar.querySelectorAll('.identitas');
-                        for (var j = 0; j < kartu.length; j++) {
-                            if (kartu[j].classList) {
-                                kartu[j].classList.remove('terpilih');
-                            }
-                        }
-                        if (target.parentNode && target.parentNode.classList) {
-                            target.parentNode.classList.add('terpilih');
-                        }
                     });
                 }
             })();
@@ -138,14 +128,7 @@
         <?php } ?>
         <?php if ($sudahHadir) { ?>
             <p><strong>Sudah hadir</strong></p>
-            <div class="dek">
-                <?php foreach ($sudahHadir as $row) { ?>
-                    <div class="kartu">
-                        <p class="kartu-judul"><?php echo absen_e($row['nama']); ?></p>
-                        <p class="kartu-meta">Sudah absen</p>
-                    </div>
-                <?php } ?>
-            </div>
+            <ul><?php foreach ($sudahHadir as $row) { ?><li><?php echo absen_e($row['nama']); ?></li><?php } ?></ul>
         <?php } ?>
     </div>
 <?php } ?>

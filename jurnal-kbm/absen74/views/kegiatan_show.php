@@ -31,44 +31,51 @@ $scanUrl = absen_tautan_absen($kegiatan);
         </div>
     </div>
     <div>
-        <p><strong>Daftar hadir (<?php echo count($hadir); ?>)</strong></p>
-        <div class="dek dek-layar">
-            <?php if (!$hadir) { ?><div class="kartu"><p class="kartu-judul">Belum ada yang hadir.</p></div><?php } ?>
-            <?php
-            $userAktif = array();
-            foreach ($hadir as $row) {
-                if (!empty($row['user_id']) && (string) $row['kunci_aktif'] === '1') {
-                    $userAktif[(int) $row['user_id']] = true;
+        <div class="card" style="padding:0">
+            <div style="padding:16px"><strong>Daftar hadir (<?php echo count($hadir); ?>)</strong></div>
+            <table>
+                <thead><tr><th>Nama</th><th>Cara</th><th>Waktu</th><?php if ($admin) { ?><th>Lokasi</th><th>Bukti</th><th>Status</th><?php } ?></tr></thead>
+                <tbody>
+                <?php if (!$hadir) { ?><tr><td colspan="<?php echo $admin ? 6 : 3; ?>">Belum ada yang hadir.</td></tr><?php } ?>
+                <?php
+                $userAktif = array();
+                foreach ($hadir as $row) {
+                    if (!empty($row['user_id']) && (string) $row['kunci_aktif'] === '1') {
+                        $userAktif[(int) $row['user_id']] = true;
+                    }
                 }
-            }
-            foreach ($hadir as $row) {
-                $kunciAktif = (string) $row['kunci_aktif'] === '1';
-            ?>
-                <article class="kartu">
-                    <p class="kartu-judul"><?php echo absen_e($row['nama']); ?></p>
-                    <?php if ($row['nik']) { ?><p class="kartu-meta"><?php echo absen_e($row['nik']); ?></p><?php } ?>
-                    <p class="kartu-meta"><?php echo absen_e(absen_metode_label($row['metode'])); ?> · <?php echo absen_e($row['created_at']); ?></p>
-                    <?php if ($admin) { ?>
-                        <p class="kartu-meta">Lokasi: <?php echo ($row['latitude'] !== null && $row['latitude'] !== '') ? absen_e($row['latitude'].', '.$row['longitude']) : '—'; ?></p>
-                        <div class="kartu-aksi">
-                            <?php if ($row['foto_path']) { ?><a class="btn" href="/absen-digital/berkas/foto/<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">Foto</a><?php } ?>
-                            <?php if ($row['ttd_path']) { ?><a class="btn" href="/absen-digital/berkas/ttd/<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">Tanda tangan</a><?php } ?>
-                        </div>
-                        <?php if ($kunciAktif) { ?>
-                            <p><span class="tanda tanda-kunci">Perangkat terkunci</span></p>
-                            <?php if (!empty($row['user_id'])) { ?>
-                                <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-kunci" data-konfirmasi="Buka kunci perangkat untuk peserta ini? Data absen yang sudah tersimpan tidak dihapus.">
-                                    <?php echo absen_csrf_field(); ?>
-                                    <input type="hidden" name="user_id" value="<?php echo (int) $row['user_id']; ?>">
-                                    <button class="btn" type="submit">Reset kunci</button>
-                                </form>
-                            <?php } ?>
-                        <?php } else { ?>
-                            <p><span class="tanda tanda-buka">Kunci dibuka, data tersimpan</span></p>
+                foreach ($hadir as $row) {
+                    $kunciAktif = (string) $row['kunci_aktif'] === '1';
+                ?>
+                    <tr>
+                        <td><?php echo absen_e($row['nama']); ?><?php if ($row['nik']) { ?><div class="muted"><?php echo absen_e($row['nik']); ?></div><?php } ?></td>
+                        <td><?php echo absen_e(absen_metode_label($row['metode'])); ?></td>
+                        <td><?php echo absen_e($row['created_at']); ?></td>
+                        <?php if ($admin) { ?>
+                            <td><?php echo ($row['latitude'] !== null && $row['latitude'] !== '') ? absen_e($row['latitude'].', '.$row['longitude']) : '—'; ?></td>
+                            <td>
+                                <?php if ($row['foto_path']) { ?><a href="/absen-digital/berkas/foto/<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">Foto</a><?php } ?>
+                                <?php if ($row['ttd_path']) { ?><a href="/absen-digital/berkas/ttd/<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">TTD</a><?php } ?>
+                            </td>
+                            <td>
+                                <?php if ($kunciAktif) { ?>
+                                    <span class="tanda tanda-kunci">Perangkat terkunci</span>
+                                    <?php if (!empty($row['user_id'])) { ?>
+                                        <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-kunci" data-konfirmasi="Buka kunci perangkat untuk peserta ini? Data absen yang sudah tersimpan tidak dihapus.">
+                                            <?php echo absen_csrf_field(); ?>
+                                            <input type="hidden" name="user_id" value="<?php echo (int) $row['user_id']; ?>">
+                                            <button class="btn" type="submit">Reset kunci</button>
+                                        </form>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    <span class="tanda tanda-buka">Kunci dibuka, data tersimpan</span>
+                                <?php } ?>
+                            </td>
                         <?php } ?>
-                    <?php } ?>
-                </article>
-            <?php } ?>
+                    </tr>
+                <?php } ?>
+                </tbody>
+            </table>
         </div>
         <?php if ($admin) {
             if (!isset($gangguan) || !is_array($gangguan)) {
@@ -101,22 +108,29 @@ $scanUrl = absen_tautan_absen($kegiatan);
                 <?php } ?>
                 <?php if (!$masalah) { ?><p>Tidak ada peserta yang gagal masuk.</p><?php } ?>
                 <?php if ($masalah) { ?>
-                    <div class="dek dek-layar">
+                    <table>
+                        <thead><tr><th>Nama</th><th>Status</th><th></th></tr></thead>
+                        <tbody>
                         <?php foreach ($masalah as $item) { ?>
-                            <article class="kartu">
-                                <p class="kartu-judul"><?php echo absen_e($item['nama'] ? $item['nama'] : 'Perangkat belum terhubung ke nama'); ?></p>
-                                <p><span class="tanda tanda-gagal"><?php echo $item['jenis'] === 'tidak_terbaca' ? 'Tidak terbaca' : 'Gagal masuk'; ?></span></p>
-                                <?php if ($item['keterangan']) { ?><p class="kartu-meta"><?php echo absen_e($item['keterangan']); ?></p><?php } ?>
-                                <?php if (!empty($item['user_id'])) { ?>
-                                    <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-kunci" data-konfirmasi="Buka kunci perangkat untuk peserta ini? Data absen yang sudah tersimpan tidak dihapus.">
-                                        <?php echo absen_csrf_field(); ?>
-                                        <input type="hidden" name="user_id" value="<?php echo (int) $item['user_id']; ?>">
-                                        <button class="btn" type="submit">Reset kunci</button>
-                                    </form>
-                                <?php } ?>
-                            </article>
+                            <tr>
+                                <td><?php echo absen_e($item['nama'] ? $item['nama'] : 'Perangkat belum terhubung ke nama'); ?></td>
+                                <td>
+                                    <span class="tanda tanda-gagal"><?php echo $item['jenis'] === 'tidak_terbaca' ? 'Tidak terbaca' : 'Gagal masuk'; ?></span>
+                                    <?php if ($item['keterangan']) { ?><div class="muted"><?php echo absen_e($item['keterangan']); ?></div><?php } ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($item['user_id'])) { ?>
+                                        <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-kunci" data-konfirmasi="Buka kunci perangkat untuk peserta ini? Data absen yang sudah tersimpan tidak dihapus.">
+                                            <?php echo absen_csrf_field(); ?>
+                                            <input type="hidden" name="user_id" value="<?php echo (int) $item['user_id']; ?>">
+                                            <button class="btn" type="submit">Reset kunci</button>
+                                        </form>
+                                    <?php } ?>
+                                </td>
+                            </tr>
                         <?php } ?>
-                    </div>
+                        </tbody>
+                    </table>
                 <?php } ?>
             </div>
             <div class="card">
