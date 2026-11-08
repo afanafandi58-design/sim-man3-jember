@@ -28,7 +28,8 @@ function man3_survey_scale_labels() {
 }
 
 /**
- * Default 20 pertanyaan (termasuk zona integritas).
+ * Default 10 pertanyaan inti (layanan, pembelajaran, fasilitas, zona integritas).
+ * Admin dapat menambah/mengedit/nonaktifkan lewat sidebar Survey Kepuasan.
  *
  * @return array<int,array<string,mixed>>
  */
@@ -39,20 +40,10 @@ function man3_survey_default_questions() {
 		'Seberapa puas Anda terhadap sikap dan pelayanan tenaga kependidikan (TU/administrasi)?',
 		'Bagaimana penilaian Anda terhadap sarana dan prasarana pembelajaran?',
 		'Seberapa puas Anda terhadap kebersihan dan kenyamanan lingkungan madrasah?',
-		'Bagaimana penilaian Anda terhadap keamanan dan ketertiban di lingkungan madrasah?',
-		'Seberapa puas Anda terhadap komunikasi madrasah dengan orang tua/wali dan masyarakat?',
-		'Bagaimana penilaian Anda terhadap ketersediaan informasi publik di website/media resmi?',
-		'Seberapa puas Anda terhadap program ekstrakurikuler dan pengembangan bakat siswa?',
-		'Bagaimana penilaian Anda terhadap pembinaan karakter dan kegiatan keagamaan?',
 		'Seberapa puas Anda terhadap kecepatan dan ketepatan layanan administrasi (surat, absensi, dll.)?',
-		'Bagaimana penilaian Anda terhadap penanganan pengaduan/saran dari warga madrasah?',
-		'Seberapa puas Anda terhadap transparansi informasi program dan kegiatan madrasah?',
 		'Bagaimana penilaian Anda terhadap pemahaman dan penerapan Zona Integritas (WBK/WBBM) di MAN 3 Jember?',
 		'Seberapa puas Anda bahwa layanan diberikan tanpa pungutan liar atau gratifikasi?',
 		'Bagaimana penilaian Anda terhadap keadilan layanan tanpa diskriminasi?',
-		'Seberapa puas Anda terhadap budaya antikorupsi dan integritas pegawai di madrasah?',
-		'Bagaimana penilaian Anda terhadap kepatuhan petugas terhadap SOP/prosedur layanan?',
-		'Seberapa puas Anda terhadap komitmen pimpinan dalam menjaga integritas layanan publik?',
 		'Seberapa besar kemungkinan Anda merekomendasikan MAN 3 Jember kepada orang lain?',
 	);
 
@@ -69,9 +60,21 @@ function man3_survey_default_questions() {
 }
 
 /**
+ * Migrasi sekali: set pertanyaan aktif ke 10 inti (v2).
+ */
+function man3_survey_maybe_migrate_v2() {
+	if ( get_option( 'man3_survey_questions_v2' ) ) {
+		return;
+	}
+	update_option( 'man3_survey_questions', man3_survey_default_questions(), false );
+	update_option( 'man3_survey_questions_v2', 1, false );
+}
+
+/**
  * @return array<int,array<string,mixed>>
  */
 function man3_survey_get_questions( $active_only = false ) {
+	man3_survey_maybe_migrate_v2();
 	$stored = get_option( 'man3_survey_questions', null );
 	if ( ! is_array( $stored ) || ! $stored ) {
 		$stored = man3_survey_default_questions();
@@ -444,11 +447,13 @@ function man3_survey_get_aggregates() {
 	$stats     = array();
 	foreach ( $questions as $q ) {
 		$stats[ $q['id'] ] = array(
-			'text'  => $q['text'],
-			'count' => 0,
-			'sum'   => 0,
-			'avg'   => 0,
-			'hist'  => array( 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0 ),
+			'text'   => $q['text'],
+			'active' => ! empty( $q['active'] ) ? 1 : 0,
+			'order'  => (int) $q['order'],
+			'count'  => 0,
+			'sum'    => 0,
+			'avg'    => 0,
+			'hist'   => array( 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0 ),
 		);
 	}
 	$total = 0;
@@ -502,48 +507,103 @@ function man3_survey_admin_screen() {
 			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Pengaturan disimpan.', 'man3-hijau-dingin' ); ?></p></div>
 		<?php endif; ?>
 
-		<h2><?php esc_html_e( 'Rekap jawaban', 'man3-hijau-dingin' ); ?></h2>
-		<p><?php printf( /* translators: %d total */ esc_html__( 'Total tanggapan tersimpan: %d', 'man3-hijau-dingin' ), (int) $agg['total'] ); ?></p>
-		<table class="widefat striped">
+		<?php
+		$active_count = 0;
+		foreach ( $questions as $q ) {
+			if ( ! empty( $q['active'] ) ) {
+				++$active_count;
+			}
+		}
+		?>
+		<div class="man3-survey-admin-summary" style="display:flex;flex-wrap:wrap;gap:12px;margin:16px 0 20px;">
+			<div style="background:#fff;border:1px solid #c3c4c7;border-left:4px solid #0f5132;padding:12px 16px;min-width:160px;">
+				<div style="font-size:12px;color:#646970;"><?php esc_html_e( 'Pertanyaan aktif (publik)', 'man3-hijau-dingin' ); ?></div>
+				<div style="font-size:22px;font-weight:700;"><?php echo esc_html( (string) $active_count ); ?></div>
+			</div>
+			<div style="background:#fff;border:1px solid #c3c4c7;border-left:4px solid #2271b1;padding:12px 16px;min-width:160px;">
+				<div style="font-size:12px;color:#646970;"><?php esc_html_e( 'Total tanggapan', 'man3-hijau-dingin' ); ?></div>
+				<div style="font-size:22px;font-weight:700;"><?php echo esc_html( (string) (int) $agg['total'] ); ?></div>
+			</div>
+			<div style="background:#fff;border:1px solid #c3c4c7;border-left:4px solid #dba617;padding:12px 16px;min-width:220px;">
+				<div style="font-size:12px;color:#646970;"><?php esc_html_e( 'Skala', 'man3-hijau-dingin' ); ?></div>
+				<div style="font-size:13px;line-height:1.45;">
+					<?php
+					echo esc_html(
+						implode(
+							' · ',
+							array_map(
+								static function ( $k, $v ) {
+									return $k . ' ' . $v;
+								},
+								array_keys( $scale ),
+								array_values( $scale )
+							)
+						)
+					);
+					?>
+				</div>
+			</div>
+		</div>
+
+		<h2><?php esc_html_e( 'Rekap jawaban (agregat)', 'man3-hijau-dingin' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Hanya angka agregat — tanpa nama, email, atau identitas responden. Rata-rata 1–5; batang menunjukkan distribusi jawaban.', 'man3-hijau-dingin' ); ?></p>
+		<table class="widefat striped man3-survey-rekap">
 			<thead>
 				<tr>
+					<th style="width:3rem">#</th>
 					<th><?php esc_html_e( 'Pertanyaan', 'man3-hijau-dingin' ); ?></th>
-					<th><?php esc_html_e( 'N', 'man3-hijau-dingin' ); ?></th>
-					<th><?php esc_html_e( 'Rata-rata', 'man3-hijau-dingin' ); ?></th>
+					<th style="width:5rem"><?php esc_html_e( 'Status', 'man3-hijau-dingin' ); ?></th>
+					<th style="width:4rem"><?php esc_html_e( 'N', 'man3-hijau-dingin' ); ?></th>
+					<th style="width:6rem"><?php esc_html_e( 'Rata-rata', 'man3-hijau-dingin' ); ?></th>
 					<th><?php esc_html_e( 'Distribusi 1–5', 'man3-hijau-dingin' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
-				<?php foreach ( $agg['by_question'] as $s ) : ?>
+				<?php
+				$i = 0;
+				foreach ( $agg['by_question'] as $s ) :
+					++$i;
+					$max_h = max( 1, max( $s['hist'] ) );
+					?>
 					<tr>
+						<td><?php echo esc_html( (string) $i ); ?></td>
 						<td><?php echo esc_html( $s['text'] ); ?></td>
-						<td><?php echo esc_html( (string) $s['count'] ); ?></td>
-						<td><?php echo esc_html( (string) $s['avg'] ); ?></td>
 						<td>
-							<?php
-							$parts = array();
-							foreach ( $s['hist'] as $k => $n ) {
-								$parts[] = $k . ':' . $n;
-							}
-							echo esc_html( implode( ' · ', $parts ) );
-							?>
+							<?php if ( ! empty( $s['active'] ) ) : ?>
+								<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#d1f0df;color:#0f5132;font-size:12px;font-weight:600;"><?php esc_html_e( 'Aktif', 'man3-hijau-dingin' ); ?></span>
+							<?php else : ?>
+								<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#f0f0f1;color:#646970;font-size:12px;font-weight:600;"><?php esc_html_e( 'Nonaktif', 'man3-hijau-dingin' ); ?></span>
+							<?php endif; ?>
+						</td>
+						<td><strong><?php echo esc_html( (string) $s['count'] ); ?></strong></td>
+						<td>
+							<strong style="font-size:16px;"><?php echo esc_html( number_format_i18n( (float) $s['avg'], 2 ) ); ?></strong>
+							<span style="color:#646970;">/5</span>
+						</td>
+						<td>
+							<div style="display:flex;gap:6px;align-items:flex-end;min-height:48px;">
+								<?php foreach ( $s['hist'] as $k => $n ) : ?>
+									<?php
+									$pct = (int) round( ( $n / $max_h ) * 40 );
+									?>
+									<div style="text-align:center;min-width:28px;" title="<?php echo esc_attr( $k . ': ' . $n ); ?>">
+										<div style="height:40px;display:flex;align-items:flex-end;justify-content:center;">
+											<div style="width:14px;height:<?php echo esc_attr( (string) max( 2, $pct ) ); ?>px;background:#0f5132;border-radius:3px 3px 0 0;opacity:<?php echo $n ? '0.9' : '0.2'; ?>;"></div>
+										</div>
+										<div style="font-size:11px;color:#1d2327;"><strong><?php echo esc_html( (string) $k ); ?></strong></div>
+										<div style="font-size:11px;color:#646970;"><?php echo esc_html( (string) $n ); ?></div>
+									</div>
+								<?php endforeach; ?>
+							</div>
 						</td>
 					</tr>
 				<?php endforeach; ?>
 			</tbody>
 		</table>
-		<p class="description">
-			<?php
-			printf(
-				/* translators: scale legend */
-				esc_html__( 'Skala: %s', 'man3-hijau-dingin' ),
-				esc_html( implode( ', ', array_map( static function ( $k, $v ) { return $k . '=' . $v; }, array_keys( $scale ), array_values( $scale ) ) ) )
-			);
-			?>
-		</p>
 
 		<hr />
 		<h2><?php esc_html_e( 'Kelola pertanyaan', 'man3-hijau-dingin' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Centang Aktif agar muncul di beranda. Kosongkan teks lalu simpan untuk menghapus baris (atau nonaktifkan saja). Tambah pertanyaan baru di formulir bawah.', 'man3-hijau-dingin' ); ?></p>
 		<form method="post" action="">
 			<?php wp_nonce_field( 'man3_survey_admin' ); ?>
 			<input type="hidden" name="man3_survey_admin_save" value="1" />
@@ -582,7 +642,7 @@ function man3_survey_admin_screen() {
 			<p>
 				<label>
 					<input type="checkbox" name="man3_survey_reset_defaults" value="1" />
-					<?php esc_html_e( 'Reset ke 20 pertanyaan default (mengganti daftar di atas)', 'man3-hijau-dingin' ); ?>
+					<?php esc_html_e( 'Reset ke 10 pertanyaan default (mengganti daftar di atas)', 'man3-hijau-dingin' ); ?>
 				</label>
 			</p>
 			<?php submit_button( __( 'Simpan pertanyaan', 'man3-hijau-dingin' ) ); ?>
@@ -598,6 +658,7 @@ function man3_survey_admin_bootstrap() {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
+	man3_survey_maybe_migrate_v2();
 	if ( null === get_option( 'man3_survey_questions', null ) ) {
 		update_option( 'man3_survey_questions', man3_survey_default_questions(), false );
 	}
