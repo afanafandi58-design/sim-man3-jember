@@ -208,6 +208,15 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)/reset-kunci$#', $path, $m) && $m
     absen_flash_success('Kunci perangkat '.$peserta['name'].' dibuka. Data absen yang sudah tersimpan tidak dihapus. Peserta ini bisa absen lagi.', $kembali);
 }
 
+if (preg_match('#^/absen-digital/kegiatan/(\d+)/bersih-tanda$#', $path, $m) && $method === 'POST') {
+    $user = absen_require_user();
+    absen_require_admin($user);
+    $kegiatan = absen_kegiatan($m[1]);
+    $stmt = absen_db()->prepare('DELETE FROM absen_gangguan WHERE kegiatan_id = ? AND user_id IS NULL');
+    $stmt->execute(array($kegiatan['id']));
+    absen_flash_success('Tanda tanpa nama dihapus. Data absen yang sudah tersimpan tidak diubah.', '/absen-digital/kegiatan/'.$kegiatan['id']);
+}
+
 if (preg_match('#^/absen-digital/kegiatan/(\d+)/foto$#', $path, $m) && $method === 'POST') {
     $user = absen_require_user();
     absen_require_admin($user);
@@ -374,6 +383,10 @@ if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)/gangguan$#', $path, $m) && $me
         } else {
             $nama = $peserta['name'];
         }
+    }
+    if ($userId < 1) {
+        echo json_encode(array('ok' => true));
+        exit;
     }
     absen_catat_gangguan($kegiatan['id'], $userId, $nama, $pesanIzin[$pesan], $pesan);
     echo json_encode(array('ok' => true));

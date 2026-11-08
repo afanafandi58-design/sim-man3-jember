@@ -92,7 +92,20 @@ $scanUrl = absen_tautan_absen($kegiatan);
         ?>
             <div class="card">
                 <strong>Tidak terbaca atau gagal masuk</strong>
-                <p class="muted">Indikator peserta yang perangkatnya tidak terbaca, pemuatannya terlalu lama, atau absennya ditolak. Reset hanya membuka kunci perangkat peserta itu. Data absen yang sudah tersimpan tidak dihapus.</p>
+                <p class="muted">Indikator peserta yang sudah memilih identitas, lalu lokasi wajib tidak terbaca atau absennya ditolak. Reset hanya membuka kunci perangkat peserta itu. Data absen yang sudah tersimpan tidak dihapus.</p>
+                <?php
+                $tanpaNama = 0;
+                foreach ($masalah as $item) {
+                    if (empty($item['user_id'])) {
+                        $tanpaNama++;
+                    }
+                }
+                if ($tanpaNama > 0) { ?>
+                    <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/bersih-tanda" data-konfirmasi="Hapus tanda yang belum terhubung ke nama? Data absen yang sudah tersimpan tidak diubah.">
+                        <?php echo absen_csrf_field(); ?>
+                        <button class="btn" type="submit">Hapus tanda tanpa nama</button>
+                    </form>
+                <?php } ?>
                 <?php if (!$masalah) { ?><p>Tidak ada peserta yang gagal masuk.</p><?php } ?>
                 <?php if ($masalah) { ?>
                     <table>

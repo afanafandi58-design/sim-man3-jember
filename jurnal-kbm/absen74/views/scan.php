@@ -48,7 +48,7 @@
                     <input type="hidden" name="longitude" id="longitude" value="">
                     <input type="hidden" name="lokasi_palsu" id="lokasi-palsu" value="0">
                     <input type="hidden" name="sidik" id="sidik-perangkat" value="">
-                    <p id="lokasi-status" class="muted"><?php echo $lokasiBebas ? 'Kegiatan ini bebas lokasi. Absen boleh dari mana saja. GPS tidak menolak.' : 'Lokasi perangkat sedang dibaca. Absen hanya berlaku dalam radius 75 meter.'; ?></p>
+                    <p id="lokasi-status" class="muted"><?php echo $lokasiBebas ? 'Kegiatan ini bebas lokasi. Absen boleh dari mana saja. GPS tidak menolak.' : 'Ketuk Simpan untuk membaca lokasi. Absen hanya berlaku dalam radius 75 meter.'; ?></p>
                     <p><label for="saring-identitas">Pilih identitas</label>
                         <input id="saring-identitas" type="search" autocomplete="off" placeholder="Saring <?php echo count($peserta); ?> nama">
                     </p>

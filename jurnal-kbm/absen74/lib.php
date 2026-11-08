@@ -336,6 +336,7 @@ function absen_upgrade_schema()
         KEY absen_gangguan_kegiatan (kegiatan_id, user_id),
         CONSTRAINT absen_gangguan_kegiatan_fk FOREIGN KEY (kegiatan_id) REFERENCES absen_kegiatans (id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+    $db->exec('DELETE FROM absen_gangguan WHERE user_id IS NULL');
 }
 
 function absen_drop_login_roles()
@@ -1048,10 +1049,10 @@ function absen_catat_gangguan($kegiatanId, $userId, $nama, $jenis, $keterangan)
         $keterangan = substr($keterangan, 0, 180);
     }
     $userId = (int) $userId;
-    $sidik = absen_sidik_id();
-    if ($userId < 1 && $sidik === '') {
+    if ($userId < 1) {
         return;
     }
+    $sidik = absen_sidik_id();
     $now = date('Y-m-d H:i:s');
     $db = absen_db();
     $ada = null;
