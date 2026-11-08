@@ -314,24 +314,30 @@ function man3_survey_render_section() {
 						<input type="text" name="man3_survey_website" id="man3_survey_website" value="" tabindex="-1" autocomplete="off" />
 					</p>
 
+					<ul class="survey-legend" aria-hidden="true">
+						<?php foreach ( $scale as $val => $label ) : ?>
+							<li><span><?php echo esc_html( (string) $val ); ?></span> <?php echo esc_html( $label ); ?></li>
+						<?php endforeach; ?>
+					</ul>
+
 					<ol class="survey-list">
 						<?php foreach ( $questions as $i => $q ) : ?>
 							<li class="survey-item">
 								<p class="survey-q">
-									<span class="survey-q-num"><?php echo esc_html( (string) ( $i + 1 ) ); ?>.</span>
+									<span class="survey-q-num"><?php echo esc_html( (string) ( $i + 1 ) ); ?></span>
 									<?php echo esc_html( $q['text'] ); ?>
 								</p>
 								<div class="survey-scale" role="radiogroup" aria-label="<?php echo esc_attr( $q['text'] ); ?>">
 									<?php foreach ( $scale as $val => $label ) : ?>
-										<label class="survey-opt">
+										<label class="survey-opt" title="<?php echo esc_attr( $label ); ?>">
 											<input
 												type="radio"
 												name="man3_survey_q[<?php echo esc_attr( $q['id'] ); ?>]"
 												value="<?php echo esc_attr( (string) $val ); ?>"
 												required
+												aria-label="<?php echo esc_attr( $label ); ?>"
 											/>
 											<span class="survey-opt-val"><?php echo esc_html( (string) $val ); ?></span>
-											<span class="survey-opt-label"><?php echo esc_html( $label ); ?></span>
 										</label>
 									<?php endforeach; ?>
 								</div>
@@ -339,12 +345,14 @@ function man3_survey_render_section() {
 						<?php endforeach; ?>
 					</ol>
 
-					<p class="survey-note">
-						<?php esc_html_e( 'Tidak menyimpan nama, email, atau data identitas. Maksimal satu kiriman per perangkat dalam 30 menit.', 'man3-hijau-dingin' ); ?>
-					</p>
-					<button type="submit" class="btn btn-solid survey-submit">
-						<?php esc_html_e( 'Kirim tanggapan', 'man3-hijau-dingin' ); ?>
-					</button>
+					<div class="survey-footer">
+						<p class="survey-note">
+							<?php esc_html_e( 'Anonim · tanpa nama/email · satu kiriman per 30 menit.', 'man3-hijau-dingin' ); ?>
+						</p>
+						<button type="submit" class="btn btn-solid survey-submit">
+							<?php esc_html_e( 'Kirim tanggapan', 'man3-hijau-dingin' ); ?>
+						</button>
+					</div>
 				</form>
 			<?php endif; ?>
 		</div>
