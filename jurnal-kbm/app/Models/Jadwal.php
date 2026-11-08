@@ -21,11 +21,23 @@ class Jadwal extends Model
         'tahun_pelajaran',
         'semester',
         'is_locked',
+        'archived_at',
     ];
 
     protected $casts = [
         'is_locked' => 'boolean',
+        'archived_at' => 'datetime',
     ];
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('archived_at');
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
 
     /**
      * Relasi ke Guru

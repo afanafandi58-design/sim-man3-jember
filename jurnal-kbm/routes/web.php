@@ -46,6 +46,9 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
     Route::get('/guru/jadwal-saya', [GuruJadwalSayaController::class, 'index'])->name('guru.jadwal-saya.index');
     Route::get('/guru/jadwal-saya/create', [GuruJadwalSayaController::class, 'create'])->name('guru.jadwal-saya.create');
     Route::post('/guru/jadwal-saya', [GuruJadwalSayaController::class, 'store'])->name('guru.jadwal-saya.store');
+    Route::post('/guru/jadwal-saya/reset-aktif', [GuruJadwalSayaController::class, 'resetAktif'])
+        ->middleware('throttle:6,1')
+        ->name('guru.jadwal-saya.reset-aktif');
     Route::get('/guru/jadwal-saya/{jadwal}/perbaikan', [GuruJadwalSayaController::class, 'perbaikanForm'])->name('guru.jadwal-saya.perbaikan');
     Route::post('/guru/jadwal-saya/{jadwal}/perbaikan', [GuruJadwalSayaController::class, 'perbaikanStore'])->name('guru.jadwal-saya.perbaikan.store');
     Route::get('/guru/jurnal/{jadwal}/create', [GuruJurnalController::class, 'create'])->name('guru.jurnal.create');

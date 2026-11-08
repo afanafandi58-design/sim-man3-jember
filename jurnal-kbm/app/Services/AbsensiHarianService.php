@@ -195,6 +195,7 @@ class AbsensiHarianService
         $hari = $hari ?? $this->operationalDate->hari();
 
         return Jadwal::query()
+            ->active()
             ->where('guru_id', $guruId)
             ->whereRaw('LOWER(hari) = ?', [strtolower($hari)])
             ->orderBy('jam_mulai')

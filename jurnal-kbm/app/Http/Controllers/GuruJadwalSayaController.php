@@ -63,6 +63,7 @@ class GuruJadwalSayaController extends Controller
     public function perbaikanForm(Jadwal $jadwal)
     {
         $this->guruJadwalSayaService->assertOwnership($jadwal);
+        $this->guruJadwalSayaService->assertActiveSlot($jadwal);
 
         if (! $jadwal->is_locked) {
             return redirect()
@@ -84,6 +85,9 @@ class GuruJadwalSayaController extends Controller
 
     public function perbaikanStore(Request $request, Jadwal $jadwal)
     {
+        $this->guruJadwalSayaService->assertOwnership($jadwal);
+        $this->guruJadwalSayaService->assertActiveSlot($jadwal);
+
         $validated = $request->validate([
             'kode_kelas' => 'required|string|max:50',
             'mapel' => 'required|string|max:100',
@@ -98,5 +102,30 @@ class GuruJadwalSayaController extends Controller
         return redirect()
             ->route('guru.jadwal-saya.index')
             ->with('success', 'Perbaikan jadwal langsung diterapkan pada slot yang sama. Jejak permintaan tersimpan.');
+    }
+
+    public function resetAktif(Request $request)
+    {
+        $validated = $request->validate([
+            'tahun_pelajaran' => 'required|string|max:20',
+            'semester' => 'nullable|in:Ganjil,Genap',
+            'confirm' => 'accepted',
+        ]);
+
+        $result = $this->guruJadwalSayaService->resetAktif([
+            'tahun_pelajaran' => $validated['tahun_pelajaran'],
+            'semester' => $validated['semester'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('guru.jadwal-saya.index', [
+                'tahun_pelajaran' => $validated['tahun_pelajaran'],
+                'semester' => $validated['semester'] ?? null,
+            ])
+            ->with(
+                'success',
+                "Reset selesai: {$result['count']} slot dikeluarkan dari daftar aktif. "
+                ."Jurnal terkait tetap ada ({$result['jurnal_tetap']} entri). Data tidak dihapus."
+            );
     }
 }

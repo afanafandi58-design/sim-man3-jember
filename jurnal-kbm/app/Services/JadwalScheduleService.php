@@ -14,6 +14,7 @@ class JadwalScheduleService
         ?int $excludeId = null,
     ): bool {
         return Jadwal::query()
+            ->active()
             ->where('guru_id', $guruId)
             ->where('hari', $hari)
             ->when($excludeId, fn ($query, $id) => $query->where('id', '!=', $id))
@@ -42,6 +43,7 @@ class JadwalScheduleService
     public function isDuplicateSchedule(array $data, ?int $excludeId = null): bool
     {
         return Jadwal::query()
+            ->active()
             ->where('guru_id', $data['guru_id'])
             ->where('kelas', $data['kelas'])
             ->where('mapel', $data['mapel'])
@@ -62,6 +64,7 @@ class JadwalScheduleService
         ?int $excludeId = null,
     ): bool {
         return Jadwal::query()
+            ->active()
             ->where('guru_id', $guruId)
             ->where('hari', $hari)
             ->where('jam_ke', $jamKe)
@@ -79,6 +82,7 @@ class JadwalScheduleService
         ?int $excludeId = null,
     ): bool {
         return Jadwal::query()
+            ->active()
             ->where('guru_id', $guruId)
             ->where('hari', $hari)
             ->where('jam_ke', $jamKe)

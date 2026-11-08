@@ -35,12 +35,18 @@
     </div>
 </div>
 
+@if ($errors->has('reset'))
+    <div class="alert alert-danger">{{ $errors->first('reset') }}</div>
+@endif
+
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title mb-0">Daftar Jadwal</h3>
-        <a href="{{ route('guru.jadwal-saya.create') }}" class="btn btn-success btn-sm">
-            <i class="fas fa-plus"></i> Tambah Jadwal
-        </a>
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+        <h3 class="card-title mb-0">Daftar Jadwal Aktif</h3>
+        <div class="mt-1 mt-md-0">
+            <a href="{{ route('guru.jadwal-saya.create') }}" class="btn btn-success btn-sm">
+                <i class="fas fa-plus"></i> Tambah Jadwal
+            </a>
+        </div>
     </div>
 
     <div class="card-body">
@@ -60,6 +66,30 @@
                 <i class="fas fa-filter"></i> Filter
             </button>
         </form>
+
+        @if($jadwals->total() > 0)
+            <div class="alert alert-light border mb-3">
+                <form action="{{ route('guru.jadwal-saya.reset-aktif') }}" method="POST" class="mb-0"
+                      onsubmit="return confirm('Keluarkan SEMUA slot aktif pada filter ini dari daftar? Jurnal, absensi, dan jejak tetap tersimpan — tidak dihapus.');">
+                    @csrf
+                    <input type="hidden" name="tahun_pelajaran" value="{{ $tahunPelajaran }}">
+                    <input type="hidden" name="semester" value="{{ $semester }}">
+                    <div class="custom-control custom-checkbox mb-2">
+                        <input type="checkbox" class="custom-control-input" id="confirm-reset" name="confirm" value="1" required>
+                        <label class="custom-control-label" for="confirm-reset">
+                            Saya paham slot akan dikeluarkan dari daftar aktif (bukan dihapus), hanya jadwal milik saya.
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-broom"></i> Reset daftar aktif
+                        ({{ $tahunPelajaran }}{{ $semester ? ' / '.$semester : '' }} — {{ $jadwals->total() }} slot)
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        Setelah reset, daftar ini kosong supaya bisa disusun ulang. Riwayat jurnal/lampiran/rekap pada slot lama tetap bisa dibuka.
+                    </small>
+                </form>
+            </div>
+        @endif
 
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-sm">

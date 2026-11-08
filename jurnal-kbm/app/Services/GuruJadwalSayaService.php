@@ -5,7 +5,10 @@ namespace App\Services;
 use App\Models\Guru;
 use App\Models\Jadwal;
 use App\Models\JadwalPerbaikanRequest;
+use App\Models\JadwalReset;
+use App\Models\Jurnal;
 use App\Models\User;
+use App\Support\JadwalArchiveSchema;
 use App\Support\JadwalPerbaikanSchema;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +58,10 @@ class GuruJadwalSayaService
         $tahunPelajaran = $filters['tahun_pelajaran'] ?? GuruService::DEFAULT_TAHUN_PELAJARAN;
         $semester = $filters['semester'] ?? null;
 
+        JadwalArchiveSchema::ensure();
+
         return Jadwal::query()
+            ->active()
             ->with('pendingPerbaikanRequest')
             ->where('guru_id', $user->guru_id)
             ->when($tahunPelajaran, fn ($q) => $q->where('tahun_pelajaran', $tahunPelajaran))
@@ -67,12 +73,83 @@ class GuruJadwalSayaService
             ->withQueryString();
     }
 
+    /**
+     * Keluarkan slot aktif guru dari daftar (soft-archive).
+     * Tidak menghapus baris jadwal / jurnal / absensi / jejak.
+     *
+     * @return array{count:int, jurnal_tetap:int, reset_id:int}
+     */
+    public function resetAktif(array $filters = []): array
+    {
+        $user = $this->assertGuruAccount();
+        JadwalArchiveSchema::ensure();
+
+        $tahunPelajaran = $filters['tahun_pelajaran'] ?? GuruService::DEFAULT_TAHUN_PELAJARAN;
+        $semester = $filters['semester'] ?? null;
+
+        $slots = Jadwal::query()
+            ->active()
+            ->where('guru_id', $user->guru_id)
+            ->when($tahunPelajaran, fn ($q) => $q->where('tahun_pelajaran', $tahunPelajaran))
+            ->when($semester, fn ($q) => $q->where('semester', $semester))
+            ->orderBy('id')
+            ->get();
+
+        if ($slots->isEmpty()) {
+            throw ValidationException::withMessages([
+                'reset' => 'Tidak ada jadwal aktif pada filter ini untuk di-reset.',
+            ]);
+        }
+
+        $ids = $slots->pluck('id')->all();
+        $jurnalTetap = Jurnal::query()->whereIn('jadwal_id', $ids)->count();
+
+        return DB::transaction(function () use ($user, $tahunPelajaran, $semester, $ids, $jurnalTetap, $slots) {
+            Jadwal::query()
+                ->whereIn('id', $ids)
+                ->where('guru_id', $user->guru_id)
+                ->whereNull('archived_at')
+                ->update(['archived_at' => now()]);
+
+            $reset = JadwalReset::create([
+                'guru_id' => $user->guru_id,
+                'user_id' => $user->id,
+                'tahun_pelajaran' => $tahunPelajaran,
+                'semester' => $semester ?: null,
+                'slot_count' => count($ids),
+                'jadwal_ids' => $ids,
+                'catatan' => 'Reset daftar aktif oleh guru (soft-archive). Jurnal/absensi tetap.',
+            ]);
+
+            $this->guruService->syncJumlahJamMengajar(
+                Guru::findOrFail($user->guru_id),
+                $tahunPelajaran
+            );
+
+            return [
+                'count' => count($ids),
+                'jurnal_tetap' => $jurnalTetap,
+                'reset_id' => $reset->id,
+                'sample_ids' => array_slice($ids, 0, 5),
+            ];
+        });
+    }
+
     public function assertOwnership(Jadwal $jadwal): void
     {
         $user = $this->assertGuruAccount();
 
         if ((int) $jadwal->guru_id !== (int) $user->guru_id) {
             abort(403, 'Anda tidak memiliki akses ke jadwal ini.');
+        }
+    }
+
+    public function assertActiveSlot(Jadwal $jadwal): void
+    {
+        JadwalArchiveSchema::ensure();
+
+        if ($jadwal->isArchived()) {
+            abort(404, 'Slot jadwal ini sudah tidak aktif (sudah di-reset dari daftar).');
         }
     }
 

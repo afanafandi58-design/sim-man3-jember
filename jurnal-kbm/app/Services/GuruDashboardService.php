@@ -30,6 +30,7 @@ class GuruDashboardService
 
         // Tidak dikunci ke hari master: tampilkan semua jadwal milik guru + sorot yang hari-nya cocok.
         $semuaJadwal = Jadwal::query()
+            ->active()
             ->with('guru')
             ->where('guru_id', $guru->id)
             ->orderBy('hari')
@@ -70,6 +71,7 @@ class GuruDashboardService
         ][$this->operationalDate->earliestFillableDate()->format('l')] ?? $hariOperasional;
 
         $jadwalPengganti = Jadwal::query()
+            ->active()
             ->with('guru')
             ->where('guru_id', '!=', $guru->id)
             ->where(function ($q) use ($hariOperasional, $hariKemarinId) {

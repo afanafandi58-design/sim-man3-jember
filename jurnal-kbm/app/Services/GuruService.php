@@ -166,12 +166,14 @@ class GuruService
         $tahunPelajaran ??= self::DEFAULT_TAHUN_PELAJARAN;
 
         $totalJam = Jadwal::query()
+            ->active()
             ->where('guru_id', $guru->id)
             ->where('tahun_pelajaran', $tahunPelajaran)
             ->sum('jam_ke');
 
         if ($totalJam === 0) {
             $totalJam = Jadwal::query()
+                ->active()
                 ->where('guru_id', $guru->id)
                 ->where('tahun_pelajaran', $tahunPelajaran)
                 ->count();
