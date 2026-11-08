@@ -12,11 +12,11 @@
             <li class="mb-1">{{ $item }}</li>
         @endforeach
     </ul>
-    @if (!empty($notice['fillable_dates']))
+    @if (!empty($notice['fillable_range_label']) || !empty($notice['fillable_dates']))
         <p class="mb-0 small">
-            <strong>Tanggal yang bisa diisi sekarang:</strong>
-            {{ implode(' dan ', $notice['fillable_dates']) }}
-            (hari H &amp; H-1).
+            <strong>Tanggal jurnal yang bisa diisi:</strong>
+            {{ $notice['fillable_range_label'] ?? implode(' s.d. ', $notice['fillable_dates']) }}.
+            Tanggal sesudah hari ini tidak bisa diisi.
         </p>
     @endif
 </div>

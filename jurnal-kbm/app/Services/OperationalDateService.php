@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Jurnal;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class OperationalDateService
 {
@@ -20,12 +22,19 @@ class OperationalDateService
         'Saturday' => 'Sabtu',
     ];
 
+    private ?Carbon $cachedEarliestJurnalUsage = null;
+
+    private bool $resolvedEarliestJurnalUsage = false;
+
     public function today(): Carbon
     {
         return Carbon::today();
     }
 
-    /** Tanggal KBM yang boleh diisi: hari H dan H-1 (toleransi keterlambatan 1 hari). */
+    /**
+     * Tanggal absensi harian / toleransi singkat: hari H dan H-1.
+     * (Tidak dipakai untuk kunci edit jurnal KBM.)
+     */
     public function earliestFillableDate(): Carbon
     {
         return $this->today()->copy()->subDay()->startOfDay();
@@ -55,23 +64,102 @@ class OperationalDateService
     public function assertFillableDate(string $date): void
     {
         if (! $this->isFillableDate($date)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'tanggal' => 'Tanggal jurnal hanya boleh hari ini atau kemarin (toleransi keterlambatan 1 hari).',
+            throw ValidationException::withMessages([
+                'tanggal' => 'Tanggal absensi hanya boleh hari ini atau kemarin (toleransi keterlambatan 1 hari).',
+            ]);
+        }
+    }
+
+    /**
+     * Tanggal jurnal paling awal yang sudah ada di data (awal pemakaian),
+     * atau H-1 bila belum ada jurnal sama sekali.
+     */
+    public function earliestJurnalUsageDate(): Carbon
+    {
+        if (! $this->resolvedEarliestJurnalUsage) {
+            $min = Jurnal::query()->min('tanggal');
+            $this->cachedEarliestJurnalUsage = $min
+                ? Carbon::parse($min)->startOfDay()
+                : null;
+            $this->resolvedEarliestJurnalUsage = true;
+        }
+
+        return ($this->cachedEarliestJurnalUsage ?? $this->earliestFillableDate())->copy();
+    }
+
+    /** Awal jendela isi/edit jurnal: tanggal jurnal paling awal s.d. hari ini. */
+    public function earliestJurnalFillableDate(): Carbon
+    {
+        $earliest = $this->earliestJurnalUsageDate();
+        $latest = $this->latestJurnalFillableDate();
+
+        return $earliest->gt($latest) ? $latest->copy() : $earliest;
+    }
+
+    public function latestJurnalFillableDate(): Carbon
+    {
+        return $this->today()->copy()->startOfDay();
+    }
+
+    /** @return array{min:string,max:string} */
+    public function jurnalFillableBounds(): array
+    {
+        return [
+            'min' => $this->earliestJurnalFillableDate()->toDateString(),
+            'max' => $this->latestJurnalFillableDate()->toDateString(),
+        ];
+    }
+
+    /** @return list<string> batas rentang (min, max) untuk tampilan */
+    public function jurnalFillableDateStrings(): array
+    {
+        $bounds = $this->jurnalFillableBounds();
+
+        if ($bounds['min'] === $bounds['max']) {
+            return [$bounds['min']];
+        }
+
+        return [$bounds['min'], $bounds['max']];
+    }
+
+    public function isJurnalFillableDate(string|\DateTimeInterface $date): bool
+    {
+        $day = Carbon::parse($date)->startOfDay();
+
+        if ($day->gt($this->latestJurnalFillableDate())) {
+            return false;
+        }
+
+        return $day->betweenIncluded(
+            $this->earliestJurnalFillableDate(),
+            $this->latestJurnalFillableDate(),
+        );
+    }
+
+    public function assertJurnalFillableDate(string $date): void
+    {
+        if (! $this->isJurnalFillableDate($date)) {
+            $bounds = $this->jurnalFillableBounds();
+            throw ValidationException::withMessages([
+                'tanggal' => "Tanggal jurnal hanya boleh dari {$bounds['min']} sampai {$bounds['max']} (tidak boleh sesudah hari ini).",
             ]);
         }
     }
 
     public function jurnalRulesNotice(): array
     {
+        $bounds = $this->jurnalFillableBounds();
+
         return [
             'title' => 'Aturan pengisian jurnal (portal guru)',
             'items' => [
                 'Jadwal tidak dikunci ketat: Anda dapat mengisi jurnal meski hari/jam di master jadwal berubah.',
                 'Jam pelajaran fleksibel: pilih JP yang relevan; tidak wajib mengikuti slot lama bila jadwal sudah bergeser.',
-                'Tanggal pengisian: setiap hari untuk hari H, dengan toleransi keterlambatan 1 hari (boleh isi untuk kemarin).',
+                "Tanggal pengisian jurnal: dari awal pemakaian ({$bounds['min']}) sampai hari ini ({$bounds['max']}). Tanggal sesudah hari ini tidak bisa diisi.",
                 'Guru pengganti: isi kolom Guru Pengganti; pengampu tetap guru pemilik jadwal (tidak diganti).',
             ],
-            'fillable_dates' => $this->fillableDateStrings(),
+            'fillable_dates' => $this->jurnalFillableDateStrings(),
+            'fillable_range_label' => "dari {$bounds['min']} sampai {$bounds['max']}",
         ];
     }
 

@@ -92,12 +92,18 @@
         </table>
 
         <div class="form-group mb-0">
-            <label for="tanggal"><strong>Tanggal KBM</strong> (H atau H-1)</label>
-            <select name="tanggal" id="tanggal" class="form-control" required>
-                @foreach(($fillableDates ?? []) as $d)
-                    <option value="{{ $d }}" @selected(old('tanggal', $tanggal ?? '') === $d)>{{ $d }}</option>
-                @endforeach
-            </select>
+            <label for="tanggal"><strong>Tanggal KBM</strong> (dari awal pemakaian s.d. hari ini)</label>
+            <input type="date"
+                   name="tanggal"
+                   id="tanggal"
+                   class="form-control"
+                   required
+                   min="{{ $jurnalFillableBounds['min'] ?? '' }}"
+                   max="{{ $jurnalFillableBounds['max'] ?? '' }}"
+                   value="{{ old('tanggal', $tanggal ?? ($jurnalFillableBounds['max'] ?? '')) }}">
+            @if (!empty($jurnalFillableBounds))
+                <small class="text-muted">Rentang: {{ $jurnalFillableBounds['min'] }} s.d. {{ $jurnalFillableBounds['max'] }}</small>
+            @endif
         </div>
 
     </div>

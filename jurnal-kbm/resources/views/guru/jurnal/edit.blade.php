@@ -28,7 +28,7 @@
                 {{ $jurnal->jadwal->mapel }} | {{ $jurnal->jadwal->kelas }} |
                 {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d F Y') }}
                 @if(!empty($isLocked))
-                    <br><span class="badge badge-secondary mt-1">Di luar toleransi H/H-1 — hanya lihat</span>
+                    <br><span class="badge badge-secondary mt-1">Di luar rentang pengisian (awal s.d. hari ini) — hanya lihat</span>
                 @endif
             </div>
 

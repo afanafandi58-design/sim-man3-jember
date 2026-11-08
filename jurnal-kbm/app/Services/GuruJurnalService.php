@@ -81,7 +81,7 @@ class GuruJurnalService
         $user = $this->assertGuruAccount();
         $user->loadMissing('guru');
 
-        $this->operationalDate->assertFillableDate((string) $data['tanggal']);
+        $this->operationalDate->assertJurnalFillableDate((string) $data['tanggal']);
 
         $isOwner = $this->isJadwalOwner($jadwal);
         $guruPengganti = trim((string) ($data['guru_pengganti'] ?? ''));
@@ -140,7 +140,7 @@ class GuruJurnalService
 
         if ($jurnal->isLocked()) {
             throw ValidationException::withMessages([
-                'tanggal' => 'Jurnal di luar toleransi H/H-1 tidak dapat diubah.',
+                'tanggal' => 'Jurnal di luar rentang pengisian (awal pemakaian s.d. hari ini) tidak dapat diubah.',
             ]);
         }
 

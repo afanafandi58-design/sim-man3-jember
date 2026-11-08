@@ -35,7 +35,7 @@ class GuruJurnalController extends Controller
         $this->guruJurnalService->assertJadwalAccess($jadwal);
 
         $tanggal = (string) $request->query('tanggal', $this->operationalDate->today()->toDateString());
-        if (! $this->operationalDate->isFillableDate($tanggal)) {
+        if (! $this->operationalDate->isJurnalFillableDate($tanggal)) {
             $tanggal = $this->operationalDate->today()->toDateString();
         }
 
@@ -52,7 +52,7 @@ class GuruJurnalController extends Controller
         $jpOptions = $this->jamSelectionService->jpOptionsForJadwal($jadwal);
         $selectedJp = old('jp_selected', $this->jamSelectionService->preselectedJp($jadwal));
         $isOwner = $this->guruJurnalService->isJadwalOwner($jadwal);
-        $fillableDates = $this->operationalDate->fillableDateStrings();
+        $jurnalFillableBounds = $this->operationalDate->jurnalFillableBounds();
         $jurnalRulesNotice = $this->operationalDate->jurnalRulesNotice();
         $defaultPengganti = ! $isOwner
             ? (auth()->user()->guru?->nama ?? auth()->user()->name)
@@ -79,7 +79,7 @@ class GuruJurnalController extends Controller
             'jpOptions',
             'selectedJp',
             'isOwner',
-            'fillableDates',
+            'jurnalFillableBounds',
             'tanggal',
             'jurnalRulesNotice',
             'defaultPengganti',
@@ -195,7 +195,7 @@ class GuruJurnalController extends Controller
             'lampiran_caption.*' => JurnalAttachmentService::captionFieldRules(),
         ]);
 
-        $this->operationalDate->assertFillableDate($data['tanggal']);
+        $this->operationalDate->assertJurnalFillableDate($data['tanggal']);
         $absensiInput = $request->input('absensi');
         $jadwal = Jadwal::findOrFail($data['jadwal_id']);
         $data = $this->mergeJamSelection($data, $jadwal);

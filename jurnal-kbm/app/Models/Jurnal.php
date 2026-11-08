@@ -60,11 +60,12 @@ class Jurnal extends Model
     }
 
     /**
-     * Terkunci jika di luar toleransi H / H-1 (boleh edit hari ini & kemarin).
+     * Terkunci jika tanggal di luar jendela isi jurnal
+     * (dari tanggal jurnal paling awal di data sampai hari ini; masa depan tetap terkunci).
      */
     public function isLocked(): bool
     {
-        return ! app(OperationalDateService::class)->isFillableDate($this->tanggal);
+        return ! app(OperationalDateService::class)->isJurnalFillableDate($this->tanggal);
     }
 
     public static function dokumentasiLabelForCount(int $count): string
