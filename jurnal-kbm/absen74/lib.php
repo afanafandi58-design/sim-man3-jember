@@ -303,6 +303,10 @@ function absen_upgrade_schema()
     if (!absen_column_meta('absen_kehadirans', 'kunci_aktif')) {
         $db->exec('ALTER TABLE absen_kehadirans ADD COLUMN kunci_aktif TINYINT(1) NULL DEFAULT 1 AFTER perangkat_id');
     }
+    $idxKegiatan = $db->query("SHOW INDEX FROM absen_kehadirans WHERE Key_name = 'absen_kehadirans_kegiatan_idx'")->fetch();
+    if (!$idxKegiatan) {
+        $db->exec('ALTER TABLE absen_kehadirans ADD INDEX absen_kehadirans_kegiatan_idx (kegiatan_id)');
+    }
     $idxLamaUser = $db->query("SHOW INDEX FROM absen_kehadirans WHERE Key_name = 'absen_kehadirans_user_unique'")->fetch();
     if ($idxLamaUser) {
         $db->exec('ALTER TABLE absen_kehadirans DROP INDEX absen_kehadirans_user_unique');
