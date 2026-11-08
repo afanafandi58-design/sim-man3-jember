@@ -28,7 +28,7 @@ class JadwalPerbaikanService
                     ->whereHas('jadwal', fn ($jadwal) => $jadwal->where('is_locked', false));
             })
             ->when($status && $status !== 'perlu_ubah', fn ($q) => $q->where('status', $status))
-            ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END")
+            ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 WHEN 'applied' THEN 2 WHEN 'rejected' THEN 3 ELSE 4 END")
             ->orderByDesc('created_at')
             ->paginate(15)
             ->withQueryString();

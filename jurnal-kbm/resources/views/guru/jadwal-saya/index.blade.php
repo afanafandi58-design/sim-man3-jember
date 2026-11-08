@@ -102,7 +102,7 @@
                                 @if($jadwal->is_locked && ! $jadwal->pendingPerbaikanRequest)
                                     <a href="{{ route('guru.jadwal-saya.perbaikan', $jadwal) }}"
                                        class="btn btn-warning btn-sm">
-                                        <i class="fas fa-paper-plane"></i> Ajukan Perbaikan
+                                        <i class="fas fa-edit"></i> Perbaiki Slot
                                     </a>
                                 @elseif($jadwal->pendingPerbaikanRequest)
                                     <span class="text-muted small">Menunggu admin</span>

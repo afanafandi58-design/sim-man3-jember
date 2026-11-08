@@ -13,10 +13,15 @@ class JadwalPerbaikanRequest extends Model
     public const STATUS_APPROVED = 'approved';
     public const STATUS_REJECTED = 'rejected';
 
+    /** Langsung diterapkan guru (timpa slot jadwal, tanpa antrean admin). */
+    public const STATUS_APPLIED = 'applied';
+
     protected $fillable = [
         'jadwal_id',
         'guru_id',
         'alasan',
+        'old_values',
+        'new_values',
         'status',
         'processed_by',
         'admin_catatan',
@@ -25,6 +30,8 @@ class JadwalPerbaikanRequest extends Model
 
     protected $casts = [
         'processed_at' => 'datetime',
+        'old_values' => 'array',
+        'new_values' => 'array',
     ];
 
     public function jadwal()
@@ -45,5 +52,10 @@ class JadwalPerbaikanRequest extends Model
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isApplied(): bool
+    {
+        return $this->status === self::STATUS_APPLIED;
     }
 }

@@ -78,12 +78,14 @@
                                 'pending' => 'badge-warning',
                                 'approved' => 'badge-success',
                                 'rejected' => 'badge-danger',
+                                'applied' => 'badge-info',
                                 default => 'badge-secondary',
                             };
                             $statusText = match($req->status) {
                                 'pending' => 'Menunggu',
                                 'approved' => 'Disetujui',
                                 'rejected' => 'Ditolak',
+                                'applied' => 'Sudah diterapkan',
                                 default => $req->status,
                             };
                         @endphp
@@ -96,7 +98,16 @@
                                 {{ $req->jadwal->mapel ?? '-' }} /
                                 {{ $req->jadwal->hari ?? '-' }} Jam {{ $req->jadwal->jam_ke ?? '-' }}
                             </td>
-                            <td>{{ Str::limit($req->alasan, 80) }}</td>
+                            <td>
+                                {{ Str::limit($req->alasan, 80) }}
+                                @if($req->status === 'applied' && is_array($req->old_values) && is_array($req->new_values))
+                                    <div class="small text-muted mt-1">
+                                        {{ $req->old_values['kelas'] ?? '-' }}/{{ $req->old_values['mapel'] ?? '-' }}/{{ $req->old_values['hari'] ?? '-' }} J{{ $req->old_values['jam_ke'] ?? '-' }}
+                                        →
+                                        {{ $req->new_values['kelas'] ?? '-' }}/{{ $req->new_values['mapel'] ?? '-' }}/{{ $req->new_values['hari'] ?? '-' }} J{{ $req->new_values['jam_ke'] ?? '-' }}
+                                    </div>
+                                @endif
+                            </td>
                             <td><span class="badge {{ $statusClass }}">{{ $statusText }}</span></td>
                             <td>
                                 @if($req->status === 'pending')

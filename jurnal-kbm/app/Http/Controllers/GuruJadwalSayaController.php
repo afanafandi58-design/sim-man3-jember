@@ -77,20 +77,26 @@ class GuruJadwalSayaController extends Controller
         }
 
         $guru = $this->guruJadwalSayaService->getGuru();
+        $formData = $this->guruJadwalSayaService->perbaikanFormData($jadwal);
 
-        return view('guru.jadwal-saya.perbaikan', compact('jadwal', 'guru'));
+        return view('guru.jadwal-saya.perbaikan', array_merge(compact('jadwal', 'guru'), $formData));
     }
 
     public function perbaikanStore(Request $request, Jadwal $jadwal)
     {
         $validated = $request->validate([
+            'kode_kelas' => 'required|string|max:50',
+            'mapel' => 'required|string|max:100',
+            'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
+            'jam_ke' => 'required|integer|min:0',
+            'jam_ke_akhir' => 'nullable|integer|min:0|gte:jam_ke',
             'alasan' => 'required|string|min:10|max:1000',
         ]);
 
-        $this->guruJadwalSayaService->submitPerbaikan($jadwal, $validated['alasan']);
+        $this->guruJadwalSayaService->submitPerbaikan($jadwal, $validated);
 
         return redirect()
             ->route('guru.jadwal-saya.index')
-            ->with('success', 'Permintaan perbaikan berhasil diajukan. Menunggu persetujuan admin.');
+            ->with('success', 'Perbaikan jadwal langsung diterapkan pada slot yang sama. Jejak permintaan tersimpan.');
     }
 }
