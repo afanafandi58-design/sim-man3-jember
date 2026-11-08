@@ -25,22 +25,17 @@
         <?php } ?>
     </ul>
 </div>
-<div class="card" style="padding:0">
-    <table>
-        <thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Jenis</th><th>Hadir</th><th></th></tr></thead>
-        <tbody>
-        <?php foreach ($rows as $row) { ?>
-            <tr>
-                <td><?php echo absen_e(absen_tanggal_label($row['tanggal'])); ?></td>
-                <td><?php echo absen_e($row['nama']); ?></td>
-                <td><?php echo absen_e(isset($jenisMap[$row['jenis']]) ? $jenisMap[$row['jenis']] : $row['jenis']); ?></td>
-                <td><?php echo (int) $row['hadir']; ?></td>
-                <td>
-                    <a href="/absen-digital/kegiatan/<?php echo (int) $row['id']; ?>">Detail</a>
-                    <a href="/absen-digital/cetak/halaman?kegiatan_id=<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">Laporan</a>
-                </td>
-            </tr>
-        <?php } ?>
-        </tbody>
-    </table>
+<div class="dek dek-layar">
+    <?php if (!$rows) { ?><div class="kartu"><p class="kartu-judul">Tidak ada kegiatan pada saringan ini.</p></div><?php } ?>
+    <?php foreach ($rows as $row) { ?>
+        <article class="kartu">
+            <p class="kartu-judul"><?php echo absen_e($row['nama']); ?></p>
+            <p class="kartu-meta"><?php echo absen_e(absen_tanggal_label($row['tanggal'])); ?> · <?php echo absen_e(isset($jenisMap[$row['jenis']]) ? $jenisMap[$row['jenis']] : $row['jenis']); ?></p>
+            <p class="kartu-meta"><?php echo (int) $row['hadir']; ?> hadir</p>
+            <p class="kartu-aksi">
+                <a class="btn" href="/absen-digital/kegiatan/<?php echo (int) $row['id']; ?>">Detail</a>
+                <a class="btn" href="/absen-digital/cetak/halaman?kegiatan_id=<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">Cetak</a>
+            </p>
+        </article>
+    <?php } ?>
 </div>

@@ -50,3 +50,14 @@
         margin-bottom: 8px;
     }
 }
+
+.dek { display: flex; flex-direction: column; gap: 12px; }
+.kartu, a.kartu { display: flex; flex-direction: column; justify-content: center; gap: 8px; background: #fff; color: inherit; text-decoration: none; border: 2px solid #d7e3da; border-radius: 18px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.kartu-judul { font-size: 26px; font-weight: 700; line-height: 1.25; margin: 0; }
+.kartu-meta { color: #5f6f64; font-size: 16px; line-height: 1.4; }
+.dek-layar { max-height: 78vh; overflow-y: auto; scroll-snap-type: y mandatory; }
+.dek-layar > .kartu, .dek-layar > .identitas { scroll-snap-align: start; min-height: 68vh; }
+@media (min-width: 900px) {
+    .dek-layar { max-height: none; overflow: visible; scroll-snap-type: none; display: grid; grid-template-columns: 1fr 1fr; }
+    .dek-layar > .kartu, .dek-layar > .identitas { min-height: 160px; }
+}
