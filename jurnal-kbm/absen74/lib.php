@@ -380,7 +380,7 @@ function absen_import_orang()
     $now = date('Y-m-d H:i:s');
     $byNip = $db->prepare('SELECT id FROM users WHERE nip = ?');
     $byName = $db->prepare("SELECT id FROM users WHERE role = 'user' AND nip IS NULL AND name = ?");
-    $update = $db->prepare('UPDATE users SET name = ?, role = ?, is_active = 1, updated_at = ? WHERE id = ?');
+    $update = $db->prepare('UPDATE users SET name = ?, role = ?, updated_at = ? WHERE id = ?');
     $insert = $db->prepare('INSERT INTO users (name, nip, email, password, role, is_active, created_at, updated_at) VALUES (?, ?, NULL, NULL, ?, 1, ?, ?)');
     foreach ($rows as $row) {
         if (!is_array($row)) {
@@ -871,11 +871,15 @@ function absen_tambah_peserta($name, $nip)
         return array('errors' => $errors);
     }
     $db = absen_db();
-    $byName = $db->prepare("SELECT name FROM users WHERE role = 'user' AND LOWER(name) = LOWER(?) LIMIT 1");
+    $byName = $db->prepare("SELECT name, is_active FROM users WHERE role = 'user' AND LOWER(name) = LOWER(?) LIMIT 1");
     $byName->execute(array($name));
     $samaNama = $byName->fetch();
     if ($samaNama) {
-        $errors['name'] = 'Nama ini sudah ada: '.$samaNama['name'].'.';
+        if ((int) $samaNama['is_active'] !== 1) {
+            $errors['name'] = 'Nama ini sudah dihapus dari daftar. Absen lamanya tetap tersimpan.';
+        } else {
+            $errors['name'] = 'Nama ini sudah ada: '.$samaNama['name'].'.';
+        }
     }
     if ($nip !== '') {
         $byNip = $db->prepare('SELECT name FROM users WHERE nip = ? LIMIT 1');
@@ -897,6 +901,24 @@ function absen_tambah_peserta($name, $nip)
     }
 
     return array('name' => $name, 'nip' => $nip);
+}
+
+function absen_hapus_peserta($id)
+{
+    $id = (int) $id;
+    if ($id < 1) {
+        return array('errors' => array('user_id' => 'Pilih peserta yang akan dihapus.'));
+    }
+    $stmt = absen_db()->prepare('SELECT id, name, role, is_active FROM users WHERE id = ?');
+    $stmt->execute(array($id));
+    $row = $stmt->fetch();
+    if (!$row || $row['role'] !== 'user' || (int) $row['is_active'] !== 1) {
+        return array('errors' => array('user_id' => 'Peserta tidak ditemukan. Akun pengelola tidak dihapus.'));
+    }
+    $upd = absen_db()->prepare("UPDATE users SET is_active = 0, updated_at = ? WHERE id = ? AND role = 'user'");
+    $upd->execute(array(date('Y-m-d H:i:s'), $id));
+
+    return array('name' => $row['name']);
 }
 
 function absen_find_peserta($id)

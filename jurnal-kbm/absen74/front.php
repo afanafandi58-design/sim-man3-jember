@@ -104,6 +104,16 @@ if ($path === '/absen-digital/peserta' && $method === 'POST') {
     absen_flash_success($pesan, '/absen-digital/peserta');
 }
 
+if ($path === '/absen-digital/peserta/hapus' && $method === 'POST') {
+    $user = absen_require_user();
+    absen_require_admin($user);
+    $hasil = absen_hapus_peserta(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
+    if (isset($hasil['errors'])) {
+        absen_flash_error($hasil['errors'], '/absen-digital/peserta');
+    }
+    absen_flash_success($hasil['name'].' dihapus dari daftar. Nama ini tidak muncul lagi di pilihan identitas. Absen yang sudah tersimpan tetap ada.', '/absen-digital/peserta');
+}
+
 if ($path === '/absen-digital/kegiatan' && $method === 'GET') {
     $user = absen_require_user();
     $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
