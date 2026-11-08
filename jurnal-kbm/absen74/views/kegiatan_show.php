@@ -34,10 +34,19 @@ $scanUrl = absen_tautan_absen($kegiatan);
         <div class="card" style="padding:0">
             <div style="padding:16px"><strong>Daftar hadir (<?php echo count($hadir); ?>)</strong></div>
             <table>
-                <thead><tr><th>Nama</th><th>Cara</th><th>Waktu</th><?php if ($admin) { ?><th>Lokasi</th><th>Bukti</th><?php } ?></tr></thead>
+                <thead><tr><th>Nama</th><th>Cara</th><th>Waktu</th><?php if ($admin) { ?><th>Lokasi</th><th>Bukti</th><th>Status</th><?php } ?></tr></thead>
                 <tbody>
-                <?php if (!$hadir) { ?><tr><td colspan="5">Belum ada yang hadir.</td></tr><?php } ?>
-                <?php foreach ($hadir as $row) { ?>
+                <?php if (!$hadir) { ?><tr><td colspan="<?php echo $admin ? 6 : 3; ?>">Belum ada yang hadir.</td></tr><?php } ?>
+                <?php
+                $userAktif = array();
+                foreach ($hadir as $row) {
+                    if (!empty($row['user_id']) && (string) $row['kunci_aktif'] === '1') {
+                        $userAktif[(int) $row['user_id']] = true;
+                    }
+                }
+                foreach ($hadir as $row) {
+                    $kunciAktif = (string) $row['kunci_aktif'] === '1';
+                ?>
                     <tr>
                         <td><?php echo absen_e($row['nama']); ?><?php if ($row['nik']) { ?><div class="muted"><?php echo absen_e($row['nik']); ?></div><?php } ?></td>
                         <td><?php echo absen_e(absen_metode_label($row['metode'])); ?></td>
@@ -48,13 +57,69 @@ $scanUrl = absen_tautan_absen($kegiatan);
                                 <?php if ($row['foto_path']) { ?><a href="/absen-digital/berkas/foto/<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">Foto</a><?php } ?>
                                 <?php if ($row['ttd_path']) { ?><a href="/absen-digital/berkas/ttd/<?php echo (int) $row['id']; ?>" target="_blank" rel="noopener">TTD</a><?php } ?>
                             </td>
+                            <td>
+                                <?php if ($kunciAktif) { ?>
+                                    <span class="tanda tanda-kunci">Perangkat terkunci</span>
+                                    <?php if (!empty($row['user_id'])) { ?>
+                                        <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-kunci" data-konfirmasi="Buka kunci perangkat untuk peserta ini? Data absen yang sudah tersimpan tidak dihapus.">
+                                            <?php echo absen_csrf_field(); ?>
+                                            <input type="hidden" name="user_id" value="<?php echo (int) $row['user_id']; ?>">
+                                            <button class="btn" type="submit">Reset kunci</button>
+                                        </form>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    <span class="tanda tanda-buka">Kunci dibuka, data tersimpan</span>
+                                <?php } ?>
+                            </td>
                         <?php } ?>
                     </tr>
                 <?php } ?>
                 </tbody>
             </table>
         </div>
-        <?php if ($admin) { ?>
+        <?php if ($admin) {
+            if (!isset($gangguan) || !is_array($gangguan)) {
+                $gangguan = array();
+            }
+            $masalah = array();
+            foreach ($gangguan as $item) {
+                $uid = !empty($item['user_id']) ? (int) $item['user_id'] : 0;
+                if ($uid > 0 && isset($userAktif[$uid])) {
+                    continue;
+                }
+                $masalah[] = $item;
+            }
+        ?>
+            <div class="card">
+                <strong>Tidak terbaca atau gagal masuk</strong>
+                <p class="muted">Indikator peserta yang perangkatnya tidak terbaca, pemuatannya terlalu lama, atau absennya ditolak. Reset hanya membuka kunci perangkat peserta itu. Data absen yang sudah tersimpan tidak dihapus.</p>
+                <?php if (!$masalah) { ?><p>Tidak ada peserta yang gagal masuk.</p><?php } ?>
+                <?php if ($masalah) { ?>
+                    <table>
+                        <thead><tr><th>Nama</th><th>Status</th><th></th></tr></thead>
+                        <tbody>
+                        <?php foreach ($masalah as $item) { ?>
+                            <tr>
+                                <td><?php echo absen_e($item['nama'] ? $item['nama'] : 'Perangkat belum terhubung ke nama'); ?></td>
+                                <td>
+                                    <span class="tanda tanda-gagal"><?php echo $item['jenis'] === 'tidak_terbaca' ? 'Tidak terbaca' : 'Gagal masuk'; ?></span>
+                                    <?php if ($item['keterangan']) { ?><div class="muted"><?php echo absen_e($item['keterangan']); ?></div><?php } ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($item['user_id'])) { ?>
+                                        <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-kunci" data-konfirmasi="Buka kunci perangkat untuk peserta ini? Data absen yang sudah tersimpan tidak dihapus.">
+                                            <?php echo absen_csrf_field(); ?>
+                                            <input type="hidden" name="user_id" value="<?php echo (int) $item['user_id']; ?>">
+                                            <button class="btn" type="submit">Reset kunci</button>
+                                        </form>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                        </tbody>
+                    </table>
+                <?php } ?>
+            </div>
             <div class="card">
                 <strong>Foto dokumentasi</strong>
                 <?php if (absen_error('foto')) { ?><p class="error"><?php echo absen_e(absen_error('foto')); ?></p><?php } ?>

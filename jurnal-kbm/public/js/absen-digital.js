@@ -241,11 +241,37 @@
                         return;
                     }
                     tulis('GPS tidak tersedia di peramban ini. Absen tidak bisa disimpan.');
+                    laporkanGangguan(form, 'Lokasi tidak terbaca.');
                     reject();
                     return;
                 }
                 tulis(bebas ? 'Membaca lokasi perangkat. Absen tetap bisa disimpan dari mana saja.' : 'Membaca lokasi perangkat...');
+                var selesai = false;
+                var batas = setTimeout(function () {
+                    if (selesai) {
+                        return;
+                    }
+                    selesai = true;
+                    lat.value = '';
+                    lng.value = '';
+                    if (tanda) {
+                        tanda.value = '0';
+                    }
+                    if (bebas) {
+                        tulis('Lokasi tidak terbaca. Kegiatan ini bebas lokasi, jadi absen tetap bisa disimpan.');
+                        resolve();
+                        return;
+                    }
+                    tulis('Lokasi perangkat belum terbaca. Izinkan GPS, lalu ketuk Simpan lagi.');
+                    laporkanGangguan(form, 'Lokasi tidak terbaca.');
+                    reject();
+                }, 15000);
                 navigator.geolocation.getCurrentPosition(function (pos) {
+                    if (selesai) {
+                        return;
+                    }
+                    selesai = true;
+                    clearTimeout(batas);
                     if (lokasiPalsu(pos)) {
                         if (bebas) {
                             lat.value = '';
@@ -269,6 +295,11 @@
                     tulis(bebas ? 'Lokasi terbaca. Kegiatan ini bebas lokasi, jadi GPS tidak menolak absen.' : 'Lokasi terbaca. Absen hanya berlaku dalam radius 75 meter dari titik kegiatan.');
                     resolve();
                 }, function () {
+                    if (selesai) {
+                        return;
+                    }
+                    selesai = true;
+                    clearTimeout(batas);
                     lat.value = '';
                     lng.value = '';
                     if (tanda) {
@@ -280,6 +311,7 @@
                         return;
                     }
                     tulis('Lokasi perangkat belum terbaca. Izinkan GPS, lalu ketuk Simpan lagi.');
+                    laporkanGangguan(form, 'Lokasi tidak terbaca.');
                     reject();
                 }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
             });
@@ -912,6 +944,34 @@
         return bagian.join('|').replace(/[^\x20-\x7E]/g, '').slice(0, 780);
     }
 
+    function laporkanGangguan(form, keterangan) {
+        if (!form || !window.fetch) {
+            return;
+        }
+        var token = form.querySelector('input[name="_token"]');
+        var kode = form.querySelector('input[name="kode"]');
+        if (!token || !kode || !keterangan) {
+            return;
+        }
+        var pilih = form.querySelector('input[name="user_id"]:checked');
+        var sidik = document.getElementById('sidik-perangkat');
+        var body = new URLSearchParams();
+        body.set('_token', token.value);
+        body.set('keterangan', keterangan);
+        if (sidik && sidik.value) {
+            body.set('sidik', sidik.value);
+        }
+        if (pilih) {
+            body.set('user_id', pilih.value);
+        }
+        fetch('/absen-digital/k/' + encodeURIComponent(kode.value) + '/gangguan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString(),
+            credentials: 'same-origin'
+        }).catch(function () {});
+    }
+
     function initSidik() {
         var form = document.getElementById('form-absen-scan');
         var input = document.getElementById('sidik-perangkat');
@@ -922,7 +982,10 @@
             input.value = buatSidik();
             return input.value;
         }
-        isi();
+        var nilaiSidik = isi();
+        if (nilaiSidik.indexOf('v1|') !== 0 || nilaiSidik.split('|').length < 9) {
+            laporkanGangguan(form, 'Sidik perangkat tidak terbaca.');
+        }
         form.addEventListener('submit', function () {
             isi();
         }, true);
@@ -934,12 +997,16 @@
         var body = new URLSearchParams();
         body.set('_token', token.value);
         body.set('sidik', input.value);
+        var lambat = setTimeout(function () {
+            laporkanGangguan(form, 'Pemeriksaan perangkat terlalu lama.');
+        }, 8000);
         fetch('/absen-digital/k/' + encodeURIComponent(kode.value) + '/sidik', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: body.toString(),
             credentials: 'same-origin'
         }).then(function (res) {
+            clearTimeout(lambat);
             return res.json();
         }).then(function (data) {
             if (!data || !data.terkunci) {
@@ -954,7 +1021,10 @@
             alert.className = 'alert alert-danger';
             alert.textContent = data.pesan || 'Perangkat Android ini sudah dipakai untuk absen pada kegiatan ini. Perangkat yang sama tidak bisa mengabsenkan nama lain.';
             langkah.appendChild(alert);
-        }).catch(function () {});
+        }).catch(function () {
+            clearTimeout(lambat);
+            laporkanGangguan(form, 'Pemeriksaan perangkat terlalu lama.');
+        });
     }
 
     function initKonfirmasi() {

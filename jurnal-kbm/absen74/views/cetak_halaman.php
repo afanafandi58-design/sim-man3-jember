@@ -92,6 +92,6 @@
         </div>
     </section>
 <?php } ?>
-<script src="/js/absen-digital.js?v=lokasi1"></script>
+<script src="/js/absen-digital.js?v=reset1"></script>
 </body>
 </html>

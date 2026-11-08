@@ -137,11 +137,14 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)$#', $path, $m) && $method === 'G
     $hadir->execute(array($kegiatan['id']));
     $foto = absen_db()->prepare('SELECT * FROM absen_fotos WHERE kegiatan_id = ? ORDER BY id DESC');
     $foto->execute(array($kegiatan['id']));
+    $gangguanStmt = absen_db()->prepare('SELECT * FROM absen_gangguan WHERE kegiatan_id = ? ORDER BY created_at DESC');
+    $gangguanStmt->execute(array($kegiatan['id']));
     absen_render('kegiatan_show', array(
         'title' => $kegiatan['nama'],
         'kegiatan' => $kegiatan,
         'hadir' => $hadir->fetchAll(),
         'fotos' => $foto->fetchAll(),
+        'gangguan' => $gangguanStmt->fetchAll(),
         'authUser' => $user,
     ));
     exit;
@@ -190,6 +193,19 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)/hapus$#', $path, $m) && $method 
     $del = absen_db()->prepare('DELETE FROM absen_kegiatans WHERE id = ?');
     $del->execute(array($kegiatan['id']));
     absen_flash_success('Kegiatan dan data hadirnya dihapus.', '/absen-digital/kegiatan');
+}
+
+if (preg_match('#^/absen-digital/kegiatan/(\d+)/reset-kunci$#', $path, $m) && $method === 'POST') {
+    $user = absen_require_user();
+    absen_require_admin($user);
+    $kegiatan = absen_kegiatan($m[1]);
+    $peserta = absen_find_peserta(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
+    $kembali = '/absen-digital/kegiatan/'.$kegiatan['id'];
+    if (!$peserta) {
+        absen_flash_error(array('user_id' => 'Peserta tidak ditemukan.'), $kembali);
+    }
+    absen_reset_kunci_user($kegiatan['id'], $peserta['id']);
+    absen_flash_success('Kunci perangkat '.$peserta['name'].' dibuka. Data absen yang sudah tersimpan tidak dihapus. Peserta ini bisa absen lagi.', $kembali);
 }
 
 if (preg_match('#^/absen-digital/kegiatan/(\d+)/foto$#', $path, $m) && $method === 'POST') {
@@ -297,7 +313,7 @@ if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)$#', $path, $m) && $method === 
     $kegiatan = $stmt->fetch();
     $sudah = array();
     if ($kegiatan) {
-        $list = absen_db()->prepare('SELECT id, user_id, nama, created_at FROM absen_kehadirans WHERE kegiatan_id = ? ORDER BY nama');
+        $list = absen_db()->prepare('SELECT id, user_id, nama, created_at FROM absen_kehadirans WHERE kegiatan_id = ? AND kunci_aktif = 1 ORDER BY nama');
         $list->execute(array($kegiatan['id']));
         $sudah = $list->fetchAll();
     }
@@ -326,6 +342,41 @@ if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)/sidik$#', $path, $m) && $metho
         'terkunci' => $terkunci,
         'pesan' => $terkunci ? absen_pesan_perangkat_terpakai() : '',
     ));
+    exit;
+}
+
+if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)/gangguan$#', $path, $m) && $method === 'POST') {
+    $kode = absen_normalize_kode($m[1]);
+    $stmt = absen_db()->prepare('SELECT * FROM absen_kegiatans WHERE kode = ?');
+    $stmt->execute(array($kode));
+    $kegiatan = $stmt->fetch();
+    header('Content-Type: application/json; charset=utf-8');
+    if (!$kegiatan || !absen_batas('gangguan', absen_klien_ip(), 40, 600, true)) {
+        echo json_encode(array('ok' => false));
+        exit;
+    }
+    $pesanIzin = array(
+        'Sidik perangkat tidak terbaca.' => 'tidak_terbaca',
+        'Lokasi tidak terbaca.' => 'tidak_terbaca',
+        'Pemeriksaan perangkat terlalu lama.' => 'tidak_terbaca',
+    );
+    $pesan = isset($_POST['keterangan']) ? trim((string) $_POST['keterangan']) : '';
+    if (!isset($pesanIzin[$pesan])) {
+        echo json_encode(array('ok' => false));
+        exit;
+    }
+    $userId = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+    $nama = '';
+    if ($userId > 0) {
+        $peserta = absen_find_peserta($userId);
+        if (!$peserta) {
+            $userId = 0;
+        } else {
+            $nama = $peserta['name'];
+        }
+    }
+    absen_catat_gangguan($kegiatan['id'], $userId, $nama, $pesanIzin[$pesan], $pesan);
+    echo json_encode(array('ok' => true));
     exit;
 }
 
