@@ -37,6 +37,7 @@ $quick     = array(
 	array( 'label' => 'Video', 'href' => home_url( '/video/' ) ),
 	array( 'label' => 'Download', 'href' => home_url( '/download/' ) ),
 	array( 'label' => 'News Mantiger', 'href' => home_url( '/news-mantiger/' ) ),
+	array( 'label' => 'Survey Kepuasan', 'href' => home_url( '/#survey-kepuasan' ) ),
 );
 $news_digital = array(
 	array( 'label' => 'News Digital at Juli', 'published' => 'July 23, 2024', 'href' => home_url( '/pengumuman/hightlight-mei/' ) ),
@@ -256,6 +257,12 @@ $wp_posts = new WP_Query(
 			</div>
 		</div>
 	</section>
+
+	<?php
+	if ( function_exists( 'man3_survey_render_section' ) ) {
+		man3_survey_render_section();
+	}
+	?>
 </main>
 
 <?php

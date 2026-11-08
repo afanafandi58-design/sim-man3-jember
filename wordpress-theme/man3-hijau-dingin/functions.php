@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.13' );
+define( 'MAN3_HIJAU_VERSION', '1.5.14' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -54,6 +54,11 @@ if ( file_exists( $man3_news_mantiger_inc ) ) {
 $man3_ppid_inc = get_template_directory() . '/inc/ppid.php';
 if ( file_exists( $man3_ppid_inc ) ) {
 	require_once $man3_ppid_inc;
+}
+
+$man3_survey_inc = get_template_directory() . '/inc/survey-kepuasan.php';
+if ( file_exists( $man3_survey_inc ) ) {
+	require_once $man3_survey_inc;
 }
 
 $man3_popup_inc = get_template_directory() . '/inc/info-popup.php';
