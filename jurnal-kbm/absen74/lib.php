@@ -1305,6 +1305,79 @@ function absen_reset_kunci_pilihan($kegiatanId, $userIds, $perangkatIds)
     return $terbuka;
 }
 
+function absen_daftar_belum_absen($kegiatanId)
+{
+    $kegiatanId = (int) $kegiatanId;
+    $stmt = absen_db()->prepare("SELECT u.id, u.name, u.nip,
+        (SELECT g.keterangan FROM absen_gangguan g WHERE g.kegiatan_id = ? AND g.user_id = u.id ORDER BY g.id DESC LIMIT 1) AS keterangan
+        FROM users u
+        WHERE u.is_active = 1 AND u.role = 'user'
+        AND NOT EXISTS (SELECT 1 FROM absen_kehadirans h WHERE h.kegiatan_id = ? AND h.user_id = u.id)
+        ORDER BY u.name");
+    $stmt->execute(array($kegiatanId, $kegiatanId));
+
+    return $stmt->fetchAll();
+}
+
+function absen_reset_belum_absen($kegiatanId, $userIds)
+{
+    $kegiatanId = (int) $kegiatanId;
+    $minta = array();
+    foreach ($userIds as $id) {
+        $id = (int) $id;
+        if ($id > 0) {
+            $minta[$id] = true;
+        }
+        if (count($minta) >= 200) {
+            break;
+        }
+    }
+    if (!$minta) {
+        return 0;
+    }
+    $ids = array_keys($minta);
+    $marks = implode(',', array_fill(0, count($ids), '?'));
+    $db = absen_db();
+    $stmt = $db->prepare('SELECT u.id FROM users u WHERE u.id IN ('.$marks.") AND u.role = 'user' AND u.is_active = 1 AND NOT EXISTS (SELECT 1 FROM absen_kehadirans h WHERE h.kegiatan_id = ? AND h.user_id = u.id)");
+    $stmt->execute(array_merge($ids, array($kegiatanId)));
+    $boleh = array();
+    foreach ($stmt->fetchAll() as $row) {
+        $boleh[] = (int) $row['id'];
+    }
+    if (!$boleh) {
+        return 0;
+    }
+    $marks = implode(',', array_fill(0, count($boleh), '?'));
+    $cari = $db->prepare('SELECT perangkat_id FROM absen_gangguan WHERE kegiatan_id = ? AND user_id IN ('.$marks.") AND perangkat_id IS NOT NULL AND perangkat_id <> ''");
+    $cari->execute(array_merge(array($kegiatanId), $boleh));
+    $perangkat = array();
+    foreach ($cari->fetchAll() as $row) {
+        $pid = strtolower((string) $row['perangkat_id']);
+        if (absen_id_perangkat_valid($pid)) {
+            $perangkat[$pid] = true;
+        }
+    }
+    $del = $db->prepare('DELETE FROM absen_gangguan WHERE kegiatan_id = ? AND user_id IN ('.$marks.')');
+    $del->execute(array_merge(array($kegiatanId), $boleh));
+    if ($perangkat) {
+        $pids = array_keys($perangkat);
+        $pmarks = implode(',', array_fill(0, count($pids), '?'));
+        $kunci = $db->prepare('SELECT perangkat_id FROM absen_kehadirans WHERE kegiatan_id = ? AND kunci_aktif = 1 AND perangkat_id IN ('.$pmarks.')');
+        $kunci->execute(array_merge(array($kegiatanId), $pids));
+        $terkunci = array();
+        foreach ($kunci->fetchAll() as $row) {
+            $terkunci[strtolower((string) $row['perangkat_id'])] = true;
+        }
+        foreach ($pids as $pid) {
+            if (!isset($terkunci[$pid])) {
+                absen_hapus_batas_perangkat($pid);
+            }
+        }
+    }
+
+    return count($boleh);
+}
+
 function absen_pesan_perangkat($kegiatan)
 {
     if (!absen_android()) {

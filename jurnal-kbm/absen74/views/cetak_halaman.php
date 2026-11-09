@@ -92,6 +92,6 @@
         </div>
     </section>
 <?php } ?>
-<script src="/js/absen-digital.js?v=buka1"></script>
+<script src="/js/absen-digital.js?v=belum1"></script>
 </body>
 </html>

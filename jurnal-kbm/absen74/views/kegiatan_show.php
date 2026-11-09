@@ -90,67 +90,34 @@ $scanUrl = absen_tautan_absen($kegiatan);
                 $masalah[] = $item;
             }
         ?>
-            <?php
-            $buka = array();
-            foreach ($hadir as $row) {
-                if ((string) $row['kunci_aktif'] !== '1') {
-                    continue;
-                }
-                $pid = isset($row['perangkat_id']) ? strtolower((string) $row['perangkat_id']) : '';
-                $kunci = $pid !== '' ? 'p:'.$pid : 'u:'.(int) $row['user_id'];
-                if ($kunci === 'u:0' || isset($buka[$kunci])) {
-                    continue;
-                }
-                $buka[$kunci] = array(
-                    'nama' => $row['nama'],
-                    'keterangan' => 'Perangkat terkunci setelah absen berhasil.',
-                    'kode' => $pid !== '' ? substr($pid, -6) : '',
-                );
-            }
-            foreach ($masalah as $item) {
-                $pid = isset($item['perangkat_id']) ? strtolower((string) $item['perangkat_id']) : '';
-                $kunci = $pid !== '' ? 'p:'.$pid : 'u:'.(int) $item['user_id'];
-                if ($kunci === 'u:0' || $kunci === 'p:') {
-                    continue;
-                }
-                if (isset($buka[$kunci])) {
-                    if (!empty($item['keterangan'])) {
-                        $buka[$kunci]['keterangan'] = $item['keterangan'];
-                    }
-                    continue;
-                }
-                $buka[$kunci] = array(
-                    'nama' => $item['nama'] ? $item['nama'] : 'Perangkat belum terhubung ke nama',
-                    'keterangan' => $item['keterangan'] ? $item['keterangan'] : 'Gagal masuk.',
-                    'kode' => $pid !== '' ? substr($pid, -6) : '',
-                );
-            }
-            ?>
+            <?php $belumAbsen = absen_daftar_belum_absen($kegiatan['id']); ?>
             <div class="card">
-                <strong>Buka absen perangkat</strong>
-                <p class="muted">Centang peserta atau perangkat yang tidak bisa absen, satu per satu atau beberapa sekaligus. Setelah dibuka, perangkat itu bisa absen lagi pada kegiatan ini. Absen, foto, tanda tangan, nama, waktu, dan titik yang sudah tersimpan tidak dihapus. Absen baru menambah baris. Perangkat yang sudah berhasil tetap terkunci sampai dipilih di sini.</p>
-                <?php if (!$buka) { ?><p>Belum ada perangkat terkunci atau gagal masuk pada kegiatan ini.</p><?php } else { ?>
-                    <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-kunci" data-konfirmasi="Buka absen untuk yang dipilih? Data absen yang sudah tersimpan tidak dihapus dan tidak ditimpa.">
+                <strong>Yang belum absen (<?php echo count($belumAbsen); ?>)</strong>
+                <p class="muted">Daftar ini hanya peserta yang belum berhasil absen pada kegiatan ini. Centang satu atau beberapa nama, lalu reset supaya Android mereka bisa mencoba lagi. Yang sudah hadir tidak ada di daftar ini dan tidak ikut direset. Absen, foto, tanda tangan, nama, waktu, dan titik yang sudah tersimpan tidak diubah.</p>
+                <?php if (!$belumAbsen) { ?><p>Semua peserta sudah absen.</p><?php } else { ?>
+                    <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-belum" data-konfirmasi="Reset nama yang dipilih supaya bisa mencoba absen lagi? Yang sudah hadir tidak diubah.">
                         <?php echo absen_csrf_field(); ?>
-                        <table>
-                            <thead><tr><th>Pilih</th><th>Nama atau perangkat</th><th>Keadaan</th></tr></thead>
-                            <tbody>
-                            <?php foreach ($buka as $kunci => $item) { ?>
-                                <tr>
-                                    <td><input type="checkbox" name="pilihan[]" value="<?php echo absen_e($kunci); ?>" aria-label="Pilih <?php echo absen_e($item['nama']); ?>" style="width:22px;height:22px"></td>
-                                    <td><?php echo absen_e($item['nama']); ?><?php if ($item['kode'] !== '') { ?><div class="muted">Perangkat <?php echo absen_e($item['kode']); ?></div><?php } ?></td>
-                                    <td><?php echo absen_e($item['keterangan']); ?></td>
-                                </tr>
-                            <?php } ?>
-                            </tbody>
-                        </table>
+                        <div style="max-height:420px;overflow:auto">
+                            <table>
+                                <thead><tr><th>Pilih</th><th>Yang belum absen</th><th>Keadaan</th></tr></thead>
+                                <tbody>
+                                <?php foreach ($belumAbsen as $orang) { ?>
+                                    <tr>
+                                        <td><input type="checkbox" name="pilihan[]" value="<?php echo (int) $orang['id']; ?>" aria-label="Pilih <?php echo absen_e($orang['name']); ?>" style="width:22px;height:22px"></td>
+                                        <td><?php echo absen_e($orang['name']); ?><?php if (!empty($orang['nip'])) { ?><div class="muted"><?php echo absen_e($orang['nip']); ?></div><?php } ?></td>
+                                        <td><?php echo absen_e($orang['keterangan'] ? $orang['keterangan'] : 'Belum absen'); ?></td>
+                                    </tr>
+                                <?php } ?>
+                                </tbody>
+                            </table>
+                        </div>
                         <p><button class="btn btn-danger" type="submit">Reset yang dipilih</button></p>
                     </form>
                 <?php } ?>
             </div>
             <div class="card">
                 <strong>Tidak terbaca atau gagal masuk</strong>
-                <p class="muted">Peserta yang sudah memilih identitas, atau perangkat yang ketahuan terkunci saat membuka halaman. Reset ada di daftar di atas. Data absen yang sudah tersimpan tidak dihapus.</p>
+                <p class="muted">Catatan peserta yang belum berhasil absen. Reset namanya lewat daftar Yang belum absen. Yang sudah hadir tidak ikut.</p>
                 <?php
                 $tanpaNama = 0;
                 $tandaLama = array('Lokasi tidak terbaca.', 'Sidik perangkat tidak terbaca.', 'Pemeriksaan perangkat terlalu lama.');
@@ -179,10 +146,10 @@ $scanUrl = absen_tautan_absen($kegiatan);
                                 </td>
                                 <td>
                                     <?php if (!empty($item['user_id'])) { ?>
-                                        <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-kunci" data-konfirmasi="Buka kunci perangkat untuk peserta ini? Data absen yang sudah tersimpan tidak dihapus.">
+                                        <form method="post" action="/absen-digital/kegiatan/<?php echo (int) $kegiatan['id']; ?>/reset-belum" data-konfirmasi="Reset peserta ini supaya bisa mencoba absen lagi? Yang sudah hadir tidak diubah.">
                                             <?php echo absen_csrf_field(); ?>
                                             <input type="hidden" name="user_id" value="<?php echo (int) $item['user_id']; ?>">
-                                            <button class="btn" type="submit">Reset kunci</button>
+                                            <button class="btn" type="submit">Reset</button>
                                         </form>
                                     <?php } ?>
                                 </td>

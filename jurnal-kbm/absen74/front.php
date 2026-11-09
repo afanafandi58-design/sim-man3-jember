@@ -256,6 +256,29 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)/reset-kunci$#', $path, $m) && $m
     absen_flash_success('Kunci dibuka untuk '.$terbuka.' baris. Perangkat itu bisa absen lagi setelah halaman dimuat ulang. Absen lama tidak dihapus dan tidak ditimpa.', $kembali);
 }
 
+if (preg_match('#^/absen-digital/kegiatan/(\d+)/reset-belum$#', $path, $m) && $method === 'POST') {
+    $user = absen_require_user();
+    absen_require_admin($user);
+    $kegiatan = absen_kegiatan($m[1]);
+    $kembali = '/absen-digital/kegiatan/'.$kegiatan['id'];
+    $userIds = array();
+    if (!empty($_POST['user_id'])) {
+        $userIds[] = (int) $_POST['user_id'];
+    }
+    $pilihan = isset($_POST['pilihan']) && is_array($_POST['pilihan']) ? $_POST['pilihan'] : array();
+    foreach ($pilihan as $item) {
+        $userIds[] = (int) $item;
+    }
+    if (!$userIds) {
+        absen_flash_error(array('user_id' => 'Pilih nama yang belum absen.'), $kembali);
+    }
+    $jumlah = absen_reset_belum_absen($kegiatan['id'], $userIds);
+    if ($jumlah < 1) {
+        absen_flash_success('Nama yang dipilih sudah absen, atau bukan peserta. Absen yang sudah tersimpan tidak diubah.', $kembali);
+    }
+    absen_flash_success($jumlah.' peserta yang belum absen direset. Mereka bisa mencoba lagi. Yang sudah hadir tidak diubah.', $kembali);
+}
+
 if (preg_match('#^/absen-digital/kegiatan/(\d+)/bersih-tanda$#', $path, $m) && $method === 'POST') {
     $user = absen_require_user();
     absen_require_admin($user);
