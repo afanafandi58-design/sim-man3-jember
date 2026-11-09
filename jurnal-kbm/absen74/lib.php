@@ -336,7 +336,7 @@ function absen_upgrade_schema()
         KEY absen_gangguan_kegiatan (kegiatan_id, user_id),
         CONSTRAINT absen_gangguan_kegiatan_fk FOREIGN KEY (kegiatan_id) REFERENCES absen_kegiatans (id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-    $db->exec('DELETE FROM absen_gangguan WHERE user_id IS NULL');
+    $db->exec("DELETE FROM absen_gangguan WHERE user_id IS NULL AND (keterangan IS NULL OR keterangan IN ('Lokasi tidak terbaca.', 'Sidik perangkat tidak terbaca.', 'Pemeriksaan perangkat terlalu lama.'))");
 }
 
 function absen_drop_login_roles()
@@ -1194,12 +1194,113 @@ function absen_tolak_absen($kegiatan, $errors, $back)
 
 function absen_reset_kunci_user($kegiatanId, $userId)
 {
+    return absen_reset_kunci_pilihan($kegiatanId, array((int) $userId), array()) > 0;
+}
+
+function absen_hapus_batas_perangkat($perangkatId)
+{
+    $perangkatId = strtolower(trim((string) $perangkatId));
+    if (!absen_id_perangkat_valid($perangkatId)) {
+        return;
+    }
+    $file = absen_storage_root().'/absen-digital/_batas/'.hash('sha256', 'absen-perangkat|'.$perangkatId);
+    if (is_file($file)) {
+        @unlink($file);
+    }
+}
+
+function absen_catat_perangkat_terkunci($kegiatanId, $perangkatId)
+{
+    $perangkatId = strtolower(trim((string) $perangkatId));
+    if (!absen_id_perangkat_valid($perangkatId)) {
+        return;
+    }
     $kegiatanId = (int) $kegiatanId;
-    $userId = (int) $userId;
-    $stmt = absen_db()->prepare('UPDATE absen_kehadirans SET kunci_aktif = NULL, updated_at = ? WHERE kegiatan_id = ? AND user_id = ? AND kunci_aktif = 1');
-    $stmt->execute(array(date('Y-m-d H:i:s'), $kegiatanId, $userId));
-    $terbuka = $stmt->rowCount() > 0;
-    absen_hapus_gangguan_user($kegiatanId, $userId);
+    $db = absen_db();
+    $pemegang = $db->prepare('SELECT nama FROM absen_kehadirans WHERE kegiatan_id = ? AND perangkat_id = ? AND kunci_aktif = 1 ORDER BY id DESC LIMIT 1');
+    $pemegang->execute(array($kegiatanId, $perangkatId));
+    $baris = $pemegang->fetch();
+    $ket = 'Perangkat ini terkunci dan belum bisa absen lagi.';
+    if ($baris && !empty($baris['nama'])) {
+        $ket = 'Perangkat ini terkunci oleh absen '.$baris['nama'].'.';
+    }
+    $now = date('Y-m-d H:i:s');
+    $cek = $db->prepare('SELECT id FROM absen_gangguan WHERE kegiatan_id = ? AND perangkat_id = ? LIMIT 1');
+    $cek->execute(array($kegiatanId, $perangkatId));
+    $ada = $cek->fetch();
+    if ($ada) {
+        $upd = $db->prepare('UPDATE absen_gangguan SET jenis=?, keterangan=?, created_at=? WHERE id=?');
+        $upd->execute(array('gagal', $ket, $now, $ada['id']));
+
+        return;
+    }
+    $ins = $db->prepare('INSERT INTO absen_gangguan (kegiatan_id, user_id, nama, perangkat_id, jenis, keterangan, created_at) VALUES (?, NULL, NULL, ?, ?, ?, ?)');
+    $ins->execute(array($kegiatanId, $perangkatId, 'gagal', $ket, $now));
+}
+
+function absen_reset_kunci_pilihan($kegiatanId, $userIds, $perangkatIds)
+{
+    $kegiatanId = (int) $kegiatanId;
+    $users = array();
+    foreach ($userIds as $id) {
+        $id = (int) $id;
+        if ($id > 0) {
+            $users[$id] = true;
+        }
+        if (count($users) >= 100) {
+            break;
+        }
+    }
+    $perangkat = array();
+    foreach ($perangkatIds as $id) {
+        $id = strtolower(trim((string) $id));
+        if (absen_id_perangkat_valid($id)) {
+            $perangkat[$id] = true;
+        }
+        if (count($perangkat) >= 100) {
+            break;
+        }
+    }
+    if (!$users && !$perangkat) {
+        return 0;
+    }
+    $db = absen_db();
+    $now = date('Y-m-d H:i:s');
+    $terbuka = 0;
+    if ($users) {
+        $ids = array_keys($users);
+        $marks = implode(',', array_fill(0, count($ids), '?'));
+        $cari = $db->prepare('SELECT perangkat_id FROM absen_kehadirans WHERE kegiatan_id = ? AND kunci_aktif = 1 AND user_id IN ('.$marks.')');
+        $cari->execute(array_merge(array($kegiatanId), $ids));
+        foreach ($cari->fetchAll() as $row) {
+            if (!empty($row['perangkat_id'])) {
+                $perangkat[strtolower((string) $row['perangkat_id'])] = true;
+            }
+        }
+        $upd = $db->prepare('UPDATE absen_kehadirans SET kunci_aktif = NULL, updated_at = ? WHERE kegiatan_id = ? AND kunci_aktif = 1 AND user_id IN ('.$marks.')');
+        $upd->execute(array_merge(array($now, $kegiatanId), $ids));
+        $terbuka += $upd->rowCount();
+        $del = $db->prepare('DELETE FROM absen_gangguan WHERE kegiatan_id = ? AND user_id IN ('.$marks.')');
+        $del->execute(array_merge(array($kegiatanId), $ids));
+    }
+    $perangkatBersih = array();
+    foreach ($perangkat as $id => $ya) {
+        if (absen_id_perangkat_valid($id)) {
+            $perangkatBersih[$id] = true;
+        }
+    }
+    if ($perangkatBersih) {
+        $ids = array_keys($perangkatBersih);
+        $marks = implode(',', array_fill(0, count($ids), '?'));
+        $upd = $db->prepare('UPDATE absen_kehadirans SET kunci_aktif = NULL, updated_at = ? WHERE kegiatan_id = ? AND kunci_aktif = 1 AND perangkat_id IN ('.$marks.')');
+        $upd->execute(array_merge(array($now, $kegiatanId), $ids));
+        $terbuka += $upd->rowCount();
+        $del = $db->prepare('DELETE FROM absen_gangguan WHERE kegiatan_id = ? AND perangkat_id IN ('.$marks.')');
+        $del->execute(array_merge(array($kegiatanId), $ids));
+        foreach ($ids as $id) {
+            absen_hapus_batas_perangkat($id);
+        }
+    }
 
     return $terbuka;
 }

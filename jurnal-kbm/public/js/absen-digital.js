@@ -668,6 +668,7 @@
         var memasang = false;
         var generasi = 0;
         var pratinjauUrl = '';
+        var blobSiap = null;
 
         function tulis(text) {
             if (status) {
@@ -783,6 +784,64 @@
             });
         }
 
+        function kirimLangsung(blob) {
+            var sidik = document.getElementById('sidik-perangkat');
+            if (sidik) {
+                try {
+                    sidik.value = buatSidik();
+                } catch (errSidik) {}
+            }
+            if (typeof FormData === 'undefined' || !window.fetch) {
+                tulis('Foto tidak terkirim dari perangkat ini.');
+                laporkanGangguan(form, 'Foto tidak terkirim dari perangkat ini.');
+                return;
+            }
+            var data = new FormData(form);
+            data.set('foto', blob, 'selfie.jpg');
+            tulis('Mengirim foto yang sudah diperkecil...');
+            fetch(form.getAttribute('action') || window.location.href, {
+                method: 'POST',
+                body: data,
+                credentials: 'same-origin',
+                redirect: 'follow'
+            }).then(function (res) {
+                window.location.assign(res.url || form.getAttribute('action') || window.location.href);
+            }).catch(function () {
+                sedang = false;
+                tulis('Pengiriman gagal. Periksa jaringan, lalu ketuk Simpan lagi.');
+                laporkanGangguan(form, 'Foto tidak terkirim dari perangkat ini.');
+            });
+        }
+
+        function simpanBlob(blob) {
+            blobSiap = blob;
+            var terpasang = false;
+            if (typeof DataTransfer !== 'undefined' && typeof File !== 'undefined') {
+                try {
+                    pasang(blob);
+                    var file = input.files && input.files[0];
+                    terpasang = !!(file && file.size < batas && file.type === 'image/jpeg');
+                } catch (errPasang) {
+                    terpasang = false;
+                }
+            }
+            fotoSiap = true;
+            sedang = false;
+            if (terpasang) {
+                tulis('Foto siap diunggah (' + Math.max(1, Math.round(blob.size / 1024)) + ' KB, di bawah 1 MB).');
+                if (menungguKirim && typeof form.requestSubmit === 'function') {
+                    menungguKirim = false;
+                    form.requestSubmit();
+                }
+                return;
+            }
+            tulis('Foto siap. Ketuk Simpan untuk mengirim.');
+            if (menungguKirim) {
+                menungguKirim = false;
+                kirimLangsung(blob);
+            }
+        }
+
         function proses(file) {
             generasi += 1;
             var saya = generasi;
@@ -794,21 +853,10 @@
                 if (saya !== generasi) {
                     return;
                 }
-                if (!blob || blob.size >= batas || typeof DataTransfer === 'undefined') {
+                if (!blob || blob.size >= batas) {
                     throw new Error('besar');
                 }
-                pasang(blob);
-                var terpasang = input.files && input.files[0];
-                if (!terpasang || terpasang.size >= batas || terpasang.type !== 'image/jpeg') {
-                    throw new Error('pasang');
-                }
-                fotoSiap = true;
-                sedang = false;
-                tulis('Foto siap diunggah (' + Math.max(1, Math.round(blob.size / 1024)) + ' KB, di bawah 1 MB).');
-                if (menungguKirim && typeof form.requestSubmit === 'function') {
-                    menungguKirim = false;
-                    form.requestSubmit();
-                }
+                simpanBlob(blob);
             }).catch(function () {
                 if (saya !== generasi) {
                     return;
@@ -818,6 +866,7 @@
                 sedang = false;
                 menungguKirim = false;
                 tulis('Foto tidak bisa diperkecil. Ambil ulang dengan kamera.');
+                laporkanGangguan(form, 'Foto tidak terkirim dari perangkat ini.');
             });
         }
 
@@ -837,8 +886,18 @@
         });
 
         form.addEventListener('submit', function (event) {
+            var wajib = form.getAttribute('data-lokasi') !== 'bebas';
+            var lat = document.getElementById('latitude');
+            if (wajib && (!lat || lat.value === '')) {
+                return;
+            }
             var file = input.files && input.files[0];
             if (fotoSiap && file && file.size < batas && file.type === 'image/jpeg') {
+                return;
+            }
+            if (fotoSiap && blobSiap) {
+                event.preventDefault();
+                kirimLangsung(blobSiap);
                 return;
             }
             event.preventDefault();
@@ -1046,14 +1105,14 @@
                 return;
             }
             var langkah = document.getElementById('langkah-absen');
-            if (!langkah) {
+            if (!langkah || document.getElementById('peringatan-kunci')) {
                 return;
             }
-            langkah.textContent = '';
             var alert = document.createElement('div');
+            alert.id = 'peringatan-kunci';
             alert.className = 'alert alert-danger';
-            alert.textContent = data.pesan || 'Perangkat Android ini sudah dipakai untuk absen pada kegiatan ini. Perangkat yang sama tidak bisa mengabsenkan nama lain.';
-            langkah.appendChild(alert);
+            alert.textContent = data.pesan || 'Perangkat Android ini sudah dipakai untuk absen pada kegiatan ini. Perangkat yang sama tidak bisa mengabsenkan nama lain. Minta pengelola membuka kunci, lalu muat ulang halaman.';
+            langkah.insertBefore(alert, langkah.firstChild);
         }).catch(function () {});
     }
 

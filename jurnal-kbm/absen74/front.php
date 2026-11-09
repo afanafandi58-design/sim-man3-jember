@@ -231,20 +231,36 @@ if (preg_match('#^/absen-digital/kegiatan/(\d+)/reset-kunci$#', $path, $m) && $m
     $user = absen_require_user();
     absen_require_admin($user);
     $kegiatan = absen_kegiatan($m[1]);
-    $peserta = absen_find_peserta(isset($_POST['user_id']) ? $_POST['user_id'] : 0);
     $kembali = '/absen-digital/kegiatan/'.$kegiatan['id'];
-    if (!$peserta) {
-        absen_flash_error(array('user_id' => 'Peserta tidak ditemukan.'), $kembali);
+    $userIds = array();
+    $perangkatIds = array();
+    if (!empty($_POST['user_id'])) {
+        $userIds[] = (int) $_POST['user_id'];
     }
-    absen_reset_kunci_user($kegiatan['id'], $peserta['id']);
-    absen_flash_success('Kunci perangkat '.$peserta['name'].' dibuka. Data absen yang sudah tersimpan tidak dihapus. Peserta ini bisa absen lagi.', $kembali);
+    $pilihan = isset($_POST['pilihan']) && is_array($_POST['pilihan']) ? $_POST['pilihan'] : array();
+    foreach ($pilihan as $item) {
+        $item = trim((string) $item);
+        if (strpos($item, 'u:') === 0) {
+            $userIds[] = (int) substr($item, 2);
+        } elseif (strpos($item, 'p:') === 0) {
+            $perangkatIds[] = substr($item, 2);
+        }
+    }
+    if (!$userIds && !$perangkatIds) {
+        absen_flash_error(array('user_id' => 'Pilih peserta atau perangkat yang akan dibuka.'), $kembali);
+    }
+    $terbuka = absen_reset_kunci_pilihan($kegiatan['id'], $userIds, $perangkatIds);
+    if ($terbuka < 1) {
+        absen_flash_success('Pilihan itu tidak memegang kunci absen. Tanda gagal perangkatnya dibersihkan. Data absen tidak diubah. Minta peserta memuat ulang halaman.', $kembali);
+    }
+    absen_flash_success('Kunci dibuka untuk '.$terbuka.' baris. Perangkat itu bisa absen lagi setelah halaman dimuat ulang. Absen lama tidak dihapus dan tidak ditimpa.', $kembali);
 }
 
 if (preg_match('#^/absen-digital/kegiatan/(\d+)/bersih-tanda$#', $path, $m) && $method === 'POST') {
     $user = absen_require_user();
     absen_require_admin($user);
     $kegiatan = absen_kegiatan($m[1]);
-    $stmt = absen_db()->prepare('DELETE FROM absen_gangguan WHERE kegiatan_id = ? AND user_id IS NULL');
+    $stmt = absen_db()->prepare("DELETE FROM absen_gangguan WHERE kegiatan_id = ? AND user_id IS NULL AND (keterangan IS NULL OR keterangan IN ('Lokasi tidak terbaca.', 'Sidik perangkat tidak terbaca.', 'Pemeriksaan perangkat terlalu lama.'))");
     $stmt->execute(array($kegiatan['id']));
     absen_flash_success('Tanda tanpa nama dihapus. Data absen yang sudah tersimpan tidak diubah.', '/absen-digital/kegiatan/'.$kegiatan['id']);
 }
@@ -378,6 +394,13 @@ if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)/sidik$#', $path, $m) && $metho
     $stmt->execute(array($kode));
     $kegiatan = $stmt->fetch();
     $terkunci = $kegiatan && absen_android() && absen_perangkat_terkunci($kegiatan['id']);
+    if ($terkunci) {
+        $sidik = absen_sidik_id();
+        if ($sidik === '') {
+            $sidik = absen_perangkat_id();
+        }
+        absen_catat_perangkat_terkunci($kegiatan['id'], $sidik);
+    }
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(array(
         'terkunci' => $terkunci,
@@ -400,6 +423,7 @@ if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)/gangguan$#', $path, $m) && $me
         'Sidik perangkat tidak terbaca.' => 'tidak_terbaca',
         'Lokasi tidak terbaca.' => 'tidak_terbaca',
         'Pemeriksaan perangkat terlalu lama.' => 'tidak_terbaca',
+        'Foto tidak terkirim dari perangkat ini.' => 'gagal',
     );
     $pesan = isset($_POST['keterangan']) ? trim((string) $_POST['keterangan']) : '';
     if (!isset($pesanIzin[$pesan])) {
