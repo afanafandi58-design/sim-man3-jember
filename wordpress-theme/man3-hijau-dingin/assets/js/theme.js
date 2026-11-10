@@ -116,68 +116,111 @@
     }
   }
 
-  /* Info popup — beranda (DOM ready: markup diprint setelah script footer WP) */
-  function initMan3Popup() {
-    var popup = document.querySelector('[data-man3-popup]');
-    if (!popup) return;
+  /* Slide informasi — strip di bawah menu (bukan modal) */
+  function initMan3InfoStrip() {
+    var root = document.querySelector('[data-info-slider]');
+    if (!root) return;
 
-    var cookieKey = popup.getAttribute('data-cookie-key') || 'man3_popup_hide';
-    var hours = parseInt(popup.getAttribute('data-cookie-hours') || '24', 10);
-    if (isNaN(hours) || hours < 1) hours = 24;
-    var snooze = popup.querySelector('[data-man3-popup-snooze]');
-    var lastFocus = null;
+    var slides = Array.prototype.slice.call(root.querySelectorAll('[data-info-slide]'));
+    var dots = Array.prototype.slice.call(root.querySelectorAll('[data-info-dot]'));
+    var prevBtn = root.querySelector('[data-info-prev]');
+    var nextBtn = root.querySelector('[data-info-next]');
+    var status = root.querySelector('[data-info-status]');
+    if (slides.length < 1) return;
 
-    function readCookie(name) {
-      var m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
-      return m ? decodeURIComponent(m[1]) : '';
-    }
+    var index = 0;
+    var interval = parseInt(root.getAttribute('data-info-interval') || '5000', 10);
+    if (isNaN(interval) || interval < 3000) interval = 5000;
+    var timer = null;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var touchStartX = 0;
+    var touchDeltaX = 0;
 
-    function writeCookie(name, value, hrs) {
-      var maxAge = Math.floor(hrs * 3600);
-      var secure = location.protocol === 'https:' ? '; Secure' : '';
-      document.cookie = name + '=' + encodeURIComponent(value) + '; Path=/; Max-Age=' + maxAge + '; SameSite=Lax' + secure;
-    }
-
-    function openPopup() {
-      if (readCookie(cookieKey) === '1') return;
-      lastFocus = document.activeElement;
-      popup.hidden = false;
-      popup.removeAttribute('hidden');
-      document.documentElement.classList.add('man3-popup-open');
-      var closeBtn = popup.querySelector('.man3-popup__x');
-      if (closeBtn) closeBtn.focus();
-    }
-
-    function closePopup() {
-      if (snooze && snooze.checked) {
-        writeCookie(cookieKey, '1', hours);
+    function goTo(next) {
+      var n = ((next % slides.length) + slides.length) % slides.length;
+      if (n === index && slides[n].classList.contains('is-active')) return;
+      slides[index].classList.remove('is-active');
+      slides[index].setAttribute('hidden', 'hidden');
+      slides[n].classList.add('is-active');
+      slides[n].removeAttribute('hidden');
+      if (dots.length) {
+        if (dots[index]) {
+          dots[index].classList.remove('is-active');
+          dots[index].setAttribute('aria-selected', 'false');
+        }
+        if (dots[n]) {
+          dots[n].classList.add('is-active');
+          dots[n].setAttribute('aria-selected', 'true');
+        }
       }
-      popup.hidden = true;
-      popup.setAttribute('hidden', 'hidden');
-      document.documentElement.classList.remove('man3-popup-open');
-      if (lastFocus && typeof lastFocus.focus === 'function') {
-        try { lastFocus.focus(); } catch (e) { /* ignore */ }
-      }
+      index = n;
+      if (status) status.textContent = (index + 1) + ' / ' + slides.length;
     }
 
-    popup.querySelectorAll('[data-man3-popup-close]').forEach(function (el) {
-      el.addEventListener('click', function (e) {
-        e.preventDefault();
-        closePopup();
+    function nextSlide() { goTo(index + 1); }
+    function prevSlide() { goTo(index - 1); }
+
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+    function start() {
+      if (reduceMotion || slides.length < 2) return;
+      stop();
+      timer = setInterval(nextSlide, interval);
+    }
+
+    if (slides.length >= 2) {
+      if (nextBtn) nextBtn.addEventListener('click', function () { nextSlide(); start(); });
+      if (prevBtn) prevBtn.addEventListener('click', function () { prevSlide(); start(); });
+      dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+          var i = parseInt(dot.getAttribute('data-info-dot') || '0', 10);
+          goTo(i);
+          start();
+        });
       });
-    });
 
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !popup.hidden) closePopup();
-    });
+      root.addEventListener('mouseenter', stop);
+      root.addEventListener('mouseleave', start);
+      root.addEventListener('focusin', stop);
+      root.addEventListener('focusout', function (e) {
+        if (!root.contains(e.relatedTarget)) start();
+      });
 
-    window.setTimeout(openPopup, 400);
+      root.addEventListener('touchstart', function (e) {
+        if (!e.changedTouches || !e.changedTouches[0]) return;
+        touchStartX = e.changedTouches[0].clientX;
+        touchDeltaX = 0;
+        stop();
+      }, { passive: true });
+      root.addEventListener('touchmove', function (e) {
+        if (!e.changedTouches || !e.changedTouches[0]) return;
+        touchDeltaX = e.changedTouches[0].clientX - touchStartX;
+      }, { passive: true });
+      root.addEventListener('touchend', function () {
+        if (Math.abs(touchDeltaX) > 40) {
+          if (touchDeltaX < 0) nextSlide();
+          else prevSlide();
+        }
+        start();
+      });
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) stop();
+        else start();
+      });
+
+      start();
+    }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMan3Popup);
+    document.addEventListener('DOMContentLoaded', initMan3InfoStrip);
   } else {
-    initMan3Popup();
+    initMan3InfoStrip();
   }
 
   /* Galeri Foto — filter jenis + lightbox */

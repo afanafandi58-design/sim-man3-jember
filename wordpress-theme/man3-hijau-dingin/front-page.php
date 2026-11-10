@@ -54,6 +54,15 @@ $wp_posts = new WP_Query(
 ?>
 
 <main>
+	<?php
+	/*
+	 * Penempatan: strip info di bawah menu, SEBELUM hero kegiatan.
+	 * Strip kompak (bukan full-bleed) agar tidak bentrok dengan hero brand.
+	 */
+	if ( function_exists( 'man3_popup_render_strip' ) ) {
+		man3_popup_render_strip();
+	}
+	?>
 	<section
 		class="hero hero--slider"
 		id="beranda"
