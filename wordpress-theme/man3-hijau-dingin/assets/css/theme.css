@@ -122,7 +122,10 @@ button {
 .nav-desktop {
   display: none;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.1rem;
+  max-width: min(100%, 62rem);
 }
 
 /* Top-level links & parents */
@@ -130,12 +133,13 @@ button {
 .nav-desktop > .nav-item > summary {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.48rem 0.7rem;
+  gap: 0.3rem;
+  padding: 0.42rem 0.55rem;
   border-radius: 999px;
   font-size: 1.01rem; /* was 0.84rem; +20% */
   font-weight: 650;
   letter-spacing: 0.01em;
+  white-space: nowrap;
   color: var(--green-900);
   list-style: none;
   border: none;
