@@ -2646,8 +2646,7 @@ body.admin-bar .site-header { top: 32px; }
   isolation: isolate;
   border: 1px solid rgba(15, 81, 50, 0.08);
   display: grid;
-  /* Kolom samping cukup lebar agar logo kotak hampir setinggi foto;
-     tinggi baris tetap HANYA dari foto di tengah */
+  /* Kolom samping lebar (layout v1.5.25); tinggi baris HANYA dari foto di tengah */
   grid-template-columns: minmax(9.5rem, 0.62fr) minmax(0, 1fr) minmax(9.5rem, 0.62fr);
   align-items: stretch;
   gap: 0.3rem 0.45rem;
@@ -2672,8 +2671,9 @@ body.admin-bar .site-header { top: 32px; }
   display: block;
   width: auto;
   height: auto;
-  max-width: 98%;
-  max-height: 96%;
+  /* Setengah ukuran v1.5.25 (~setengah tinggi foto) */
+  max-width: 49%;
+  max-height: 48%;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 1px 3px rgba(4, 36, 30, 0.1));
