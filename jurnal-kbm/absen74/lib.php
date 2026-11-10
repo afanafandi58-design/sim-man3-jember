@@ -303,6 +303,9 @@ function absen_upgrade_schema()
     if (!absen_column_meta('absen_kehadirans', 'kunci_aktif')) {
         $db->exec('ALTER TABLE absen_kehadirans ADD COLUMN kunci_aktif TINYINT(1) NULL DEFAULT 1 AFTER perangkat_id');
     }
+    if (!absen_column_meta('absen_kehadirans', 'catatan')) {
+        $db->exec('ALTER TABLE absen_kehadirans ADD COLUMN catatan VARCHAR(80) NULL AFTER nama');
+    }
     $idxKegiatan = $db->query("SHOW INDEX FROM absen_kehadirans WHERE Key_name = 'absen_kehadirans_kegiatan_idx'")->fetch();
     if (!$idxKegiatan) {
         $db->exec('ALTER TABLE absen_kehadirans ADD INDEX absen_kehadirans_kegiatan_idx (kegiatan_id)');
@@ -1086,18 +1089,41 @@ function absen_set_perangkat_cookie($id)
 
 function absen_pesan_perangkat_terpakai()
 {
-    return 'Perangkat Android ini sudah dipakai untuk absen pada kegiatan ini. Perangkat yang sama tidak bisa mengabsenkan nama lain.';
+    return 'Perangkat Android ini sudah dipakai 3 kali pada kegiatan ini. Perangkat yang sama tidak bisa dipakai lagi di kegiatan ini.';
+}
+
+function absen_jumlah_pakai_perangkat($kegiatanId, $perangkatId)
+{
+    if ($perangkatId === '') {
+        return 0;
+    }
+    $stmt = absen_db()->prepare('SELECT COUNT(*) FROM absen_kehadirans WHERE kegiatan_id = ? AND perangkat_id = ?');
+    $stmt->execute(array((int) $kegiatanId, $perangkatId));
+
+    return (int) $stmt->fetchColumn();
 }
 
 function absen_perangkat_sudah($kegiatanId, $perangkatId)
 {
-    if ($perangkatId === '') {
-        return false;
-    }
-    $stmt = absen_db()->prepare('SELECT id FROM absen_kehadirans WHERE kegiatan_id = ? AND perangkat_id = ? AND kunci_aktif = 1 LIMIT 1');
-    $stmt->execute(array((int) $kegiatanId, $perangkatId));
+    return absen_jumlah_pakai_perangkat($kegiatanId, $perangkatId) >= 3;
+}
 
-    return (bool) $stmt->fetch();
+function absen_catatan_hp($kegiatanId, $perangkatId, $userId)
+{
+    if ($perangkatId === '') {
+        return null;
+    }
+    $stmt = absen_db()->prepare('SELECT user_id FROM absen_kehadirans WHERE kegiatan_id = ? AND perangkat_id = ? ORDER BY id ASC LIMIT 1');
+    $stmt->execute(array((int) $kegiatanId, $perangkatId));
+    $awal = $stmt->fetch();
+    if (!$awal) {
+        return null;
+    }
+    if ((int) $awal['user_id'] > 0 && (int) $awal['user_id'] === (int) $userId) {
+        return null;
+    }
+
+    return 'HP bukan milik peserta';
 }
 
 function absen_perangkat_terkunci($kegiatanId)
@@ -1592,12 +1618,14 @@ function absen_simpan_publik($kegiatan)
             absen_tolak_absen($kegiatan, array('user_id' => $peserta['name'].' sudah absen pada kegiatan ini. Satu identitas hanya bisa absen sekali.'), $back);
         }
         $now = date('Y-m-d H:i:s');
-        $ins = $db->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nik, nama, metode, foto_path, latitude, longitude, ttd_path, perangkat_id, kunci_aktif, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL, ?, ?)');
+        $catatan = absen_catatan_hp($kegiatan['id'], $pakai, $peserta['id']);
+        $ins = $db->prepare('INSERT INTO absen_kehadirans (kegiatan_id, user_id, nik, nama, catatan, metode, foto_path, latitude, longitude, ttd_path, perangkat_id, kunci_aktif, dicatat_oleh, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL, ?, ?)');
         $ins->execute(array(
             $kegiatan['id'],
             $peserta['id'],
             $nip === '' ? null : $nip,
             $peserta['name'],
+            $catatan,
             'barcode',
             $foto['path'],
             $latVal,

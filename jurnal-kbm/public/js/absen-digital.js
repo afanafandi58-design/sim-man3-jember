@@ -1111,7 +1111,7 @@
             var alert = document.createElement('div');
             alert.id = 'peringatan-kunci';
             alert.className = 'alert alert-danger';
-            alert.textContent = data.pesan || 'Perangkat Android ini sudah dipakai untuk absen pada kegiatan ini. Perangkat yang sama tidak bisa mengabsenkan nama lain. Minta pengelola membuka kunci, lalu muat ulang halaman.';
+            alert.textContent = data.pesan || 'Perangkat Android ini sudah dipakai 3 kali pada kegiatan ini. Perangkat yang sama tidak bisa dipakai lagi di kegiatan ini.';
             langkah.insertBefore(alert, langkah.firstChild);
         }).catch(function () {});
     }

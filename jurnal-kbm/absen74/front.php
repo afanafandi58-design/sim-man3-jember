@@ -393,7 +393,7 @@ if (preg_match('#^/absen-digital/k/([A-Za-z0-9]+)$#', $path, $m) && $method === 
     $kegiatan = $stmt->fetch();
     $sudah = array();
     if ($kegiatan) {
-        $list = absen_db()->prepare('SELECT id, user_id, nama, created_at FROM absen_kehadirans WHERE kegiatan_id = ? AND kunci_aktif = 1 ORDER BY nama');
+        $list = absen_db()->prepare('SELECT id, user_id, nama, catatan, created_at FROM absen_kehadirans WHERE kegiatan_id = ? AND kunci_aktif = 1 ORDER BY nama');
         $list->execute(array($kegiatan['id']));
         $sudah = $list->fetchAll();
     }

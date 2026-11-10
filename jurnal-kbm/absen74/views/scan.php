@@ -128,7 +128,7 @@
         <?php } ?>
         <?php if ($sudahHadir) { ?>
             <p><strong>Sudah hadir</strong></p>
-            <ul><?php foreach ($sudahHadir as $row) { ?><li><?php echo absen_e($row['nama']); ?></li><?php } ?></ul>
+            <ul><?php foreach ($sudahHadir as $row) { ?><li><?php echo absen_e($row['nama']); ?><?php if (!empty($row['catatan'])) { ?> <span class="muted">(<?php echo absen_e($row['catatan']); ?>)</span><?php } ?></li><?php } ?></ul>
         <?php } ?>
     </div>
 <?php } ?>

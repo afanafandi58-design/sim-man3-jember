@@ -73,7 +73,7 @@
                 ?>
                     <tr>
                         <td class="no"><?php echo $n++; ?></td>
-                        <td class="nama"><?php echo absen_e($row['nama']); ?></td>
+                        <td class="nama"><?php echo absen_e($row['nama']); ?><?php if (!empty($row['catatan'])) { ?><div><?php echo absen_e($row['catatan']); ?></div><?php } ?></td>
                         <td class="nip"><?php echo absen_e($row['nik']); ?></td>
                         <td class="waktu"><?php echo absen_e($jam); ?></td>
                         <td class="ttd"><?php if ($row['ttd_path']) { ?><img src="/absen-digital/berkas/ttd/<?php echo (int) $row['id']; ?>" alt="Tanda tangan <?php echo absen_e($row['nama']); ?>"><?php } ?></td>
@@ -92,6 +92,6 @@
         </div>
     </section>
 <?php } ?>
-<script src="/js/absen-digital.js?v=belum1"></script>
+<script src="/js/absen-digital.js?v=tiga1"></script>
 </body>
 </html>
