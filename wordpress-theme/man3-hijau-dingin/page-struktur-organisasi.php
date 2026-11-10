@@ -31,11 +31,11 @@ if ( $head && ! empty( $head['children'] ) ) {
 		<div class="section-head org-page-head">
 			<p class="section-kicker"><?php esc_html_e( 'Pendidik dan Kependidikan', 'man3-hijau-dingin' ); ?></p>
 			<h1 class="section-title"><?php esc_html_e( 'Struktur Organisasi', 'man3-hijau-dingin' ); ?></h1>
-			<p class="section-lead"><?php esc_html_e( 'MAN 3 Jember — Tahun Pelajaran 2026–2027. Foto dapat dilengkapi lewat admin (Gambar Unggulan).', 'man3-hijau-dingin' ); ?></p>
+			<p class="section-lead"><?php esc_html_e( 'MAN 3 Jember — Tahun Pelajaran 2026–2027.', 'man3-hijau-dingin' ); ?></p>
 		</div>
 
 		<?php if ( ! $head ) : ?>
-			<p><?php esc_html_e( 'Data struktur belum tersedia. Admin: buka dashboard lalu muat ulang, atau kunjungi ?man3_org_reseed=1 saat login.', 'man3-hijau-dingin' ); ?></p>
+			<p><?php esc_html_e( 'Data struktur belum tersedia.', 'man3-hijau-dingin' ); ?></p>
 		<?php else : ?>
 
 			<div class="org-chart" role="tree" aria-label="<?php esc_attr_e( 'Bagan struktur organisasi', 'man3-hijau-dingin' ); ?>">

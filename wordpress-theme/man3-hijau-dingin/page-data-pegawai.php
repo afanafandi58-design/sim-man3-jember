@@ -30,7 +30,7 @@ $base = get_permalink();
 			<p class="eyebrow"><?php esc_html_e( 'Pendidik dan Kependidikan', 'man3-hijau-dingin' ); ?></p>
 			<h1 class="section-title"><?php esc_html_e( 'Guru & Staff', 'man3-hijau-dingin' ); ?></h1>
 			<p class="section-lead">
-				<?php esc_html_e( 'Data pegawai MAN 3 Jember — nama, jabatan, dan pendidikan terakhir. Foto dapat dilengkapi lewat admin.', 'man3-hijau-dingin' ); ?>
+				<?php esc_html_e( 'Data pegawai MAN 3 Jember — nama, jabatan, dan pendidikan terakhir.', 'man3-hijau-dingin' ); ?>
 			</p>
 		</div>
 	</section>
@@ -44,7 +44,7 @@ $base = get_permalink();
 			</div>
 
 			<?php if ( ! $items ) : ?>
-				<p class="pegawai-empty"><?php esc_html_e( 'Belum ada data. Admin: buka Data Pegawai atau ?man3_pegawai_reseed=1 saat login.', 'man3-hijau-dingin' ); ?></p>
+				<p class="pegawai-empty"><?php esc_html_e( 'Belum ada data.', 'man3-hijau-dingin' ); ?></p>
 			<?php else : ?>
 				<div class="pegawai-grid">
 					<?php foreach ( $items as $item ) : ?>

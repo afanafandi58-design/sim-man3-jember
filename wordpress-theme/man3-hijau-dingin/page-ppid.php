@@ -15,7 +15,7 @@ $items = function_exists( 'man3_ppid_get_items' ) ? man3_ppid_get_items() : arra
 			<p class="eyebrow"><?php esc_html_e( 'Informasi publik', 'man3-hijau-dingin' ); ?></p>
 			<h1 class="section-title"><?php esc_html_e( 'PPID', 'man3-hijau-dingin' ); ?></h1>
 			<p class="section-lead">
-				<?php esc_html_e( 'Pejabat Pengelola Informasi dan Dokumentasi MAN 3 Jember. Konten dikelola dari dashboard — menu PPID.', 'man3-hijau-dingin' ); ?>
+				<?php esc_html_e( 'Pejabat Pengelola Informasi dan Dokumentasi MAN 3 Jember.', 'man3-hijau-dingin' ); ?>
 			</p>
 			<?php if ( $items ) : ?>
 				<p class="ppid-count">
@@ -36,9 +36,6 @@ $items = function_exists( 'man3_ppid_get_items' ) ? man3_ppid_get_items() : arra
 			<?php if ( ! $items ) : ?>
 				<div class="ppid-empty">
 					<p><?php esc_html_e( 'Belum ada informasi PPID yang dipublikasikan.', 'man3-hijau-dingin' ); ?></p>
-					<p class="ppid-empty-hint">
-						<?php esc_html_e( 'Admin: buka menu PPID di dashboard, lalu klik Tambah Baru. Isi judul, konten, gambar (opsional), dan lampiran dokumen (opsional), kemudian Publish.', 'man3-hijau-dingin' ); ?>
-					</p>
 				</div>
 			<?php else : ?>
 				<div class="ppid-list">

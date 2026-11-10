@@ -177,7 +177,6 @@ $wp_posts = new WP_Query(
 			<div class="section-head">
 				<p class="section-kicker"><?php esc_html_e( 'Berita Terbaru', 'man3-hijau-dingin' ); ?></p>
 				<h2 class="section-title"><?php esc_html_e( 'Kabar dari MAN 3 Jember', 'man3-hijau-dingin' ); ?></h2>
-				<p class="section-lead"><?php esc_html_e( 'Berita dari WordPress (atau fallback konten publik yang sama).', 'man3-hijau-dingin' ); ?></p>
 			</div>
 			<div class="berita-list">
 				<?php if ( $wp_posts->have_posts() ) : ?>
@@ -237,7 +236,6 @@ $wp_posts = new WP_Query(
 				<div class="section-head">
 					<p class="section-kicker"><?php esc_html_e( 'Info Madrasah', 'man3-hijau-dingin' ); ?></p>
 					<h2 class="section-title"><?php esc_html_e( 'Akses cepat', 'man3-hijau-dingin' ); ?></h2>
-					<p class="section-lead"><?php esc_html_e( 'Tautan menu yang sama dengan situs live.', 'man3-hijau-dingin' ); ?></p>
 				</div>
 				<div class="links-grid">
 					<?php foreach ( $quick as $link ) : ?>

@@ -62,7 +62,7 @@ $base = get_permalink();
 
 			<?php if ( ! $items ) : ?>
 				<p class="ekskul-empty">
-					<?php esc_html_e( 'Belum ada data. Admin: buka menu Ekstra Kurikuler, atau ?man3_ekskul_reseed=1 saat login.', 'man3-hijau-dingin' ); ?>
+					<?php esc_html_e( 'Belum ada data.', 'man3-hijau-dingin' ); ?>
 				</p>
 			<?php else : ?>
 				<div class="ekskul-grid">

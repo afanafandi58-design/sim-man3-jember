@@ -15,9 +15,6 @@ $ig    = 'https://www.instagram.com/mantiger.official/';
 		<div class="container">
 			<p class="eyebrow"><?php esc_html_e( 'Kanal berita siswa', 'man3-hijau-dingin' ); ?></p>
 			<h1 class="section-title"><?php esc_html_e( 'News Mantiger', 'man3-hijau-dingin' ); ?></h1>
-			<p class="section-lead">
-				<?php esc_html_e( 'Liputan dan kabar warga MAN 3 Jember (Mantiger). Dikelola dari dashboard — Tambah Baru di menu News Mantiger.', 'man3-hijau-dingin' ); ?>
-			</p>
 			<?php if ( $items ) : ?>
 				<p class="news-mantiger-count">
 					<?php
@@ -37,9 +34,6 @@ $ig    = 'https://www.instagram.com/mantiger.official/';
 			<?php if ( ! $items ) : ?>
 				<div class="news-mantiger-empty">
 					<p><?php esc_html_e( 'Belum ada berita News Mantiger.', 'man3-hijau-dingin' ); ?></p>
-					<p class="news-mantiger-empty-hint">
-						<?php esc_html_e( 'Admin: buka menu News Mantiger di dashboard, lalu klik Tambah Baru. Isi judul, konten, tanggal, dan Gambar Unggulan, kemudian Publish.', 'man3-hijau-dingin' ); ?>
-					</p>
 					<p class="news-mantiger-actions">
 						<a class="btn btn-ghost" href="<?php echo esc_url( $ig ); ?>" target="_blank" rel="noopener noreferrer">
 							<?php esc_html_e( 'Instagram @mantiger.official', 'man3-hijau-dingin' ); ?>

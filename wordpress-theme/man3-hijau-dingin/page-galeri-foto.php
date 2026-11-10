@@ -25,7 +25,7 @@ $filters = function_exists( 'man3_foto_jenis_filters' ) ? man3_foto_jenis_filter
 		<div class="container">
 			<?php if ( ! $items ) : ?>
 				<p class="foto-empty">
-					<?php esc_html_e( 'Belum ada foto. Admin: buka Galeri Foto di dashboard, unggah gambar unggulan, atau kunjungi ?man3_foto_reseed=1 saat login.', 'man3-hijau-dingin' ); ?>
+					<?php esc_html_e( 'Belum ada foto.', 'man3-hijau-dingin' ); ?>
 				</p>
 			<?php else : ?>
 				<p class="foto-count" data-foto-count>

@@ -52,7 +52,7 @@ foreach ( $items as $it ) {
 		<div class="container">
 			<?php if ( ! $items ) : ?>
 				<p class="video-empty">
-					<?php esc_html_e( 'Belum ada video. Admin: buka Galeri Video di dashboard, atau kunjungi ?man3_video_reseed=1 saat login.', 'man3-hijau-dingin' ); ?>
+					<?php esc_html_e( 'Belum ada video.', 'man3-hijau-dingin' ); ?>
 				</p>
 			<?php else : ?>
 				<p class="video-count">
