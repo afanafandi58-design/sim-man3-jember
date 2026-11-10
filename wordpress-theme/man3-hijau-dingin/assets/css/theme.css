@@ -2640,19 +2640,25 @@ body.admin-bar .site-header { top: 32px; }
   position: relative;
   overflow: hidden;
   border-radius: 0.65rem;
-  background: linear-gradient(135deg, var(--green-900), var(--green-700));
+  background:
+    radial-gradient(ellipse at 50% 35%, rgba(180, 230, 213, 0.55), transparent 68%),
+    linear-gradient(165deg, #eefaf5 0%, #daf4eb 48%, #cfe9df 100%);
   isolation: isolate;
+  border: 1px solid rgba(15, 81, 50, 0.08);
 }
 
 .man3-info-strip__track {
   position: relative;
-  min-height: clamp(9.5rem, 22vw, 13.5rem);
+  min-height: 0;
 }
 
 .man3-info-strip__slide {
   margin: 0;
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.55s ease, visibility 0.55s ease;
@@ -2661,6 +2667,7 @@ body.admin-bar .site-header { top: 32px; }
 
 .man3-info-strip__slide.is-active {
   position: relative;
+  inset: auto;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -2668,19 +2675,21 @@ body.admin-bar .site-header { top: 32px; }
 }
 
 .man3-info-strip__slide[hidden] {
-  display: block !important;
+  display: flex !important;
 }
 
 .man3-info-strip__slide img,
 .man3-info-strip__link {
   display: block;
   width: 100%;
-  height: clamp(9.5rem, 22vw, 13.5rem);
+  height: auto;
+  max-height: min(52vh, 420px);
 }
 
 .man3-info-strip__slide img {
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
+  background: transparent;
 }
 
 .man3-info-strip__link:focus-visible {
@@ -2704,19 +2713,20 @@ body.admin-bar .site-header { top: 32px; }
   height: 2rem;
   border: 0;
   border-radius: 999px;
-  background: rgba(4, 36, 30, 0.42);
+  background: rgba(4, 36, 30, 0.55);
   color: #fff;
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
-  opacity: 0.72;
+  opacity: 0.85;
   transition: opacity 0.2s ease, background 0.2s ease;
+  box-shadow: 0 1px 6px rgba(4, 36, 30, 0.18);
 }
 
 .man3-info-strip__arrow:hover,
 .man3-info-strip__arrow:focus-visible {
   opacity: 1;
-  background: rgba(4, 36, 30, 0.7);
+  background: rgba(4, 36, 30, 0.78);
   outline: 2px solid rgba(125, 207, 182, 0.65);
   outline-offset: 2px;
 }
@@ -2737,12 +2747,12 @@ body.admin-bar .site-header { top: 32px; }
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(15, 82, 68, 0.35);
   cursor: pointer;
 }
 
 .man3-info-strip__dot.is-active {
-  background: #fff;
+  background: var(--green-700);
   width: 1rem;
 }
 
@@ -2772,10 +2782,9 @@ body.admin-bar .site-header { top: 32px; }
   .man3-info-strip {
     padding-top: 0.55rem;
   }
-  .man3-info-strip__track,
   .man3-info-strip__slide img,
   .man3-info-strip__link {
-    height: clamp(8.25rem, 42vw, 11rem);
+    max-height: min(58vh, 360px);
   }
   .man3-info-strip__arrow {
     width: 1.75rem;
