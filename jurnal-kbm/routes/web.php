@@ -1,36 +1,37 @@
 <?php
 
 use App\Http\Controllers\AbsensiModulController;
-use App\Http\Controllers\GuruLaporanController;
 use App\Http\Controllers\AbsensiSiswaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuruAccountController;
 use App\Http\Controllers\GuruBebanMengajarController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\GuruDashboardController;
+use App\Http\Controllers\GuruJadwalSayaController;
 use App\Http\Controllers\GuruJurnalAttachmentController;
 use App\Http\Controllers\GuruJurnalController;
-use App\Http\Controllers\GuruJadwalSayaController;
+use App\Http\Controllers\GuruLaporanController;
 use App\Http\Controllers\GuruPdfController;
-use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\ImportDataController;
 use App\Http\Controllers\ImportGuruController;
 use App\Http\Controllers\ImportJadwalController;
 use App\Http\Controllers\ImportSiswaController;
-use App\Http\Controllers\JamPelajaranController;
-use App\Http\Controllers\JadwalController;
+use App\Http\Controllers\ImportTemplateController;
 use App\Http\Controllers\JadwalChangeLogController;
+use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\JadwalPerbaikanController;
-use App\Models\JadwalPerbaikanRequest;
-use App\Http\Controllers\MataPelajaranController;
-use App\Http\Controllers\MataPelajaranUsulanController;
-use App\Http\Controllers\PolaJadwalController;
+use App\Http\Controllers\JamPelajaranController;
 use App\Http\Controllers\JurnalController;
 use App\Http\Controllers\KepalaDashboardController;
 use App\Http\Controllers\LaporanAbsensiController;
 use App\Http\Controllers\LaporanPdfController;
-use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\MataPelajaranController;
+use App\Http\Controllers\MataPelajaranUsulanController;
+use App\Http\Controllers\PolaJadwalController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SiswaController;
+use App\Models\JadwalPerbaikanRequest;
+use App\Models\MataPelajaranUsulan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,7 +42,7 @@ Route::redirect('/home', '/dashboard');
 Route::redirect('/dashboard/lms', '/lms', 301);
 
 Route::bind('jadwalPerbaikan', fn (string $value) => JadwalPerbaikanRequest::findOrFail($value));
-Route::bind('mataPelajaranUsulan', fn (string $value) => \App\Models\MataPelajaranUsulan::findOrFail($value));
+Route::bind('mataPelajaranUsulan', fn (string $value) => MataPelajaranUsulan::findOrFail($value));
 
 Route::middleware(['auth', 'role:guru'])->group(function () {
     Route::get('/guru/dashboard', [GuruDashboardController::class, 'index'])->name('guru.dashboard');
@@ -168,5 +169,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('absensi-modul')->name('absens
 });
 
 require __DIR__.'/lms.php';
+
+require __DIR__.'/absen_digital.php';
 
 require __DIR__.'/auth.php';
