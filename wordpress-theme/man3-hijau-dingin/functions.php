@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.29' );
+define( 'MAN3_HIJAU_VERSION', '1.5.30' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -216,6 +216,127 @@ function man3_hijau_cleanup_toplevel_visi_misi_menu() {
 add_action( 'init', 'man3_hijau_cleanup_toplevel_visi_misi_menu', 20 );
 
 /**
+ * Meta judul/URL mentah untuk item menu (tanpa filter tampilan).
+ *
+ * @param WP_Post $post Nav menu item post.
+ * @return array{title:string,url:string}
+ */
+function man3_hijau_nav_item_meta( $post ) {
+	$title = $post->post_title;
+	if ( '' === $title ) {
+		$object_id = (int) get_post_meta( $post->ID, '_menu_item_object_id', true );
+		if ( $object_id ) {
+			$title = get_the_title( $object_id );
+		}
+	}
+	$url = (string) get_post_meta( $post->ID, '_menu_item_url', true );
+	if ( ! $url ) {
+		$object_id = (int) get_post_meta( $post->ID, '_menu_item_object_id', true );
+		$type      = (string) get_post_meta( $post->ID, '_menu_item_type', true );
+		if ( 'post_type' === $type && $object_id ) {
+			$url = (string) get_permalink( $object_id );
+		}
+	}
+	return array(
+		'title' => (string) $title,
+		'url'   => (string) $url,
+	);
+}
+
+/**
+ * Sekali jalan: pindahkan Download & Ekstra Kurikuler ke submenu Info Madrasah.
+ */
+function man3_hijau_move_download_ekskul_under_info() {
+	if ( get_option( 'man3_hijau_nav_info_download_ekskul' ) === '1.5.30' ) {
+		return;
+	}
+	$locations = get_nav_menu_locations();
+	$menu_id   = ! empty( $locations['primary'] ) ? (int) $locations['primary'] : 0;
+	if ( ! $menu_id ) {
+		return;
+	}
+	$raw = get_posts(
+		array(
+			'post_type'      => 'nav_menu_item',
+			'posts_per_page' => 100,
+			'post_status'    => 'any',
+			'nopaging'       => true,
+			'tax_query'      => array(
+				array(
+					'taxonomy' => 'nav_menu',
+					'field'    => 'term_id',
+					'terms'    => $menu_id,
+				),
+			),
+		)
+	);
+
+	$info_id       = 0;
+	$move_ids      = array();
+	$already_child = array(
+		'download' => false,
+		'ekskul'   => false,
+	);
+
+	foreach ( $raw as $post ) {
+		$parent = (int) get_post_meta( $post->ID, '_menu_item_menu_item_parent', true );
+		$meta   = man3_hijau_nav_item_meta( $post );
+		$title  = $meta['title'];
+		$url    = $meta['url'];
+
+		if ( 0 === $parent && preg_match( '/^info\s*madrasah$/i', trim( $title ) ) ) {
+			$info_id = (int) $post->ID;
+		}
+
+		$is_download = (bool) preg_match( '/^download$/i', trim( $title ) )
+			|| false !== strpos( $url, '/download' );
+		$is_ekskul   = (bool) preg_match( '/ekstra\s*kurikuler|ekstrakurikuler/i', $title )
+			|| false !== strpos( $url, '/ekskul' );
+
+		if ( $parent > 0 ) {
+			if ( $is_download ) {
+				$already_child['download'] = true;
+			}
+			if ( $is_ekskul ) {
+				$already_child['ekskul'] = true;
+			}
+			continue;
+		}
+		if ( $is_download ) {
+			$move_ids[ (int) $post->ID ] = 'download';
+		} elseif ( $is_ekskul ) {
+			$move_ids[ (int) $post->ID ] = 'ekskul';
+		}
+	}
+
+	if ( ! $info_id || empty( $move_ids ) ) {
+		update_option( 'man3_hijau_nav_info_download_ekskul', '1.5.30', false );
+		return;
+	}
+
+	$order = 40;
+	foreach ( $move_ids as $item_id => $kind ) {
+		if ( ! empty( $already_child[ $kind ] ) ) {
+			// Sudah ada di submenu — hapus duplikat top-level.
+			wp_delete_post( $item_id, true );
+			continue;
+		}
+		update_post_meta( $item_id, '_menu_item_menu_item_parent', (string) $info_id );
+		wp_update_post(
+			array(
+				'ID'         => $item_id,
+				'menu_order' => $order,
+			)
+		);
+		$order += 10;
+		$already_child[ $kind ] = true;
+	}
+
+	update_option( 'man3_hijau_nav_info_download_ekskul', '1.5.30', false );
+}
+add_action( 'init', 'man3_hijau_move_download_ekskul_under_info', 21 );
+
+/**
  * Enqueue fonts, CSS, JS.
  */
 function man3_hijau_assets() {
@@ -347,6 +468,8 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 				array( 'label' => 'Pengumuman', 'href' => home_url( '/pengumuman/' ) ),
 				array( 'label' => 'Agenda', 'href' => home_url( '/agenda/' ) ),
 				array( 'label' => 'Fasilitas', 'href' => home_url( '/fasilitas/' ) ),
+				array( 'label' => 'Download', 'href' => home_url( '/download/' ) ),
+				array( 'label' => 'Ekstra Kurikuler', 'href' => home_url( '/ekskul/' ) ),
 			),
 		),
 		array(
@@ -356,7 +479,6 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 				array( 'label' => 'Struktur Organisasi', 'href' => home_url( '/struktur-organisasi/' ) ),
 			),
 		),
-		array( 'label' => 'Ekstra Kurikuler', 'href' => home_url( '/ekskul/' ) ),
 		array(
 			'label'    => 'Gallery',
 			'children' => array(
@@ -366,7 +488,6 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 		),
 		array( 'label' => 'Berita', 'href' => home_url( '/#berita' ) ),
 		array( 'label' => 'Pengumuman', 'href' => home_url( '/pengumuman/' ) ),
-		array( 'label' => 'Download', 'href' => home_url( '/download/' ) ),
 		array( 'label' => 'News Digital', 'href' => home_url( '/pengumuman/hightlight-mei/' ) ),
 		array( 'label' => 'News Mantiger', 'href' => home_url( '/news-mantiger/' ) ),
 		array( 'label' => 'PPID', 'href' => home_url( '/ppid/' ) ),
