@@ -2646,31 +2646,34 @@ body.admin-bar .site-header { top: 32px; }
   isolation: isolate;
   border: 1px solid rgba(15, 81, 50, 0.08);
   display: grid;
-  /* Kolom logo lebar agar mengisi ruang samping foto */
-  grid-template-columns: minmax(7rem, 18%) minmax(0, 1fr) minmax(7rem, 18%);
-  align-items: center;
-  gap: 0.25rem 0.55rem;
-  padding: 0.5rem 0.4rem;
+  /* Kolom samping cukup lebar agar logo kotak hampir setinggi foto;
+     tinggi baris tetap HANYA dari foto di tengah */
+  grid-template-columns: minmax(9.5rem, 0.62fr) minmax(0, 1fr) minmax(9.5rem, 0.62fr);
+  align-items: stretch;
+  gap: 0.3rem 0.45rem;
+  padding: 0.35rem 0.3rem;
 }
 
+/* Logo absolute di dalam kolom yang di-stretch = setinggi foto, tanpa menambah tinggi baris */
 .man3-info-strip__brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
+  position: relative;
   pointer-events: none;
   z-index: 1;
   min-width: 0;
-  height: 100%;
-  padding-inline: 0.15rem;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .man3-info-strip__brand img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: block;
-  width: 92%;
-  max-width: 12.5rem;
+  width: auto;
   height: auto;
-  max-height: min(12rem, 78%);
+  max-width: 98%;
+  max-height: 96%;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 1px 3px rgba(4, 36, 30, 0.1));
@@ -2698,7 +2701,7 @@ body.admin-bar .site-header { top: 32px; }
 }
 
 .man3-info-strip__slide.is-active {
-  display: flex;
+  display: block;
   position: relative;
   animation: man3InfoFade 0.55s ease both;
 }
@@ -2707,7 +2710,7 @@ body.admin-bar .site-header { top: 32px; }
   display: none !important;
 }
 
-/* Tinggi mengikuti rasio alami gambar — tanpa crop, tanpa panel kosong */
+/* Tinggi panel = tinggi foto (rasio alami), tanpa crop */
 .man3-info-strip__slide img,
 .man3-info-strip__link {
   display: block;
@@ -2812,13 +2815,8 @@ body.admin-bar .site-header { top: 32px; }
 
 @media (max-width: 900px) {
   .man3-info-strip__viewport {
-    grid-template-columns: minmax(5.5rem, 15%) minmax(0, 1fr) minmax(5.5rem, 15%);
-    gap: 0.2rem 0.4rem;
-  }
-  .man3-info-strip__brand img {
-    width: 90%;
-    max-width: 8.5rem;
-    max-height: min(8.5rem, 72%);
+    grid-template-columns: minmax(7rem, 0.5fr) minmax(0, 1fr) minmax(7rem, 0.5fr);
+    gap: 0.2rem 0.35rem;
   }
 }
 
