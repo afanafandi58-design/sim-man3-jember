@@ -469,16 +469,41 @@ function man3_popup_render_strip() {
 					<span class="man3-info-strip__count" data-info-status aria-live="polite">1 / <?php echo esc_html( (string) $count ); ?></span>
 				<?php endif; ?>
 			</div>
+			<?php
+			$logo_kemenag = man3_hijau_asset( 'images/logo-kemenag.webp' );
+			$logo_man3    = man3_hijau_asset( 'images/logo-man3-badge.webp' );
+			?>
 			<div class="man3-info-strip__viewport">
-				<div class="man3-info-strip__track">
-					<?php foreach ( $slides as $i => $slide ) : ?>
-						<figure
-							class="man3-info-strip__slide<?php echo 0 === $i ? ' is-active' : ''; ?>"
-							data-info-slide="<?php echo esc_attr( (string) $i ); ?>"
-							<?php echo 0 === $i ? '' : ' hidden'; ?>
-						>
-							<?php if ( ! empty( $slide['link'] ) ) : ?>
-								<a class="man3-info-strip__link" href="<?php echo esc_url( $slide['link'] ); ?>">
+				<div class="man3-info-strip__brand man3-info-strip__brand--left" aria-hidden="true">
+					<img
+						src="<?php echo esc_url( $logo_kemenag ); ?>"
+						alt=""
+						width="120"
+						height="114"
+						loading="eager"
+						decoding="async"
+					/>
+				</div>
+				<div class="man3-info-strip__stage">
+					<div class="man3-info-strip__track">
+						<?php foreach ( $slides as $i => $slide ) : ?>
+							<figure
+								class="man3-info-strip__slide<?php echo 0 === $i ? ' is-active' : ''; ?>"
+								data-info-slide="<?php echo esc_attr( (string) $i ); ?>"
+								<?php echo 0 === $i ? '' : ' hidden'; ?>
+							>
+								<?php if ( ! empty( $slide['link'] ) ) : ?>
+									<a class="man3-info-strip__link" href="<?php echo esc_url( $slide['link'] ); ?>">
+										<img
+											src="<?php echo esc_url( $slide['url'] ); ?>"
+											alt="<?php echo esc_attr( $slide['alt'] ); ?>"
+											width="1200"
+											height="480"
+											<?php echo 0 === $i ? 'loading="eager"' : 'loading="lazy"'; ?>
+											decoding="async"
+										/>
+									</a>
+								<?php else : ?>
 									<img
 										src="<?php echo esc_url( $slide['url'] ); ?>"
 										alt="<?php echo esc_attr( $slide['alt'] ); ?>"
@@ -487,42 +512,43 @@ function man3_popup_render_strip() {
 										<?php echo 0 === $i ? 'loading="eager"' : 'loading="lazy"'; ?>
 										decoding="async"
 									/>
-								</a>
-							<?php else : ?>
-								<img
-									src="<?php echo esc_url( $slide['url'] ); ?>"
-									alt="<?php echo esc_attr( $slide['alt'] ); ?>"
-									width="1200"
-									height="480"
-									<?php echo 0 === $i ? 'loading="eager"' : 'loading="lazy"'; ?>
-									decoding="async"
-								/>
-							<?php endif; ?>
-						</figure>
-					<?php endforeach; ?>
+								<?php endif; ?>
+							</figure>
+						<?php endforeach; ?>
+					</div>
+					<?php if ( $count > 1 ) : ?>
+						<div class="man3-info-strip__nav" role="group" aria-label="<?php esc_attr_e( 'Navigasi slide informasi', 'man3-hijau-dingin' ); ?>">
+							<button type="button" class="man3-info-strip__arrow man3-info-strip__arrow--prev" data-info-prev aria-label="<?php esc_attr_e( 'Slide sebelumnya', 'man3-hijau-dingin' ); ?>">
+								<span aria-hidden="true">‹</span>
+							</button>
+							<button type="button" class="man3-info-strip__arrow man3-info-strip__arrow--next" data-info-next aria-label="<?php esc_attr_e( 'Slide berikutnya', 'man3-hijau-dingin' ); ?>">
+								<span aria-hidden="true">›</span>
+							</button>
+						</div>
+						<div class="man3-info-strip__dots" role="tablist" aria-label="<?php esc_attr_e( 'Pilih foto informasi', 'man3-hijau-dingin' ); ?>">
+							<?php for ( $i = 0; $i < $count; $i++ ) : ?>
+								<button
+									type="button"
+									class="man3-info-strip__dot<?php echo 0 === $i ? ' is-active' : ''; ?>"
+									data-info-dot="<?php echo esc_attr( (string) $i ); ?>"
+									role="tab"
+									aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
+									aria-label="<?php echo esc_attr( sprintf( /* translators: %d slide number */ __( 'Foto %d', 'man3-hijau-dingin' ), $i + 1 ) ); ?>"
+								></button>
+							<?php endfor; ?>
+						</div>
+					<?php endif; ?>
 				</div>
-				<?php if ( $count > 1 ) : ?>
-					<div class="man3-info-strip__nav" role="group" aria-label="<?php esc_attr_e( 'Navigasi slide informasi', 'man3-hijau-dingin' ); ?>">
-						<button type="button" class="man3-info-strip__arrow man3-info-strip__arrow--prev" data-info-prev aria-label="<?php esc_attr_e( 'Slide sebelumnya', 'man3-hijau-dingin' ); ?>">
-							<span aria-hidden="true">‹</span>
-						</button>
-						<button type="button" class="man3-info-strip__arrow man3-info-strip__arrow--next" data-info-next aria-label="<?php esc_attr_e( 'Slide berikutnya', 'man3-hijau-dingin' ); ?>">
-							<span aria-hidden="true">›</span>
-						</button>
-					</div>
-					<div class="man3-info-strip__dots" role="tablist" aria-label="<?php esc_attr_e( 'Pilih foto informasi', 'man3-hijau-dingin' ); ?>">
-						<?php for ( $i = 0; $i < $count; $i++ ) : ?>
-							<button
-								type="button"
-								class="man3-info-strip__dot<?php echo 0 === $i ? ' is-active' : ''; ?>"
-								data-info-dot="<?php echo esc_attr( (string) $i ); ?>"
-								role="tab"
-								aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
-								aria-label="<?php echo esc_attr( sprintf( /* translators: %d slide number */ __( 'Foto %d', 'man3-hijau-dingin' ), $i + 1 ) ); ?>"
-							></button>
-						<?php endfor; ?>
-					</div>
-				<?php endif; ?>
+				<div class="man3-info-strip__brand man3-info-strip__brand--right" aria-hidden="true">
+					<img
+						src="<?php echo esc_url( $logo_man3 ); ?>"
+						alt=""
+						width="120"
+						height="120"
+						loading="eager"
+						decoding="async"
+					/>
+				</div>
 			</div>
 		</div>
 	</section>
