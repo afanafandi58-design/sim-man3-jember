@@ -497,8 +497,6 @@ function man3_popup_render_strip() {
 										<img
 											src="<?php echo esc_url( $slide['url'] ); ?>"
 											alt="<?php echo esc_attr( $slide['alt'] ); ?>"
-											width="1200"
-											height="480"
 											<?php echo 0 === $i ? 'loading="eager"' : 'loading="lazy"'; ?>
 											decoding="async"
 										/>
@@ -507,8 +505,6 @@ function man3_popup_render_strip() {
 									<img
 										src="<?php echo esc_url( $slide['url'] ); ?>"
 										alt="<?php echo esc_attr( $slide['alt'] ); ?>"
-										width="1200"
-										height="480"
 										<?php echo 0 === $i ? 'loading="eager"' : 'loading="lazy"'; ?>
 										decoding="async"
 									/>

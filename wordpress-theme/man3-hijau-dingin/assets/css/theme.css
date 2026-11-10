@@ -2646,26 +2646,28 @@ body.admin-bar .site-header { top: 32px; }
   isolation: isolate;
   border: 1px solid rgba(15, 81, 50, 0.08);
   display: grid;
-  grid-template-columns: minmax(4.25rem, 7rem) minmax(0, 1fr) minmax(4.25rem, 7rem);
+  grid-template-columns: minmax(4rem, 6.5rem) minmax(0, 1fr) minmax(4rem, 6.5rem);
   align-items: center;
-  gap: 0.25rem 0.35rem;
-  padding: 0.55rem 0.4rem;
+  gap: 0.2rem 0.4rem;
+  padding: 0.45rem 0.35rem;
 }
 
 .man3-info-strip__brand {
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
   pointer-events: none;
   z-index: 1;
   min-width: 0;
+  height: 100%;
 }
 
 .man3-info-strip__brand img {
   display: block;
-  width: clamp(3.1rem, 5.8vw, 5.5rem);
+  width: clamp(3rem, 5.5vw, 5.25rem);
   height: auto;
-  max-height: clamp(3.1rem, 5.8vw, 5.5rem);
+  max-height: clamp(3rem, 5.5vw, 5.25rem);
   object-fit: contain;
   filter: drop-shadow(0 1px 2px rgba(4, 36, 30, 0.08));
 }
@@ -2674,47 +2676,42 @@ body.admin-bar .site-header { top: 32px; }
   position: relative;
   min-width: 0;
   z-index: 2;
+  line-height: 0;
 }
 
 .man3-info-strip__track {
   position: relative;
   min-height: 0;
+  line-height: 0;
 }
 
+/* Hanya slide aktif yang membentuk tinggi panel; yang lain benar-benar disembunyikan */
 .man3-info-strip__slide {
   margin: 0;
-  position: absolute;
-  inset: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.55s ease, visibility 0.55s ease;
-  pointer-events: none;
 }
 
 .man3-info-strip__slide.is-active {
+  display: flex;
   position: relative;
-  inset: auto;
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
   animation: man3InfoFade 0.55s ease both;
 }
 
-.man3-info-strip__slide[hidden] {
-  display: flex !important;
+.man3-info-strip__slide[hidden]:not(.is-active) {
+  display: none !important;
 }
 
+/* Tinggi mengikuti rasio alami gambar — tanpa crop, tanpa panel kosong */
 .man3-info-strip__slide img,
 .man3-info-strip__link {
   display: block;
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: min(48vh, 380px);
-  margin-inline: auto;
+  width: 100%;
+  height: auto !important;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: auto;
 }
 
 .man3-info-strip__slide img {
@@ -2831,7 +2828,8 @@ body.admin-bar .site-header { top: 32px; }
   .man3-info-strip__slide img,
   .man3-info-strip__link {
     width: 100%;
-    max-height: min(58vh, 360px);
+    height: auto !important;
+    max-height: none;
   }
   .man3-info-strip__arrow {
     width: 1.75rem;
