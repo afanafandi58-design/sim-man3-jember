@@ -133,7 +133,7 @@ button {
   gap: 0.35rem;
   padding: 0.48rem 0.7rem;
   border-radius: 999px;
-  font-size: 0.84rem;
+  font-size: 1.01rem; /* was 0.84rem; +20% */
   font-weight: 650;
   letter-spacing: 0.01em;
   color: var(--green-900);
@@ -215,7 +215,7 @@ button {
   display: block;
   padding: 0.55rem 0.75rem;
   border-radius: 0.5rem;
-  font-size: 0.86rem;
+  font-size: 1.03rem; /* was 0.86rem; +20% */
   font-weight: 500;
   letter-spacing: 0;
   color: rgba(10, 48, 32, 0.88);
@@ -262,7 +262,7 @@ button {
   padding: 0.75rem 0.35rem;
   border-bottom: 1px solid var(--line);
   font-weight: 650;
-  font-size: 0.95rem;
+  font-size: 1.14rem; /* was 0.95rem; +20% */
   color: var(--green-900);
   list-style: none;
   background: transparent;
@@ -303,7 +303,7 @@ button {
 .nav-mobile .nav-dropdown a {
   border: none;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 1.08rem; /* was 0.9rem; +20% */
   color: rgba(10, 48, 32, 0.82);
   padding: 0.55rem 0.7rem;
 }
