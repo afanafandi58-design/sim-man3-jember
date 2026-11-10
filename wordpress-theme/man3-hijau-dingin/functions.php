@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.28' );
+define( 'MAN3_HIJAU_VERSION', '1.5.29' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -103,6 +103,117 @@ function man3_hijau_setup() {
 	);
 }
 add_action( 'after_setup_theme', 'man3_hijau_setup' );
+
+/**
+ * Sembunyikan item top-level "VISI MISI…" dari menu primary.
+ * Tetap tampil jika jadi submenu (mis. di bawah Beranda).
+ *
+ * @param array    $items Menu items.
+ * @param stdClass $menu  Menu object.
+ * @param array    $args  wp_get_nav_menu_items args.
+ * @return array
+ */
+function man3_hijau_hide_toplevel_visi_misi( $items, $menu, $args ) {
+	if ( empty( $items ) || ! is_array( $items ) ) {
+		return $items;
+	}
+
+	$locations = get_nav_menu_locations();
+	$primary   = isset( $locations['primary'] ) ? (int) $locations['primary'] : 0;
+	if ( $primary && isset( $menu->term_id ) && (int) $menu->term_id !== $primary ) {
+		return $items;
+	}
+
+	$remove_ids = array();
+	foreach ( $items as $item ) {
+		$parent = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+		if ( 0 !== $parent ) {
+			continue;
+		}
+		$title = isset( $item->title ) ? wp_strip_all_tags( $item->title ) : '';
+		$url   = isset( $item->url ) ? (string) $item->url : '';
+		$is_visi = (bool) preg_match( '/visi\s*misi/i', $title )
+			|| false !== strpos( $url, 'visi-misi-man-3-jember' );
+		if ( $is_visi ) {
+			$remove_ids[ (int) $item->ID ] = true;
+		}
+	}
+
+	if ( empty( $remove_ids ) ) {
+		return $items;
+	}
+
+	$filtered = array();
+	foreach ( $items as $item ) {
+		$id     = (int) $item->ID;
+		$parent = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+		if ( isset( $remove_ids[ $id ] ) || isset( $remove_ids[ $parent ] ) ) {
+			continue;
+		}
+		$filtered[] = $item;
+	}
+	return $filtered;
+}
+add_filter( 'wp_get_nav_menu_items', 'man3_hijau_hide_toplevel_visi_misi', 10, 3 );
+
+/**
+ * Sekali jalan: hapus entri top-level VISI MISI dari menu primary di DB
+ * (submenu di bawah Beranda tidak disentuh).
+ */
+function man3_hijau_cleanup_toplevel_visi_misi_menu() {
+	if ( get_option( 'man3_hijau_nav_drop_toplevel_visi' ) === '1.5.29' ) {
+		return;
+	}
+	$locations = get_nav_menu_locations();
+	$menu_id   = ! empty( $locations['primary'] ) ? (int) $locations['primary'] : 0;
+	if ( ! $menu_id ) {
+		return;
+	}
+	// Filter tampilan aktif — ambil mentah lewat get_posts.
+	$raw = get_posts(
+		array(
+			'post_type'      => 'nav_menu_item',
+			'posts_per_page' => 100,
+			'post_status'    => 'any',
+			'nopaging'       => true,
+			'tax_query'      => array(
+				array(
+					'taxonomy' => 'nav_menu',
+					'field'    => 'term_id',
+					'terms'    => $menu_id,
+				),
+			),
+		)
+	);
+	foreach ( $raw as $post ) {
+		$parent = (int) get_post_meta( $post->ID, '_menu_item_menu_item_parent', true );
+		if ( 0 !== $parent ) {
+			continue;
+		}
+		$title = $post->post_title;
+		if ( '' === $title ) {
+			$object_id = (int) get_post_meta( $post->ID, '_menu_item_object_id', true );
+			if ( $object_id ) {
+				$title = get_the_title( $object_id );
+			}
+		}
+		$url = (string) get_post_meta( $post->ID, '_menu_item_url', true );
+		if ( ! $url ) {
+			$object_id = (int) get_post_meta( $post->ID, '_menu_item_object_id', true );
+			$type      = (string) get_post_meta( $post->ID, '_menu_item_type', true );
+			if ( 'post_type' === $type && $object_id ) {
+				$url = (string) get_permalink( $object_id );
+			}
+		}
+		$is_visi = (bool) preg_match( '/visi\s*misi/i', (string) $title )
+			|| false !== strpos( $url, 'visi-misi-man-3-jember' );
+		if ( $is_visi ) {
+			wp_delete_post( $post->ID, true );
+		}
+	}
+	update_option( 'man3_hijau_nav_drop_toplevel_visi', '1.5.29', false );
+}
+add_action( 'init', 'man3_hijau_cleanup_toplevel_visi_misi_menu', 20 );
 
 /**
  * Enqueue fonts, CSS, JS.
