@@ -2648,30 +2648,34 @@ body.admin-bar .site-header { top: 32px; }
   display: grid;
   /* Kolom samping lebar (layout v1.5.25); tinggi baris HANYA dari foto di tengah */
   grid-template-columns: minmax(9.5rem, 0.62fr) minmax(0, 1fr) minmax(9.5rem, 0.62fr);
-  align-items: stretch;
-  gap: 0.3rem 0.45rem;
-  padding: 0.35rem 0.3rem;
+  align-items: center;
+  column-gap: 0.45rem;
+  row-gap: 0;
+  /* Padding atas = bawah agar pita mint simetris */
+  padding-block: 0.55rem;
+  padding-inline: 0.4rem;
+  box-sizing: border-box;
 }
 
-/* Logo absolute di dalam kolom yang di-stretch = setinggi foto, tanpa menambah tinggi baris */
+/* Kolom brand di-stretch setinggi foto; logo di tengah via grid */
 .man3-info-strip__brand {
   position: relative;
   pointer-events: none;
   z-index: 1;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
 }
 
 .man3-info-strip__brand img {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  position: static;
   display: block;
   width: auto;
   height: auto;
-  /* Setengah ukuran v1.5.25 (~setengah tinggi foto) */
+  /* Setengah ukuran v1.5.25 — jangan diubah */
   max-width: 49%;
   max-height: 48%;
   object-fit: contain;
@@ -2769,11 +2773,14 @@ body.admin-bar .site-header { top: 32px; }
 .man3-info-strip__dots {
   position: absolute;
   left: 50%;
-  bottom: 0.55rem;
+  /* Overlay di atas foto, bukan menambah pita mint bawah */
+  bottom: 0.7rem;
   transform: translateX(-50%);
   display: flex;
   gap: 0.35rem;
   z-index: 2;
+  margin: 0;
+  padding: 0;
 }
 
 .man3-info-strip__dot {
