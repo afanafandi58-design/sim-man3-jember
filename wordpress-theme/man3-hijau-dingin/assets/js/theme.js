@@ -116,6 +116,43 @@
     }
   }
 
+  /* Survey Kepuasan — ikon buka/tutup panel */
+  (function initSurveyGate() {
+    var root = document.querySelector('[data-survey-gate]');
+    if (!root) return;
+    var gate = root.querySelector('.survey-gate');
+    var panel = root.querySelector('[data-survey-panel]');
+    var toggles = Array.prototype.slice.call(root.querySelectorAll('[data-survey-toggle]'));
+    if (!gate || !panel || !toggles.length) return;
+
+    function setOpen(open) {
+      gate.classList.toggle('is-open', open);
+      if (open) panel.removeAttribute('hidden');
+      else panel.setAttribute('hidden', 'hidden');
+      toggles.forEach(function (btn) {
+        if (btn.classList.contains('survey-icon-btn')) {
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+      });
+      if (open) {
+        var focusTarget = panel.querySelector('.survey-close, .survey-form input, .survey-form button');
+        if (focusTarget) focusTarget.focus({ preventScroll: true });
+        root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    toggles.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setOpen(panel.hasAttribute('hidden'));
+      });
+    });
+
+    /* Deep-link / setelah submit: buka jika hash atau sudah is-open */
+    if (gate.classList.contains('is-open') || (location.hash || '') === '#survey-kepuasan') {
+      setOpen(true);
+    }
+  })();
+
   /* Refleksi warga — carousel 3 kartu desktop / 1 ponsel */
   (function initQuoteSlider() {
     var root = document.querySelector('[data-quote-slider]');

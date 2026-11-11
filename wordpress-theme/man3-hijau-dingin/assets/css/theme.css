@@ -3070,20 +3070,124 @@ body.admin-bar .site-header { top: 32px; }
   }
 }
 
-/* ——— Survey Kepuasan — minimal ——— */
+/* ——— Survey Kepuasan — gerbang ikon ——— */
 .section-survey {
   background: linear-gradient(180deg, #f4faf6 0%, #fbfdfb 55%, #ffffff 100%);
   border-top: 1px solid rgba(15, 81, 50, 0.06);
-  padding-block: clamp(3.25rem, 7vw, 5.5rem);
+  padding-block: clamp(3rem, 6vw, 4.75rem);
 }
 .section-survey .section-head {
   max-width: 36rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.35rem;
 }
-.section-survey .section-lead {
+.survey-head-compact {
+  text-align: center;
+  margin-inline: auto;
+}
+.survey-gate {
+  display: grid;
+  justify-items: center;
+  gap: 1.5rem;
+}
+.survey-icon-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  padding: 0.35rem;
+  color: var(--green-800, #14633f);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.survey-icon-btn:hover,
+.survey-icon-btn:focus-visible {
+  color: var(--green-950, #062016);
+  transform: translateY(-2px);
+  outline: none;
+}
+.survey-icon-mark {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 1.35rem;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(232, 247, 239, 0.92));
+  border: 1px solid rgba(15, 81, 50, 0.14);
+  box-shadow: 0 14px 28px rgba(15, 81, 50, 0.08);
+  color: var(--green-800, #14633f);
+}
+.survey-icon-btn:hover .survey-icon-mark,
+.survey-icon-btn:focus-visible .survey-icon-mark {
+  border-color: rgba(15, 81, 50, 0.28);
+  box-shadow: 0 16px 32px rgba(15, 81, 50, 0.12);
+}
+.survey-icon-label {
+  font-family: var(--font-display, Fraunces, Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--green-950, #062016);
+}
+.survey-icon-hint {
+  font-size: 0.88rem;
+  color: rgba(10, 48, 32, 0.62);
+}
+.survey-gate.is-open .survey-icon-hint {
+  opacity: 0.55;
+}
+.survey-panel {
+  width: min(100%, 44rem);
+  margin-inline: auto;
+  padding: 1.15rem 0 0.25rem;
+  border-top: 1px solid rgba(15, 81, 50, 0.1);
+  animation: surveyPanelIn 0.35s ease;
+}
+.survey-panel[hidden] {
+  display: none !important;
+}
+@keyframes surveyPanelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .survey-panel { animation: none; }
+  .survey-icon-btn { transition: none; }
+}
+.survey-panel-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 1.25rem;
+  margin-bottom: 1.15rem;
+}
+.survey-panel-lead {
+  margin: 0;
   max-width: 34rem;
   color: rgba(10, 48, 32, 0.72);
   line-height: 1.65;
+  font-size: 0.98rem;
+}
+.survey-close {
+  appearance: none;
+  border: 1px solid rgba(15, 81, 50, 0.18);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--green-900, #0a3020);
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.survey-close:hover,
+.survey-close:focus-visible {
+  background: rgba(20, 99, 63, 0.08);
+  border-color: rgba(15, 81, 50, 0.35);
+  outline: none;
 }
 .survey-flash {
   margin: 0 0 1.75rem;
@@ -3237,7 +3341,23 @@ body.admin-bar .site-header { top: 32px; }
 }
 @media (max-width: 720px) {
   .section-survey {
-    padding-block: 2.75rem;
+    padding-block: 2.5rem;
+  }
+  .survey-icon-mark {
+    width: 4.85rem;
+    height: 4.85rem;
+    border-radius: 1.15rem;
+  }
+  .survey-icon-label {
+    font-size: 1.22rem;
+  }
+  .survey-panel-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .survey-close {
+    width: 100%;
+    text-align: center;
   }
   .survey-form {
     gap: 1.35rem;

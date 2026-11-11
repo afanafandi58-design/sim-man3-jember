@@ -282,79 +282,114 @@ function man3_survey_render_section() {
 	$questions = man3_survey_get_questions( true );
 	$scale     = man3_survey_scale_labels();
 	$flash     = man3_survey_flash_message();
+	$open      = (bool) $flash; // setelah kirim, buka panel agar pesan terbaca
 	?>
-	<section class="section section-survey" id="survey-kepuasan" aria-labelledby="survey-title">
+	<section class="section section-survey" id="survey-kepuasan" aria-labelledby="survey-title" data-survey-gate>
 		<div class="container">
-			<div class="section-head">
+			<div class="section-head survey-head-compact">
 				<p class="section-kicker"><?php esc_html_e( 'Partisipasi publik', 'man3-hijau-dingin' ); ?></p>
 				<h2 class="section-title" id="survey-title"><?php esc_html_e( 'Survey Kepuasan', 'man3-hijau-dingin' ); ?></h2>
-				<p class="section-lead">
-					<?php esc_html_e( 'Bantu evaluasi layanan MAN 3 Jember, termasuk penerapan zona integritas. Skala 1 (Sangat tidak puas) hingga 5 (Sangat puas). Anonim.', 'man3-hijau-dingin' ); ?>
-				</p>
 			</div>
 
-			<?php if ( $flash ) : ?>
-				<p class="survey-flash survey-flash--<?php echo esc_attr( $flash['type'] ); ?>" role="status">
-					<?php echo esc_html( $flash['text'] ); ?>
-				</p>
-			<?php endif; ?>
+			<div class="survey-gate<?php echo $open ? ' is-open' : ''; ?>">
+				<button
+					type="button"
+					class="survey-icon-btn"
+					data-survey-toggle
+					aria-expanded="<?php echo $open ? 'true' : 'false'; ?>"
+					aria-controls="survey-panel"
+				>
+					<span class="survey-icon-mark" aria-hidden="true">
+						<svg viewBox="0 0 64 64" width="40" height="40" focusable="false">
+							<rect x="14" y="10" width="36" height="44" rx="6" fill="none" stroke="currentColor" stroke-width="2.6"/>
+							<path d="M22 22h20M22 32h20M22 42h12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+							<circle cx="46" cy="46" r="10" fill="currentColor"/>
+							<path d="M41.5 46.2l2.8 2.8 6.2-6.2" fill="none" stroke="#f4faf6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+					</span>
+					<span class="survey-icon-label"><?php esc_html_e( 'Survey', 'man3-hijau-dingin' ); ?></span>
+					<span class="survey-icon-hint"><?php esc_html_e( 'Klik untuk mengisi', 'man3-hijau-dingin' ); ?></span>
+				</button>
 
-			<?php if ( ! $questions ) : ?>
-				<p class="survey-empty"><?php esc_html_e( 'Survei belum tersedia. Silakan kembali lagi nanti.', 'man3-hijau-dingin' ); ?></p>
-			<?php elseif ( $flash && 'success' === $flash['type'] ) : ?>
-				<div class="survey-thanks">
-					<p><?php esc_html_e( 'Partisipasi Anda membantu peningkatan mutu dan integritas layanan madrasah.', 'man3-hijau-dingin' ); ?></p>
-				</div>
-			<?php else : ?>
-				<form class="survey-form" method="post" action="<?php echo esc_url( home_url( '/' ) ); ?>#survey-kepuasan" novalidate>
-					<?php wp_nonce_field( 'man3_survey_submit', 'man3_survey_nonce' ); ?>
-					<input type="hidden" name="man3_survey_submit" value="1" />
-					<p class="survey-hp" aria-hidden="true">
-						<label for="man3_survey_website"><?php esc_html_e( 'Jangan diisi', 'man3-hijau-dingin' ); ?></label>
-						<input type="text" name="man3_survey_website" id="man3_survey_website" value="" tabindex="-1" autocomplete="off" />
-					</p>
-
-					<ul class="survey-legend" aria-hidden="true">
-						<?php foreach ( $scale as $val => $label ) : ?>
-							<li><span><?php echo esc_html( (string) $val ); ?></span> <?php echo esc_html( $label ); ?></li>
-						<?php endforeach; ?>
-					</ul>
-
-					<ol class="survey-list">
-						<?php foreach ( $questions as $i => $q ) : ?>
-							<li class="survey-item">
-								<p class="survey-q">
-									<span class="survey-q-num"><?php echo esc_html( (string) ( $i + 1 ) ); ?></span>
-									<?php echo esc_html( $q['text'] ); ?>
-								</p>
-								<div class="survey-scale" role="radiogroup" aria-label="<?php echo esc_attr( $q['text'] ); ?>">
-									<?php foreach ( $scale as $val => $label ) : ?>
-										<label class="survey-opt" title="<?php echo esc_attr( $label ); ?>">
-											<input
-												type="radio"
-												name="man3_survey_q[<?php echo esc_attr( $q['id'] ); ?>]"
-												value="<?php echo esc_attr( (string) $val ); ?>"
-												required
-												aria-label="<?php echo esc_attr( $label ); ?>"
-											/>
-											<span class="survey-opt-val"><?php echo esc_html( (string) $val ); ?></span>
-										</label>
-									<?php endforeach; ?>
-								</div>
-							</li>
-						<?php endforeach; ?>
-					</ol>
-
-					<div class="survey-footer">
-						<p class="survey-note">
-							<?php esc_html_e( 'Anonim · tanpa nama/email · satu kiriman per 30 menit.', 'man3-hijau-dingin' ); ?>
+				<div
+					id="survey-panel"
+					class="survey-panel"
+					data-survey-panel
+					<?php echo $open ? '' : ' hidden'; ?>
+				>
+					<div class="survey-panel-bar">
+						<p class="survey-panel-lead">
+							<?php esc_html_e( 'Bantu evaluasi layanan MAN 3 Jember, termasuk penerapan zona integritas. Skala 1 (Sangat tidak puas) hingga 5 (Sangat puas). Anonim.', 'man3-hijau-dingin' ); ?>
 						</p>
-						<button type="submit" class="btn btn-solid survey-submit">
-							<?php esc_html_e( 'Kirim tanggapan', 'man3-hijau-dingin' ); ?>
+						<button type="button" class="survey-close" data-survey-toggle aria-controls="survey-panel">
+							<?php esc_html_e( 'Tutup', 'man3-hijau-dingin' ); ?>
 						</button>
 					</div>
-				</form>
-			<?php endif; ?>
+
+					<?php if ( $flash ) : ?>
+						<p class="survey-flash survey-flash--<?php echo esc_attr( $flash['type'] ); ?>" role="status">
+							<?php echo esc_html( $flash['text'] ); ?>
+						</p>
+					<?php endif; ?>
+
+					<?php if ( ! $questions ) : ?>
+						<p class="survey-empty"><?php esc_html_e( 'Survei belum tersedia. Silakan kembali lagi nanti.', 'man3-hijau-dingin' ); ?></p>
+					<?php elseif ( $flash && 'success' === $flash['type'] ) : ?>
+						<div class="survey-thanks">
+							<p><?php esc_html_e( 'Partisipasi Anda membantu peningkatan mutu dan integritas layanan madrasah.', 'man3-hijau-dingin' ); ?></p>
+						</div>
+					<?php else : ?>
+						<form class="survey-form" method="post" action="<?php echo esc_url( home_url( '/' ) ); ?>#survey-kepuasan" novalidate>
+							<?php wp_nonce_field( 'man3_survey_submit', 'man3_survey_nonce' ); ?>
+							<input type="hidden" name="man3_survey_submit" value="1" />
+							<p class="survey-hp" aria-hidden="true">
+								<label for="man3_survey_website"><?php esc_html_e( 'Jangan diisi', 'man3-hijau-dingin' ); ?></label>
+								<input type="text" name="man3_survey_website" id="man3_survey_website" value="" tabindex="-1" autocomplete="off" />
+							</p>
+
+							<ul class="survey-legend" aria-hidden="true">
+								<?php foreach ( $scale as $val => $label ) : ?>
+									<li><span><?php echo esc_html( (string) $val ); ?></span> <?php echo esc_html( $label ); ?></li>
+								<?php endforeach; ?>
+							</ul>
+
+							<ol class="survey-list">
+								<?php foreach ( $questions as $i => $q ) : ?>
+									<li class="survey-item">
+										<p class="survey-q">
+											<span class="survey-q-num"><?php echo esc_html( (string) ( $i + 1 ) ); ?></span>
+											<?php echo esc_html( $q['text'] ); ?>
+										</p>
+										<div class="survey-scale" role="radiogroup" aria-label="<?php echo esc_attr( $q['text'] ); ?>">
+											<?php foreach ( $scale as $val => $label ) : ?>
+												<label class="survey-opt" title="<?php echo esc_attr( $label ); ?>">
+													<input
+														type="radio"
+														name="man3_survey_q[<?php echo esc_attr( $q['id'] ); ?>]"
+														value="<?php echo esc_attr( (string) $val ); ?>"
+														required
+														aria-label="<?php echo esc_attr( $label ); ?>"
+													/>
+													<span class="survey-opt-val"><?php echo esc_html( (string) $val ); ?></span>
+												</label>
+											<?php endforeach; ?>
+										</div>
+									</li>
+								<?php endforeach; ?>
+							</ol>
+
+							<div class="survey-footer">
+								<p class="survey-note">
+									<?php esc_html_e( 'Anonim · tanpa nama/email · satu kiriman per 30 menit.', 'man3-hijau-dingin' ); ?>
+								</p>
+								<button type="submit" class="btn btn-solid survey-submit">
+									<?php esc_html_e( 'Kirim tanggapan', 'man3-hijau-dingin' ); ?>
+								</button>
+							</div>
+						</form>
+					<?php endif; ?>
+				</div>
+			</div>
 		</div>
 	</section>
 	<?php
