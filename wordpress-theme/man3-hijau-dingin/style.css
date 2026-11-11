@@ -1,0 +1,17 @@
+/*
+Theme Name: MAN 3 Hijau Dingin
+Theme URI: https://man3jember.sch.id/
+Author: MAN 3 Jember / SIM modernisasi
+Author URI: https://github.com/afanafandi58-design/sim-man3-jember
+Description: Tema modern nuansa hijau dingin untuk MAN 3 Jember. Mempertahankan konten publik (brand, sambutan, berita, menu) dengan presentasi baru. Prototype Vite di repo disalin ke tema ini agar bisa di-upload lewat Appearance → Themes → Upload Theme.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.7
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: man3-hijau-dingin
+Tags: education, custom-menu, featured-images, translation-ready, blog
+*/
+
+/* Styles utama dimuat dari assets/css/theme.css melalui functions.php */
