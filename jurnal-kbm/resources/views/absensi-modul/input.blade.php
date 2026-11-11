@@ -9,7 +9,8 @@
 @section('content')
 <div class="alert alert-info">
     Modul Absensi Harian (titik F) terhubung ke jurnal KBM.
-    Tanggal isi: hari H atau H-1. Upload bukti screenshot laporan online (opsional per siswa).
+    Tanggal isi: hari H atau H-1. Filter/urut siswa per kelas (untuk guru: kelas ajar + wali).
+    Upload bukti screenshot laporan online (opsional per siswa).
 </div>
 
 @if(session('success'))
@@ -40,9 +41,10 @@
                     <option value="{{ $r }}" @selected(($filters['rombel'] ?? '') == $r)>{{ $r }}</option>
                 @endforeach
             </select>
-            <button class="btn btn-primary">Tampilkan</button>
-            <a href="{{ route('absensi-modul.hari-efektif', ['tanggal' => $tanggal]) }}" class="btn btn-outline-secondary ml-2">Tool hari efektif</a>
+            <button class="btn btn-primary">Filter / urutkan</button>
+            <a href="{{ route('absensi-modul.hari-efektif', ['tanggal' => $tanggal, 'kelas' => $filters['kelas'] ?? null, 'rombel' => $filters['rombel'] ?? null]) }}" class="btn btn-outline-secondary ml-2">Daftar tidak masuk</a>
         </form>
+        <small class="text-muted d-block mt-2">Daftar siswa diurutkan kelas → rombel → nama.</small>
     </div>
 </div>
 
@@ -100,10 +102,11 @@
     <div class="card-header">Data tersimpan tanggal {{ $tanggal }} (filter aktif)</div>
     <div class="card-body p-0 table-responsive">
         <table class="table table-sm mb-0">
-            <thead><tr><th>Siswa</th><th>Status</th><th>Keterangan</th><th>Bukti</th></tr></thead>
+            <thead><tr><th>Kelas</th><th>Siswa</th><th>Status</th><th>Keterangan</th><th>Bukti</th></tr></thead>
             <tbody>
             @foreach($existing as $row)
                 <tr>
+                    <td>{{ $row->siswa->kelas ?? '-' }}{{ ($row->siswa->rombel ?? null) ? '/'.$row->siswa->rombel : '' }}</td>
                     <td>{{ $row->siswa->nama ?? '-' }}</td>
                     <td><span class="badge badge-{{ $row->status === 'Hadir' ? 'success' : 'warning' }}">{{ $row->status }}</span></td>
                     <td>{{ $row->keterangan ?: '-' }}</td>

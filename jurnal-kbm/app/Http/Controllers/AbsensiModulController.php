@@ -30,6 +30,7 @@ class AbsensiModulController extends Controller
     /** Input laporan online + upload bukti (guru/staff/admin/kepala). */
     public function inputForm(Request $request)
     {
+        $user = $request->user();
         $tanggal = (string) $request->get('tanggal', $this->operationalDate->today()->toDateString());
         if (! $this->operationalDate->isFillableDate($tanggal)) {
             $tanggal = $this->operationalDate->today()->toDateString();
@@ -37,15 +38,48 @@ class AbsensiModulController extends Controller
 
         $kelas = $request->get('kelas');
         $rombel = $request->get('rombel');
-        $siswas = $this->absensiHarianService->siswaOptions($kelas, $rombel);
+        if ($kelas && ! $this->absensiHarianService->userCanAccessKelas($user, $kelas, $rombel)) {
+            $kelas = null;
+            $rombel = null;
+        }
+
+        $siswas = $this->absensiHarianService->siswaOptionsForUser($user, $kelas, $rombel);
         $existing = AbsensiHarian::query()
+            ->with('siswa')
             ->whereDate('tanggal', $tanggal)
             ->whereIn('siswa_id', $siswas->pluck('id'))
             ->get()
+            ->sortBy([
+                fn ($row) => $row->siswa?->kelas ?? '',
+                fn ($row) => $row->siswa?->rombel ?? '',
+                fn ($row) => $row->siswa?->nama ?? '',
+            ])
+            ->values()
             ->keyBy('siswa_id');
 
-        $kelasList = Siswa::query()->where('status', Siswa::STATUS_AKTIF)->distinct()->orderBy('kelas')->pluck('kelas');
-        $rombelList = Siswa::query()->where('status', Siswa::STATUS_AKTIF)->distinct()->orderBy('rombel')->pluck('rombel');
+        $allowed = $this->absensiHarianService->allowedKelasForUser($user);
+        $kelasList = $allowed->pluck('kelas')->unique()->sort()->values();
+        $rombelList = $allowed
+            ->when($kelas, fn ($rows) => $rows->where('kelas', $kelas))
+            ->pluck('rombel')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+        if ($rombelList->isEmpty()) {
+            $rombelList = Siswa::query()
+                ->where('status', Siswa::STATUS_AKTIF)
+                ->when($kelas, fn ($q) => $q->where('kelas', $kelas))
+                ->when(
+                    $user->role === 'guru',
+                    fn ($q) => $q->whereIn('kelas', $kelasList->all() ?: ['__none__'])
+                )
+                ->distinct()
+                ->orderBy('rombel')
+                ->pluck('rombel')
+                ->filter()
+                ->values();
+        }
 
         return view('absensi-modul.input', [
             'tanggal' => $tanggal,
@@ -56,6 +90,7 @@ class AbsensiModulController extends Controller
             'rombelList' => $rombelList,
             'filters' => ['kelas' => $kelas, 'rombel' => $rombel],
             'statuses' => AbsensiHarian::STATUSES,
+            'sortByKelas' => true,
         ]);
     }
 
@@ -69,6 +104,13 @@ class AbsensiModulController extends Controller
             'bukti' => 'nullable|file|mimes:jpg,jpeg,png,webp|mimetypes:image/jpeg,image/png,image/webp|max:2048',
             'bukti_caption' => 'nullable|string|max:150',
         ]);
+
+        $siswa = Siswa::query()->findOrFail((int) $data['siswa_id']);
+        abort_unless(
+            $this->absensiHarianService->userCanAccessKelas($request->user(), $siswa->kelas, $siswa->rombel),
+            403,
+            'Anda tidak berhak mengisi absensi untuk kelas siswa ini.'
+        );
 
         $this->absensiHarianService->upsertLaporanOnline(
             $data['tanggal'],
@@ -89,33 +131,63 @@ class AbsensiModulController extends Controller
             ->with('success', 'Absensi harian tersimpan dan terhubung ke modul jurnal.');
     }
 
-    /** Tool hari efektif: daftar tidak masuk + bukti (guru pengajar hari itu / admin / kepala / staff). */
+    /** Tool hari efektif: daftar tidak masuk per kelas (guru ajar/wali / admin / kepala / staff). */
     public function hariEfektif(Request $request)
     {
         $user = $request->user();
         $tanggal = (string) $request->get('tanggal', $this->operationalDate->today()->toDateString());
         $isPengajar = in_array($user->role, ['admin', 'kepala', 'staff'], true)
             || $this->absensiHarianService->guruMengajarHariIni($user);
+        $isWali = $this->absensiHarianService->isWaliKelas($user);
 
         $jadwals = $user->guru_id
             ? $this->absensiHarianService->jadwalGuruHariIni((int) $user->guru_id)
             : collect();
 
+        $allowedKelas = $this->absensiHarianService->allowedKelasForUser($user);
+        $kelasList = $allowedKelas->pluck('kelas')->unique()->sort()->values();
         $kelasFilter = $request->get('kelas');
-        if (! $kelasFilter && $jadwals->isNotEmpty() && $user->role === 'guru') {
-            $kelasFilter = $jadwals->first()->kelas;
+        $rombelFilter = $request->get('rombel');
+
+        if ($kelasFilter && ! $this->absensiHarianService->userCanAccessKelas($user, $kelasFilter, $rombelFilter)) {
+            $kelasFilter = null;
+            $rombelFilter = null;
         }
 
-        $tidakMasuk = $this->absensiHarianService->tidakMasuk($tanggal, $kelasFilter, $request->get('rombel'));
+        $rombelList = Siswa::query()
+            ->where('status', Siswa::STATUS_AKTIF)
+            ->when($kelasFilter, fn ($q) => $q->where('kelas', $kelasFilter))
+            ->when(
+                $user->role === 'guru',
+                fn ($q) => $q->whereIn('kelas', $kelasList->all() ?: ['__none__'])
+            )
+            ->distinct()
+            ->orderBy('rombel')
+            ->pluck('rombel')
+            ->filter()
+            ->values();
+
+        $tidakMasuk = $this->absensiHarianService->tidakMasukForUser(
+            $user,
+            $tanggal,
+            $kelasFilter,
+            $rombelFilter
+        );
 
         return view('absensi-modul.hari-efektif', [
             'tanggal' => $tanggal,
             'hari' => $this->operationalDate->hari(),
             'isPengajar' => $isPengajar,
+            'isWali' => $isWali,
             'jadwals' => $jadwals,
             'tidakMasuk' => $tidakMasuk,
             'kelasFilter' => $kelasFilter,
-            'canOpenTool' => $isPengajar || $this->absensiHarianService->isWaliKelas($user),
+            'rombelFilter' => $rombelFilter,
+            'kelasList' => $kelasList,
+            'rombelList' => $rombelList,
+            'allowedKelas' => $allowedKelas,
+            'canOpenTool' => $isPengajar || $isWali || $kelasList->isNotEmpty()
+                || in_array($user->role, ['admin', 'kepala', 'staff'], true),
         ]);
     }
 
@@ -139,13 +211,17 @@ class AbsensiModulController extends Controller
         $rombel = $request->get('rombel', $selected?->rombel);
 
         // Admin/kepala tanpa filter: tampilkan semua tidak masuk hari itu.
-        if ($isAdminLike && ! $request->filled('kelas') && ! $selected) {
+        if ($isAdminLike && ! $request->filled('kelas') && ! $request->filled('wali_id') && ! $selected) {
             $tidakMasuk = $this->absensiHarianService->tidakMasuk($tanggal, null, null);
+        } elseif ($kelas && ($isAdminLike || $this->absensiHarianService->userCanAccessKelas($user, $kelas, $rombel))) {
+            $tidakMasuk = $this->absensiHarianService->tidakMasuk($tanggal, $kelas, $rombel);
         } else {
-            $tidakMasuk = $kelas
-                ? $this->absensiHarianService->tidakMasuk($tanggal, $kelas, $rombel)
-                : collect();
+            $tidakMasuk = collect();
         }
+
+        $mengajarKelas = $user->role === 'guru'
+            ? $this->absensiHarianService->allowedKelasForUser($user)->where('sumber', 'mengajar')->values()
+            : collect();
 
         return view('absensi-modul.wali', [
             'assignments' => $assignments,
@@ -155,6 +231,7 @@ class AbsensiModulController extends Controller
             'kelas' => $kelas,
             'rombel' => $rombel,
             'isAdminLike' => $isAdminLike,
+            'mengajarKelas' => $mengajarKelas,
         ]);
     }
 

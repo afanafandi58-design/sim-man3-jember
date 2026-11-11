@@ -8,21 +8,41 @@
 
 @section('content')
 <div class="alert alert-primary">
-    Hari operasional: <strong>{{ $hari }}</strong> · Tanggal: <strong>{{ $tanggal }}</strong>.
-    Guru pengajar hari ini dapat melihat siswa tidak masuk + bukti untuk checklist kehadiran manual di jurnal.
+    Hari operasional: <strong>{{ $hari }}</strong> · Tanggal daftar: <strong>{{ $tanggal }}</strong>.
+    Guru pengajar dan wali kelas melihat siswa tidak masuk (Sakit/Izin/Alpha) pada kelas yang relevan, diurutkan per kelas.
+    Input absensi tetap hanya H/H-1; daftar ini boleh dilihat untuk tanggal yang dipilih.
 </div>
 
 @if(! $canOpenTool)
-    <div class="alert alert-warning">Anda tidak terjadwal mengajar hari ini dan bukan wali kelas. Data tetap dapat dilihat admin/kepala/staff.</div>
+    <div class="alert alert-warning">Anda belum punya kelas ajar aktif atau assignment wali. Hubungi admin bila perlu akses.</div>
 @endif
 
-<form method="GET" class="form-inline mb-3">
+@if(($isWali ?? false) && ($isPengajar ?? false))
+    <div class="alert alert-info py-2">
+        Anda wali kelas sekaligus pengajar hari ini — filter kelas mencakup keduanya.
+        <a href="{{ route('absensi-modul.wali', ['tanggal' => $tanggal]) }}">Buka menu wali kelas</a>
+    </div>
+@endif
+
+<form method="GET" class="form-inline mb-3 flex-wrap">
     <label class="mr-2">Tanggal</label>
-    <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control mr-2">
+    <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control mr-2 mb-2">
     <label class="mr-2">Kelas</label>
-    <input type="text" name="kelas" value="{{ $kelasFilter }}" class="form-control mr-2" placeholder="mis. X">
-    <button class="btn btn-primary">Muat ulang</button>
-    <a href="{{ route('absensi-modul.input', ['tanggal' => $tanggal]) }}" class="btn btn-outline-success ml-2">Input absensi</a>
+    <select name="kelas" class="form-control mr-2 mb-2" onchange="this.form.submit()">
+        <option value="">Semua kelas saya</option>
+        @foreach($kelasList as $k)
+            <option value="{{ $k }}" @selected(($kelasFilter ?? '') == $k)>{{ $k }}</option>
+        @endforeach
+    </select>
+    <label class="mr-2">Rombel</label>
+    <select name="rombel" class="form-control mr-2 mb-2">
+        <option value="">Semua</option>
+        @foreach($rombelList as $r)
+            <option value="{{ $r }}" @selected(($rombelFilter ?? '') == $r)>{{ $r }}</option>
+        @endforeach
+    </select>
+    <button class="btn btn-primary mb-2">Filter / urutkan</button>
+    <a href="{{ route('absensi-modul.input', ['tanggal' => $tanggal, 'kelas' => $kelasFilter, 'rombel' => $rombelFilter]) }}" class="btn btn-outline-success ml-2 mb-2">Input absensi</a>
 </form>
 
 @if($jadwals->isNotEmpty())
@@ -42,6 +62,10 @@
                            href="{{ route('guru.jurnal.create', $j->id) }}?tanggal={{ urlencode($tanggal) }}">
                             Buka checklist jurnal
                         </a>
+                        <a class="btn btn-xs btn-outline-secondary"
+                           href="{{ route('absensi-modul.hari-efektif', ['tanggal' => $tanggal, 'kelas' => $j->kelas]) }}">
+                            Filter kelas ini
+                        </a>
                     </td>
                 </tr>
             @endforeach
@@ -55,13 +79,14 @@
     <div class="card-header">
         Siswa tidak masuk
         <span class="badge badge-warning">{{ $tidakMasuk->count() }}</span>
+        <small class="text-muted ml-2">diurutkan per kelas → rombel → nama</small>
     </div>
     <div class="card-body p-0 table-responsive">
         <table class="table table-striped mb-0">
             <thead>
                 <tr>
-                    <th>Nama</th>
                     <th>Kelas</th>
+                    <th>Nama</th>
                     <th>Status</th>
                     <th>Keterangan</th>
                     <th>Bukti</th>
@@ -71,8 +96,8 @@
             <tbody>
             @forelse($tidakMasuk as $row)
                 <tr>
+                    <td>{{ $row->siswa->kelas ?? '-' }}{{ ($row->siswa->rombel ?? null) ? '/'.$row->siswa->rombel : '' }}</td>
                     <td>{{ $row->siswa->nama ?? '-' }}</td>
-                    <td>{{ $row->siswa->kelas ?? '-' }}/{{ $row->siswa->rombel ?? '-' }}</td>
                     <td><span class="badge badge-danger">{{ $row->status }}</span></td>
                     <td>{{ $row->keterangan ?: '-' }}</td>
                     <td>
@@ -85,7 +110,7 @@
                     <td>{{ $row->sumber }}</td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="text-center text-muted">Tidak ada laporan tidak masuk untuk filter ini.</td></tr>
+                <tr><td colspan="6" class="text-center text-muted">Tidak ada laporan tidak masuk untuk filter kelas ini.</td></tr>
             @endforelse
             </tbody>
         </table>

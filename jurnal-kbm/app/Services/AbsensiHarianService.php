@@ -169,8 +169,102 @@ class AbsensiHarianService
         return ['status' => $statusMap, 'keterangan' => $ketMap];
     }
 
-    /** Siswa tidak masuk pada tanggal (opsional filter kelas/rombel). */
-    public function tidakMasuk(string $tanggal, ?string $kelas = null, ?string $rombel = null): Collection
+    /**
+     * Kelas yang boleh dilihat/difilter user (guru: jadwal aktif + assignment wali; admin/staff/kepala: semua).
+     *
+     * @return Collection<int, array{kelas:string,rombel:?string,sumber:string}>
+     */
+    public function allowedKelasForUser(User $user): Collection
+    {
+        $this->ensureSchema();
+
+        if (in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
+            return Siswa::query()
+                ->where('status', Siswa::STATUS_AKTIF)
+                ->select('kelas', 'rombel')
+                ->distinct()
+                ->orderBy('kelas')
+                ->orderBy('rombel')
+                ->get()
+                ->map(fn ($row) => [
+                    'kelas' => (string) $row->kelas,
+                    'rombel' => $row->rombel ? (string) $row->rombel : null,
+                    'sumber' => 'semua',
+                ])
+                ->values();
+        }
+
+        if (! $user->guru_id) {
+            return collect();
+        }
+
+        $fromJadwal = Jadwal::query()
+            ->active()
+            ->where('guru_id', $user->guru_id)
+            ->select('kelas')
+            ->distinct()
+            ->pluck('kelas')
+            ->filter()
+            ->map(fn ($kelas) => [
+                'kelas' => (string) $kelas,
+                'rombel' => null,
+                'sumber' => 'mengajar',
+            ]);
+
+        $fromWali = WaliKelas::query()
+            ->where('guru_id', $user->guru_id)
+            ->get(['kelas', 'rombel'])
+            ->map(fn (WaliKelas $row) => [
+                'kelas' => (string) $row->kelas,
+                'rombel' => $row->rombel ? (string) $row->rombel : null,
+                'sumber' => 'wali',
+            ]);
+
+        return $fromJadwal
+            ->concat($fromWali)
+            ->unique(fn (array $row) => $row['kelas'].'|'.($row['rombel'] ?? ''))
+            ->sortBy([
+                fn (array $row) => $row['kelas'],
+                fn (array $row) => $row['rombel'] ?? '',
+            ])
+            ->values();
+    }
+
+    /** @return Collection<int, string> */
+    public function allowedKelasNamesForUser(User $user): Collection
+    {
+        return $this->allowedKelasForUser($user)
+            ->pluck('kelas')
+            ->unique()
+            ->sort()
+            ->values();
+    }
+
+    public function userCanAccessKelas(User $user, ?string $kelas, ?string $rombel = null): bool
+    {
+        if ($kelas === null || $kelas === '') {
+            return in_array($user->role, ['admin', 'kepala', 'staff'], true);
+        }
+
+        $allowed = $this->allowedKelasForUser($user);
+        if ($allowed->isEmpty() && in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
+            return true;
+        }
+
+        return $allowed->contains(function (array $row) use ($kelas, $rombel) {
+            if ($row['kelas'] !== $kelas) {
+                return false;
+            }
+            if ($row['rombel'] === null || $row['rombel'] === '') {
+                return true;
+            }
+
+            return $rombel === null || $rombel === '' || $row['rombel'] === $rombel;
+        });
+    }
+
+    /** Siswa tidak masuk pada tanggal (opsional filter kelas/rombel), diurutkan per kelas. */
+    public function tidakMasuk(string $tanggal, ?string $kelas = null, ?string $rombel = null, ?array $kelasNames = null): Collection
     {
         $this->ensureSchema();
 
@@ -178,15 +272,46 @@ class AbsensiHarianService
             ->with(['siswa', 'reporter'])
             ->whereDate('tanggal', $tanggal)
             ->whereIn('status', AbsensiHarian::TIDAK_MASUK)
-            ->when($kelas, fn ($q) => $q->whereHas('siswa', function ($sq) use ($kelas, $rombel) {
-                $sq->where('kelas', $kelas);
-                if ($rombel) {
-                    $sq->where('rombel', $rombel);
+            ->whereHas('siswa', function ($sq) use ($kelas, $rombel, $kelasNames) {
+                if ($kelas) {
+                    $sq->where('kelas', $kelas);
+                    if ($rombel) {
+                        $sq->where('rombel', $rombel);
+                    }
+                } elseif ($kelasNames !== null) {
+                    if ($kelasNames === []) {
+                        $sq->whereRaw('0 = 1');
+                    } else {
+                        $sq->whereIn('kelas', $kelasNames);
+                    }
                 }
-            }))
-            ->orderBy('status')
+            })
             ->get()
-            ->sortBy(fn ($r) => $r->siswa?->nama ?? '');
+            ->sortBy([
+                fn ($r) => $r->siswa?->kelas ?? '',
+                fn ($r) => $r->siswa?->rombel ?? '',
+                fn ($r) => $r->siswa?->nama ?? '',
+            ])
+            ->values();
+    }
+
+    /** Daftar tidak masuk yang relevan untuk akun (guru dibatasi kelas ajar + wali). */
+    public function tidakMasukForUser(User $user, string $tanggal, ?string $kelas = null, ?string $rombel = null): Collection
+    {
+        if (in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
+            return $this->tidakMasuk($tanggal, $kelas, $rombel);
+        }
+
+        $allowedNames = $this->allowedKelasNamesForUser($user)->all();
+        if ($kelas) {
+            if (! $this->userCanAccessKelas($user, $kelas, $rombel)) {
+                return collect();
+            }
+
+            return $this->tidakMasuk($tanggal, $kelas, $rombel);
+        }
+
+        return $this->tidakMasuk($tanggal, null, null, $allowedNames);
     }
 
     /** Guru pengajar pada hari efektif (nama hari Indonesia). */
@@ -284,15 +409,42 @@ class AbsensiHarianService
         }
     }
 
-    public function siswaOptions(?string $kelas = null, ?string $rombel = null): Collection
+    public function siswaOptions(?string $kelas = null, ?string $rombel = null, ?array $kelasNames = null): Collection
     {
         return Siswa::query()
             ->where('status', Siswa::STATUS_AKTIF)
             ->when($kelas, fn ($q) => $q->where('kelas', $kelas))
             ->when($rombel, fn ($q) => $q->where('rombel', $rombel))
+            ->when($kelasNames !== null, function ($q) use ($kelasNames) {
+                if ($kelasNames === []) {
+                    $q->whereRaw('0 = 1');
+                } else {
+                    $q->whereIn('kelas', $kelasNames);
+                }
+            })
+            ->orderBy('kelas')
+            ->orderBy('rombel')
             ->orderBy('nama')
             ->limit(500)
             ->get(['id', 'nis', 'nama', 'kelas', 'rombel']);
+    }
+
+    public function siswaOptionsForUser(User $user, ?string $kelas = null, ?string $rombel = null): Collection
+    {
+        if (in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
+            return $this->siswaOptions($kelas, $rombel);
+        }
+
+        $allowedNames = $this->allowedKelasNamesForUser($user)->all();
+        if ($kelas) {
+            if (! $this->userCanAccessKelas($user, $kelas, $rombel)) {
+                return collect();
+            }
+
+            return $this->siswaOptions($kelas, $rombel);
+        }
+
+        return $this->siswaOptions(null, null, $allowedNames);
     }
 
     /** @return array{0:string,1:string,2:string} */
