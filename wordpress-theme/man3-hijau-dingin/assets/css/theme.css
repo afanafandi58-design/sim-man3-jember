@@ -793,26 +793,46 @@ button {
   color: #fff;
 }
 
-.quote-track {
+.quote-slider {
   display: grid;
-  gap: 1.5rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+  margin-top: 0.35rem;
 }
 
-@media (min-width: 720px) {
-  .quote-track {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.quote-viewport {
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
 }
 
-@media (min-width: 1000px) {
+.quote-track {
+  display: flex;
+  width: 100%;
+  gap: 1.35rem;
+  will-change: transform;
+  transition: transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
   .quote-track {
-    grid-template-columns: repeat(3, 1fr);
+    transition: none;
   }
 }
 
 .quote-item {
-  padding: 0.25rem 0;
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  padding: 0.25rem 0.15rem 0.35rem;
   border-top: 1px solid rgba(180, 230, 213, 0.28);
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .quote-item {
+    flex: 0 0 calc((100% - 2.7rem) / 3);
+  }
 }
 
 .quote-item p {
@@ -829,6 +849,75 @@ button {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--green-300);
+}
+
+.quote-arrow {
+  appearance: none;
+  border: 1px solid rgba(180, 230, 213, 0.35);
+  background: rgba(4, 36, 30, 0.28);
+  color: #e9fff7;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.quote-arrow:hover,
+.quote-arrow:focus-visible {
+  background: rgba(125, 207, 182, 0.22);
+  border-color: rgba(180, 230, 213, 0.7);
+  outline: none;
+}
+
+.quote-arrow:active {
+  transform: scale(0.96);
+}
+
+.quote-dots {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1.15rem;
+}
+
+.quote-dot {
+  appearance: none;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(180, 230, 213, 0.35);
+  transition: background 0.2s ease, transform 0.2s ease, width 0.2s ease;
+}
+
+.quote-dot.is-active {
+  width: 1.35rem;
+  background: #dff8ee;
+}
+
+.quote-dot:hover,
+.quote-dot:focus-visible {
+  background: rgba(223, 248, 238, 0.85);
+  outline: none;
+}
+
+@media (max-width: 899px) {
+  .quote-slider {
+    gap: 0.25rem 0.2rem;
+  }
+  .quote-arrow {
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 1.3rem;
+  }
 }
 
 /* Berita list — interaction containers allowed */

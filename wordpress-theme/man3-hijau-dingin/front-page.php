@@ -154,21 +154,52 @@ $wp_posts = new WP_Query(
 		</div>
 	</section>
 
-	<section class="section quotes" aria-labelledby="quotes-title">
+	<section
+		class="section quotes"
+		aria-labelledby="quotes-title"
+		data-quote-slider
+		data-quote-interval="7000"
+	>
 		<div class="container">
 			<div class="section-head">
 				<p class="section-kicker"><?php esc_html_e( 'Suara Civitas', 'man3-hijau-dingin' ); ?></p>
 				<h2 class="section-title" id="quotes-title"><?php esc_html_e( 'Refleksi warga madrasah', 'man3-hijau-dingin' ); ?></h2>
 				<p class="section-lead"><?php esc_html_e( 'Cuplikan semangat dan nilai yang hidup di MAN 3 Jember.', 'man3-hijau-dingin' ); ?></p>
 			</div>
-			<div class="quote-track">
-				<?php foreach ( $quotes as $q ) : ?>
-					<blockquote class="quote-item">
-						<p>&ldquo;<?php echo esc_html( $q['text'] ); ?>&rdquo;</p>
-						<cite><?php echo esc_html( $q['author'] ); ?></cite>
-					</blockquote>
-				<?php endforeach; ?>
-			</div>
+			<?php if ( $quotes ) : ?>
+				<div class="quote-slider">
+					<button type="button" class="quote-arrow quote-arrow--prev" data-quote-prev aria-label="<?php esc_attr_e( 'Refleksi sebelumnya', 'man3-hijau-dingin' ); ?>">
+						<span aria-hidden="true">‹</span>
+					</button>
+					<div class="quote-viewport">
+						<div class="quote-track" data-quote-track>
+							<?php foreach ( $quotes as $qi => $q ) : ?>
+								<blockquote class="quote-item" data-quote-item="<?php echo esc_attr( (string) $qi ); ?>">
+									<p>&ldquo;<?php echo esc_html( $q['text'] ); ?>&rdquo;</p>
+									<cite><?php echo esc_html( $q['author'] ); ?></cite>
+								</blockquote>
+							<?php endforeach; ?>
+						</div>
+					</div>
+					<button type="button" class="quote-arrow quote-arrow--next" data-quote-next aria-label="<?php esc_attr_e( 'Refleksi berikutnya', 'man3-hijau-dingin' ); ?>">
+						<span aria-hidden="true">›</span>
+					</button>
+				</div>
+				<?php if ( count( $quotes ) > 1 ) : ?>
+					<div class="quote-dots" role="tablist" aria-label="<?php esc_attr_e( 'Navigasi refleksi', 'man3-hijau-dingin' ); ?>">
+						<?php foreach ( $quotes as $qi => $q ) : ?>
+							<button
+								type="button"
+								class="quote-dot<?php echo 0 === $qi ? ' is-active' : ''; ?>"
+								data-quote-dot="<?php echo esc_attr( (string) $qi ); ?>"
+								role="tab"
+								aria-selected="<?php echo 0 === $qi ? 'true' : 'false'; ?>"
+								aria-label="<?php echo esc_attr( sprintf( /* translators: %d quote number */ __( 'Refleksi %d', 'man3-hijau-dingin' ), $qi + 1 ) ); ?>"
+							></button>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
+			<?php endif; ?>
 		</div>
 	</section>
 

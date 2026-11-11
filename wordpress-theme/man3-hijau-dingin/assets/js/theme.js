@@ -116,6 +116,115 @@
     }
   }
 
+  /* Refleksi warga — carousel 3 kartu desktop / 1 ponsel */
+  (function initQuoteSlider() {
+    var root = document.querySelector('[data-quote-slider]');
+    if (!root) return;
+    var track = root.querySelector('[data-quote-track]');
+    var items = Array.prototype.slice.call(root.querySelectorAll('[data-quote-item]'));
+    var dots = Array.prototype.slice.call(root.querySelectorAll('[data-quote-dot]'));
+    var prevBtn = root.querySelector('[data-quote-prev]');
+    var nextBtn = root.querySelector('[data-quote-next]');
+    if (!track || items.length < 2) return;
+
+    var index = 0;
+    var interval = parseInt(root.getAttribute('data-quote-interval') || '7000', 10);
+    if (isNaN(interval) || interval < 4000) interval = 7000;
+    var timer = null;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var desktopMq = window.matchMedia ? window.matchMedia('(min-width: 900px)') : { matches: false };
+
+    function perView() {
+      return desktopMq.matches ? Math.min(3, items.length) : 1;
+    }
+
+    function maxIndex() {
+      return Math.max(0, items.length - perView());
+    }
+
+    function apply() {
+      var pv = perView();
+      var max = maxIndex();
+      if (index > max) index = max;
+      var gap = parseFloat(window.getComputedStyle(track).gap) || 0;
+      var itemW = items[0].getBoundingClientRect().width;
+      var offset = index * (itemW + gap);
+      track.style.transform = 'translate3d(' + (-offset) + 'px,0,0)';
+      dots.forEach(function (dot, i) {
+        var active = i === index;
+        dot.classList.toggle('is-active', active);
+        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+        /* Sembunyikan titik yang tidak bisa jadi posisi awal di desktop */
+        if (pv > 1) {
+          dot.hidden = i > max;
+        } else {
+          dot.hidden = false;
+        }
+      });
+    }
+
+    function goTo(next) {
+      var max = maxIndex();
+      var n = next;
+      if (n < 0) n = max;
+      else if (n > max) n = 0;
+      index = n;
+      apply();
+    }
+
+    function nextSlide() {
+      goTo(index + 1);
+    }
+    function prevSlide() {
+      goTo(index - 1);
+    }
+
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+    function start() {
+      if (reduceMotion || items.length <= perView()) return;
+      stop();
+      timer = setInterval(nextSlide, interval);
+    }
+
+    if (nextBtn) nextBtn.addEventListener('click', function () { nextSlide(); start(); });
+    if (prevBtn) prevBtn.addEventListener('click', function () { prevSlide(); start(); });
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        var i = parseInt(dot.getAttribute('data-quote-dot') || '0', 10);
+        goTo(i);
+        start();
+      });
+    });
+
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', function (e) {
+      if (!root.contains(e.relatedTarget)) start();
+    });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    var resizeTimer = null;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        apply();
+        start();
+      }, 120);
+    });
+
+    apply();
+    start();
+  })();
+
   /* Slide informasi — strip di bawah menu (bukan modal) */
   function initMan3InfoStrip() {
     var root = document.querySelector('[data-info-slider]');
