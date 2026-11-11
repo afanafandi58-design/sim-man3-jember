@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.34' );
+define( 'MAN3_HIJAU_VERSION', '1.5.35' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -74,6 +74,11 @@ if ( file_exists( $man3_sambutan_inc ) ) {
 $man3_kunjungan_inc = get_template_directory() . '/inc/kunjungan.php';
 if ( file_exists( $man3_kunjungan_inc ) ) {
 	require_once $man3_kunjungan_inc;
+}
+
+$man3_refleksi_inc = get_template_directory() . '/inc/refleksi-warga.php';
+if ( file_exists( $man3_refleksi_inc ) ) {
+	require_once $man3_refleksi_inc;
 }
 
 /**
@@ -424,6 +429,12 @@ class Man3_Hijau_Nav_Walker extends Walker_Nav_Menu {
  * Data fallback konten (dari situs publik) — dipakai jika WP belum punya post.
  */
 function man3_hijau_fallback_quotes() {
+	if ( function_exists( 'man3_refleksi_get_items' ) ) {
+		$items = man3_refleksi_get_items();
+		if ( $items ) {
+			return $items;
+		}
+	}
 	return array(
 		array(
 			'text'   => 'Madrasah bukan hanya tempat mencari ilmu, tetapi tempat membentuk hati, adab, dan masa depan...',
