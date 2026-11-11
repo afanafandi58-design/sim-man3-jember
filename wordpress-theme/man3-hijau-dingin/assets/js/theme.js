@@ -146,15 +146,22 @@
       var pv = perView();
       var max = maxIndex();
       if (index > max) index = max;
-      var gap = parseFloat(window.getComputedStyle(track).gap) || 0;
-      var itemW = items[0].getBoundingClientRect().width;
+      var styles = window.getComputedStyle(track);
+      var gap = parseFloat(styles.columnGap || styles.gap) || 0;
+      var viewport = root.querySelector('.quote-viewport');
+      var viewportW = viewport ? viewport.clientWidth : track.parentElement.clientWidth;
+      var itemW = pv > 1 ? (viewportW - gap * (pv - 1)) / pv : viewportW;
+      items.forEach(function (el) {
+        el.style.flexBasis = itemW + 'px';
+        el.style.width = itemW + 'px';
+        el.style.maxWidth = itemW + 'px';
+      });
       var offset = index * (itemW + gap);
       track.style.transform = 'translate3d(' + (-offset) + 'px,0,0)';
       dots.forEach(function (dot, i) {
         var active = i === index;
         dot.classList.toggle('is-active', active);
         dot.setAttribute('aria-selected', active ? 'true' : 'false');
-        /* Sembunyikan titik yang tidak bisa jadi posisi awal di desktop */
         if (pv > 1) {
           dot.hidden = i > max;
         } else {
