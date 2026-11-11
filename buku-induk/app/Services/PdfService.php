@@ -28,12 +28,12 @@ class PdfService
             mkdir($tmpDir, 0775, true);
         }
 
-        // Margin kiri 20 mm = 2 cm (selaras @page HTML cetak)
+        // Margin kiri 20 mm = 2 cm, kanan 15 mm = 1.5 cm (selaras @page HTML cetak)
         $mpdf = new \Mpdf\Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
             'margin_left' => 20,
-            'margin_right' => 12,
+            'margin_right' => 15,
             'margin_top' => 12,
             'margin_bottom' => 12,
             'tempDir' => $tmpDir,
