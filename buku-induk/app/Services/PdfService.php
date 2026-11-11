@@ -6,7 +6,7 @@ namespace App\Services;
 
 class PdfService
 {
-    public function renderBukuIndukHtml(array $siswa, array $sekolah): string
+    public function renderBukuIndukHtml(array $siswa, array $sekolah, bool $isPdf = false): string
     {
         ob_start();
         $viewFile = dirname(__DIR__, 2) . '/views/cetak/buku_induk.php';
@@ -28,11 +28,12 @@ class PdfService
             mkdir($tmpDir, 0775, true);
         }
 
+        // Margin kiri 20 mm = 2 cm (selaras @page HTML cetak)
         $mpdf = new \Mpdf\Mpdf([
             'mode' => 'utf-8',
             'format' => 'A4',
-            'margin_left' => 15,
-            'margin_right' => 15,
+            'margin_left' => 20,
+            'margin_right' => 12,
             'margin_top' => 12,
             'margin_bottom' => 12,
             'tempDir' => $tmpDir,
