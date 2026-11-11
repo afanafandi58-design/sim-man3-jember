@@ -29,20 +29,15 @@
             </select>
             <label class="mr-2">Kelas</label>
             <select name="kelas" class="form-control mr-3">
-                <option value="">Semua</option>
-                @foreach($kelasList as $k)
-                    <option value="{{ $k }}" @selected(($filters['kelas'] ?? '') == $k)>{{ $k }}</option>
-                @endforeach
-            </select>
-            <label class="mr-2">Rombel</label>
-            <select name="rombel" class="form-control mr-3">
-                <option value="">Semua</option>
-                @foreach($rombelList as $r)
-                    <option value="{{ $r }}" @selected(($filters['rombel'] ?? '') == $r)>{{ $r }}</option>
+                <option value="">Semua kelas saya</option>
+                @foreach(($kelasOptions ?? collect()) as $opt)
+                    <option value="{{ $opt['key'] }}" @selected(($filters['kelas'] ?? '') == $opt['key'])>
+                        {{ $opt['label'] }}@if(($opt['sumber'] ?? '') === 'wali') · wali@endif
+                    </option>
                 @endforeach
             </select>
             <button class="btn btn-primary">Filter / urutkan</button>
-            <a href="{{ route('absensi-modul.hari-efektif', ['tanggal' => $tanggal, 'kelas' => $filters['kelas'] ?? null, 'rombel' => $filters['rombel'] ?? null]) }}" class="btn btn-outline-secondary ml-2">Daftar tidak masuk</a>
+            <a href="{{ route('absensi-modul.hari-efektif', ['tanggal' => $tanggal, 'kelas' => $filters['kelas'] ?? null]) }}" class="btn btn-outline-secondary ml-2">Daftar tidak masuk</a>
         </form>
         <small class="text-muted d-block mt-2">Daftar siswa diurutkan kelas → rombel → nama.</small>
     </div>
@@ -55,7 +50,6 @@
             @csrf
             <input type="hidden" name="tanggal" value="{{ $tanggal }}">
             <input type="hidden" name="kelas" value="{{ $filters['kelas'] ?? '' }}">
-            <input type="hidden" name="rombel" value="{{ $filters['rombel'] ?? '' }}">
             <div class="form-row">
                 <div class="form-group col-md-5">
                     <label>Siswa</label>

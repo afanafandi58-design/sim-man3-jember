@@ -28,21 +28,16 @@
     <label class="mr-2">Tanggal</label>
     <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control mr-2 mb-2">
     <label class="mr-2">Kelas</label>
-    <select name="kelas" class="form-control mr-2 mb-2" onchange="this.form.submit()">
+    <select name="kelas" class="form-control mr-2 mb-2">
         <option value="">Semua kelas saya</option>
-        @foreach($kelasList as $k)
-            <option value="{{ $k }}" @selected(($kelasFilter ?? '') == $k)>{{ $k }}</option>
-        @endforeach
-    </select>
-    <label class="mr-2">Rombel</label>
-    <select name="rombel" class="form-control mr-2 mb-2">
-        <option value="">Semua</option>
-        @foreach($rombelList as $r)
-            <option value="{{ $r }}" @selected(($rombelFilter ?? '') == $r)>{{ $r }}</option>
+        @foreach(($allowedKelas ?? collect()) as $opt)
+            <option value="{{ $opt['key'] }}" @selected(($kelasFilter ?? '') == $opt['key'])>
+                {{ $opt['label'] }}@if(($opt['sumber'] ?? '') === 'wali') · wali@endif@if(($opt['sumber'] ?? '') === 'mengajar') · ajar@endif
+            </option>
         @endforeach
     </select>
     <button class="btn btn-primary mb-2">Filter / urutkan</button>
-    <a href="{{ route('absensi-modul.input', ['tanggal' => $tanggal, 'kelas' => $kelasFilter, 'rombel' => $rombelFilter]) }}" class="btn btn-outline-success ml-2 mb-2">Input absensi</a>
+    <a href="{{ route('absensi-modul.input', ['tanggal' => $tanggal, 'kelas' => $kelasFilter]) }}" class="btn btn-outline-success ml-2 mb-2">Input absensi</a>
 </form>
 
 @if($jadwals->isNotEmpty())

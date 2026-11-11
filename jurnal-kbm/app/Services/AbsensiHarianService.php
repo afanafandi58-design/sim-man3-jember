@@ -21,6 +21,7 @@ class AbsensiHarianService
 {
     public function __construct(
         private OperationalDateService $operationalDate,
+        private KodeKelasResolverService $kodeKelasResolver,
     ) {}
 
     public function ensureSchema(): void
@@ -53,24 +54,11 @@ class AbsensiHarianService
 
         $this->ensureSchema();
 
-        $isWali = WaliKelas::query()
-            ->where('guru_id', $user->guru_id)
-            ->where('kelas', $row->siswa->kelas)
-            ->where(function ($q) use ($row) {
-                $q->whereNull('rombel')
-                    ->orWhere('rombel', '')
-                    ->orWhere('rombel', $row->siswa->rombel);
-            })
-            ->exists();
-
-        if ($isWali) {
+        if ($this->userCanAccessKelas($user, $row->siswa->kelas, $row->siswa->rombel, $row->siswa->kode_kelas)) {
             return true;
         }
 
-        return Jadwal::query()
-            ->where('guru_id', $user->guru_id)
-            ->where('kelas', $row->siswa->kelas)
-            ->exists();
+        return false;
     }
 
     public function isWaliKelas(User $user): bool
@@ -170,9 +158,10 @@ class AbsensiHarianService
     }
 
     /**
-     * Kelas yang boleh dilihat/difilter user (guru: jadwal aktif + assignment wali; admin/staff/kepala: semua).
+     * Slot kelas yang boleh dilihat/difilter user.
+     * Guru: jadwal aktif (kode jadwal → kelas/rombel siswa via kode_kelas) + assignment wali.
      *
-     * @return Collection<int, array{kelas:string,rombel:?string,sumber:string}>
+     * @return Collection<int, array{key:string,label:string,kelas:string,rombel:?string,sumber:string}>
      */
     public function allowedKelasForUser(User $user): Collection
     {
@@ -186,11 +175,18 @@ class AbsensiHarianService
                 ->orderBy('kelas')
                 ->orderBy('rombel')
                 ->get()
-                ->map(fn ($row) => [
-                    'kelas' => (string) $row->kelas,
-                    'rombel' => $row->rombel ? (string) $row->rombel : null,
-                    'sumber' => 'semua',
-                ])
+                ->map(function ($row) {
+                    $kelas = (string) $row->kelas;
+                    $rombel = $row->rombel ? (string) $row->rombel : null;
+
+                    return [
+                        'key' => $rombel ? $kelas.'|'.$rombel : $kelas,
+                        'label' => $rombel ? $kelas.'/'.$rombel : $kelas,
+                        'kelas' => $kelas,
+                        'rombel' => $rombel,
+                        'sumber' => 'semua',
+                    ];
+                })
                 ->values();
         }
 
@@ -205,24 +201,28 @@ class AbsensiHarianService
             ->distinct()
             ->pluck('kelas')
             ->filter()
-            ->map(fn ($kelas) => [
-                'kelas' => (string) $kelas,
-                'rombel' => null,
-                'sumber' => 'mengajar',
-            ]);
+            ->map(function ($kode) {
+                $resolved = $this->resolveKelasSlot((string) $kode, null, 'mengajar');
+
+                return $resolved;
+            })
+            ->filter();
 
         $fromWali = WaliKelas::query()
             ->where('guru_id', $user->guru_id)
             ->get(['kelas', 'rombel'])
-            ->map(fn (WaliKelas $row) => [
-                'kelas' => (string) $row->kelas,
-                'rombel' => $row->rombel ? (string) $row->rombel : null,
-                'sumber' => 'wali',
-            ]);
+            ->map(function (WaliKelas $row) {
+                return $this->resolveKelasSlot(
+                    (string) $row->kelas,
+                    $row->rombel ? (string) $row->rombel : null,
+                    'wali'
+                );
+            })
+            ->filter();
 
         return $fromJadwal
             ->concat($fromWali)
-            ->unique(fn (array $row) => $row['kelas'].'|'.($row['rombel'] ?? ''))
+            ->unique(fn (array $row) => $row['key'])
             ->sortBy([
                 fn (array $row) => $row['kelas'],
                 fn (array $row) => $row['rombel'] ?? '',
@@ -240,31 +240,43 @@ class AbsensiHarianService
             ->values();
     }
 
-    public function userCanAccessKelas(User $user, ?string $kelas, ?string $rombel = null): bool
+    public function findAllowedSlot(User $user, ?string $key): ?array
     {
-        if ($kelas === null || $kelas === '') {
-            return in_array($user->role, ['admin', 'kepala', 'staff'], true);
+        if ($key === null || $key === '') {
+            return null;
         }
 
-        $allowed = $this->allowedKelasForUser($user);
-        if ($allowed->isEmpty() && in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
+        return $this->allowedKelasForUser($user)->firstWhere('key', $key);
+    }
+
+    public function userCanAccessKelas(User $user, ?string $kelas, ?string $rombel = null, ?string $kodeKelas = null): bool
+    {
+        if (in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
             return true;
         }
 
-        return $allowed->contains(function (array $row) use ($kelas, $rombel) {
-            if ($row['kelas'] !== $kelas) {
-                return false;
-            }
-            if ($row['rombel'] === null || $row['rombel'] === '') {
+        if (($kelas === null || $kelas === '') && ($kodeKelas === null || $kodeKelas === '')) {
+            return false;
+        }
+
+        return $this->allowedKelasForUser($user)->contains(function (array $row) use ($kelas, $rombel, $kodeKelas) {
+            if ($kodeKelas && ($row['key'] === $kodeKelas || str_starts_with($row['key'], $kodeKelas))) {
                 return true;
             }
+            if ($kelas && $row['kelas'] === $kelas) {
+                if ($row['rombel'] === null || $row['rombel'] === '') {
+                    return true;
+                }
 
-            return $rombel === null || $rombel === '' || $row['rombel'] === $rombel;
+                return $rombel !== null && $rombel !== '' && $row['rombel'] === $rombel;
+            }
+
+            return false;
         });
     }
 
     /** Siswa tidak masuk pada tanggal (opsional filter kelas/rombel), diurutkan per kelas. */
-    public function tidakMasuk(string $tanggal, ?string $kelas = null, ?string $rombel = null, ?array $kelasNames = null): Collection
+    public function tidakMasuk(string $tanggal, ?string $kelas = null, ?string $rombel = null, ?array $slots = null): Collection
     {
         $this->ensureSchema();
 
@@ -272,17 +284,26 @@ class AbsensiHarianService
             ->with(['siswa', 'reporter'])
             ->whereDate('tanggal', $tanggal)
             ->whereIn('status', AbsensiHarian::TIDAK_MASUK)
-            ->whereHas('siswa', function ($sq) use ($kelas, $rombel, $kelasNames) {
+            ->whereHas('siswa', function ($sq) use ($kelas, $rombel, $slots) {
                 if ($kelas) {
                     $sq->where('kelas', $kelas);
                     if ($rombel) {
                         $sq->where('rombel', $rombel);
                     }
-                } elseif ($kelasNames !== null) {
-                    if ($kelasNames === []) {
+                } elseif ($slots !== null) {
+                    if ($slots === []) {
                         $sq->whereRaw('0 = 1');
                     } else {
-                        $sq->whereIn('kelas', $kelasNames);
+                        $sq->where(function ($outer) use ($slots) {
+                            foreach ($slots as $slot) {
+                                $outer->orWhere(function ($inner) use ($slot) {
+                                    $inner->where('kelas', $slot['kelas']);
+                                    if (! empty($slot['rombel'])) {
+                                        $inner->where('rombel', $slot['rombel']);
+                                    }
+                                });
+                            }
+                        });
                     }
                 }
             })
@@ -296,22 +317,30 @@ class AbsensiHarianService
     }
 
     /** Daftar tidak masuk yang relevan untuk akun (guru dibatasi kelas ajar + wali). */
-    public function tidakMasukForUser(User $user, string $tanggal, ?string $kelas = null, ?string $rombel = null): Collection
+    public function tidakMasukForUser(User $user, string $tanggal, ?string $kelasKey = null, ?string $rombel = null): Collection
     {
         if (in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
-            return $this->tidakMasuk($tanggal, $kelas, $rombel);
+            // Admin filter: key may be "XII|XII SOSHUM 2" or plain kelas.
+            if ($kelasKey && str_contains($kelasKey, '|')) {
+                [$kelas, $rombelKey] = array_pad(explode('|', $kelasKey, 2), 2, null);
+
+                return $this->tidakMasuk($tanggal, $kelas, $rombel ?: $rombelKey);
+            }
+
+            return $this->tidakMasuk($tanggal, $kelasKey, $rombel);
         }
 
-        $allowedNames = $this->allowedKelasNamesForUser($user)->all();
-        if ($kelas) {
-            if (! $this->userCanAccessKelas($user, $kelas, $rombel)) {
+        $allowed = $this->allowedKelasForUser($user);
+        if ($kelasKey) {
+            $slot = $allowed->firstWhere('key', $kelasKey);
+            if (! $slot) {
                 return collect();
             }
 
-            return $this->tidakMasuk($tanggal, $kelas, $rombel);
+            return $this->tidakMasuk($tanggal, $slot['kelas'], $slot['rombel']);
         }
 
-        return $this->tidakMasuk($tanggal, null, null, $allowedNames);
+        return $this->tidakMasuk($tanggal, null, null, $allowed->all());
     }
 
     /** Guru pengajar pada hari efektif (nama hari Indonesia). */
@@ -409,17 +438,26 @@ class AbsensiHarianService
         }
     }
 
-    public function siswaOptions(?string $kelas = null, ?string $rombel = null, ?array $kelasNames = null): Collection
+    public function siswaOptions(?string $kelas = null, ?string $rombel = null, ?array $slots = null): Collection
     {
         return Siswa::query()
             ->where('status', Siswa::STATUS_AKTIF)
             ->when($kelas, fn ($q) => $q->where('kelas', $kelas))
             ->when($rombel, fn ($q) => $q->where('rombel', $rombel))
-            ->when($kelasNames !== null, function ($q) use ($kelasNames) {
-                if ($kelasNames === []) {
+            ->when($slots !== null, function ($q) use ($slots) {
+                if ($slots === []) {
                     $q->whereRaw('0 = 1');
                 } else {
-                    $q->whereIn('kelas', $kelasNames);
+                    $q->where(function ($outer) use ($slots) {
+                        foreach ($slots as $slot) {
+                            $outer->orWhere(function ($inner) use ($slot) {
+                                $inner->where('kelas', $slot['kelas']);
+                                if (! empty($slot['rombel'])) {
+                                    $inner->where('rombel', $slot['rombel']);
+                                }
+                            });
+                        }
+                    });
                 }
             })
             ->orderBy('kelas')
@@ -429,22 +467,173 @@ class AbsensiHarianService
             ->get(['id', 'nis', 'nama', 'kelas', 'rombel']);
     }
 
-    public function siswaOptionsForUser(User $user, ?string $kelas = null, ?string $rombel = null): Collection
+    public function siswaOptionsForUser(User $user, ?string $kelasKey = null, ?string $rombel = null): Collection
     {
         if (in_array($user->role, ['admin', 'kepala', 'staff'], true)) {
-            return $this->siswaOptions($kelas, $rombel);
+            if ($kelasKey && str_contains($kelasKey, '|')) {
+                [$kelas, $rombelKey] = array_pad(explode('|', $kelasKey, 2), 2, null);
+
+                return $this->siswaOptions($kelas, $rombel ?: $rombelKey);
+            }
+
+            return $this->siswaOptions($kelasKey, $rombel);
         }
 
-        $allowedNames = $this->allowedKelasNamesForUser($user)->all();
-        if ($kelas) {
-            if (! $this->userCanAccessKelas($user, $kelas, $rombel)) {
+        $allowed = $this->allowedKelasForUser($user);
+        if ($kelasKey) {
+            $slot = $allowed->firstWhere('key', $kelasKey);
+            if (! $slot) {
                 return collect();
             }
 
-            return $this->siswaOptions($kelas, $rombel);
+            return $this->siswaOptions($slot['kelas'], $slot['rombel']);
         }
 
-        return $this->siswaOptions(null, null, $allowedNames);
+        return $this->siswaOptions(null, null, $allowed->all());
+    }
+
+    /**
+     * Petakan kode jadwal / assignment wali ke kelas+rombel siswa.
+     *
+     * @return array{key:string,label:string,kelas:string,rombel:?string,sumber:string}|null
+     */
+    private function resolveKelasSlot(string $kelasOrKode, ?string $rombel, string $sumber): ?array
+    {
+        $kelasOrKode = trim($kelasOrKode);
+        $rombel = $rombel !== null ? trim($rombel) : null;
+        if ($kelasOrKode === '') {
+            return null;
+        }
+
+        // 1) kode jadwal exact (X-E → X / X E REG)
+        $resolved = $this->kodeKelasResolver->resolveFromString($kelasOrKode);
+        if ($resolved) {
+            return [
+                'key' => (string) $resolved->kode_kelas,
+                'label' => $resolved->kode_kelas.' ('.$resolved->kelas.'/'.$resolved->rombel.')',
+                'kelas' => (string) $resolved->kelas,
+                'rombel' => (string) $resolved->rombel,
+                'sumber' => $sumber,
+            ];
+        }
+
+        // 2) coba gabungan kelas+rombel assignment wali
+        if ($rombel) {
+            $resolved = $this->kodeKelasResolver->resolveFromString($kelasOrKode.' '.$rombel)
+                ?: $this->kodeKelasResolver->resolveFromString($rombel);
+            if ($resolved) {
+                return [
+                    'key' => (string) $resolved->kode_kelas,
+                    'label' => $resolved->kode_kelas.' ('.$resolved->kelas.'/'.$resolved->rombel.')',
+                    'kelas' => (string) $resolved->kelas,
+                    'rombel' => (string) $resolved->rombel,
+                    'sumber' => $sumber,
+                ];
+            }
+
+            // 3) cocokkan rombel siswa apa adanya
+            $exists = Siswa::query()
+                ->where('status', Siswa::STATUS_AKTIF)
+                ->where('kelas', $kelasOrKode)
+                ->where('rombel', $rombel)
+                ->exists();
+            if ($exists) {
+                return [
+                    'key' => $kelasOrKode.'|'.$rombel,
+                    'label' => $kelasOrKode.'/'.$rombel,
+                    'kelas' => $kelasOrKode,
+                    'rombel' => $rombel,
+                    'sumber' => $sumber,
+                ];
+            }
+
+            // 4) fallback fuzzy: angka+huruf rombel vs rombel siswa (mis. "12 SOS 2" ≈ "XII SOSHUM 2")
+            $fuzzy = $this->fuzzyMatchRombel($kelasOrKode, $rombel);
+            if ($fuzzy) {
+                return $fuzzy + ['sumber' => $sumber];
+            }
+        }
+
+        // 5) seluruh tingkat kelas (tanpa rombel) — untuk wali dengan rombel usang
+        return [
+            'key' => $kelasOrKode,
+            'label' => $kelasOrKode.' (semua rombel)',
+            'kelas' => $kelasOrKode,
+            'rombel' => null,
+            'sumber' => $sumber,
+        ];
+    }
+
+    /** @return array{key:string,label:string,kelas:string,rombel:string}|null */
+    private function fuzzyMatchRombel(string $kelas, string $rombel): ?array
+    {
+        $aliases = [
+            preg_replace('/\b12\b/i', 'XII', $rombel) ?? $rombel,
+            preg_replace('/\b11\b/i', 'XI', $rombel) ?? $rombel,
+            preg_replace('/\b10\b/i', 'X', $rombel) ?? $rombel,
+        ];
+        $expanded = [];
+        foreach ($aliases as $alias) {
+            $expanded[] = $alias;
+            $expanded[] = preg_replace('/\bSOS\b/i', 'SOSHUM', $alias) ?? $alias;
+            $expanded[] = preg_replace('/\bSAI\b/i', 'SAINS', $alias) ?? $alias;
+        }
+
+        foreach (array_unique($expanded) as $candidateAlias) {
+            $resolved = $this->kodeKelasResolver->resolveFromString(trim($kelas.' '.$candidateAlias))
+                ?: $this->kodeKelasResolver->resolveFromString(trim($candidateAlias));
+            if ($resolved && strcasecmp((string) $resolved->kelas, $kelas) === 0) {
+                return [
+                    'key' => (string) $resolved->kode_kelas,
+                    'label' => $resolved->kode_kelas.' ('.$resolved->kelas.'/'.$resolved->rombel.')',
+                    'kelas' => (string) $resolved->kelas,
+                    'rombel' => (string) $resolved->rombel,
+                ];
+            }
+
+            $exists = Siswa::query()
+                ->where('status', Siswa::STATUS_AKTIF)
+                ->where('kelas', $kelas)
+                ->where('rombel', $candidateAlias)
+                ->exists();
+            if ($exists) {
+                return [
+                    'key' => $kelas.'|'.$candidateAlias,
+                    'label' => $kelas.'/'.$candidateAlias,
+                    'kelas' => $kelas,
+                    'rombel' => $candidateAlias,
+                ];
+            }
+        }
+
+        $needle = strtolower(preg_replace('/[^a-z0-9]+/i', '', $rombel) ?? '');
+        if ($needle === '') {
+            return null;
+        }
+
+        $candidates = Siswa::query()
+            ->where('status', Siswa::STATUS_AKTIF)
+            ->where('kelas', $kelas)
+            ->distinct()
+            ->orderBy('rombel')
+            ->pluck('rombel')
+            ->filter();
+
+        foreach ($candidates as $candidate) {
+            $hay = strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $candidate) ?? '');
+            if ($hay === $needle || str_contains($hay, $needle) || str_contains($needle, $hay)) {
+                $resolved = $this->kodeKelasResolver->resolveFromString($kelas.' '.$candidate);
+
+                return [
+                    'key' => $resolved?->kode_kelas ?: ($kelas.'|'.$candidate),
+                    'label' => ($resolved?->kode_kelas ? $resolved->kode_kelas.' ' : '').'('.$kelas.'/'.$candidate.')',
+                    'kelas' => $kelas,
+                    'rombel' => (string) $candidate,
+                ];
+            }
+        }
+
+        return null;
     }
 
     /** @return array{0:string,1:string,2:string} */

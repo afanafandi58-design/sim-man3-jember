@@ -36,14 +36,14 @@ class AbsensiModulController extends Controller
             $tanggal = $this->operationalDate->today()->toDateString();
         }
 
-        $kelas = $request->get('kelas');
-        $rombel = $request->get('rombel');
-        if ($kelas && ! $this->absensiHarianService->userCanAccessKelas($user, $kelas, $rombel)) {
-            $kelas = null;
-            $rombel = null;
+        $kelasKey = $request->get('kelas');
+        $allowed = $this->absensiHarianService->allowedKelasForUser($user);
+        $selectedSlot = $kelasKey ? $allowed->firstWhere('key', $kelasKey) : null;
+        if ($kelasKey && ! $selectedSlot && $user->role === 'guru') {
+            $kelasKey = null;
         }
 
-        $siswas = $this->absensiHarianService->siswaOptionsForUser($user, $kelas, $rombel);
+        $siswas = $this->absensiHarianService->siswaOptionsForUser($user, $kelasKey);
         $existing = AbsensiHarian::query()
             ->with('siswa')
             ->whereDate('tanggal', $tanggal)
@@ -57,38 +57,13 @@ class AbsensiModulController extends Controller
             ->values()
             ->keyBy('siswa_id');
 
-        $allowed = $this->absensiHarianService->allowedKelasForUser($user);
-        $kelasList = $allowed->pluck('kelas')->unique()->sort()->values();
-        $rombelList = $allowed
-            ->when($kelas, fn ($rows) => $rows->where('kelas', $kelas))
-            ->pluck('rombel')
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-        if ($rombelList->isEmpty()) {
-            $rombelList = Siswa::query()
-                ->where('status', Siswa::STATUS_AKTIF)
-                ->when($kelas, fn ($q) => $q->where('kelas', $kelas))
-                ->when(
-                    $user->role === 'guru',
-                    fn ($q) => $q->whereIn('kelas', $kelasList->all() ?: ['__none__'])
-                )
-                ->distinct()
-                ->orderBy('rombel')
-                ->pluck('rombel')
-                ->filter()
-                ->values();
-        }
-
         return view('absensi-modul.input', [
             'tanggal' => $tanggal,
             'fillableDates' => $this->operationalDate->fillableDateStrings(),
             'siswas' => $siswas,
             'existing' => $existing,
-            'kelasList' => $kelasList,
-            'rombelList' => $rombelList,
-            'filters' => ['kelas' => $kelas, 'rombel' => $rombel],
+            'kelasOptions' => $allowed,
+            'filters' => ['kelas' => $kelasKey],
             'statuses' => AbsensiHarian::STATUSES,
             'sortByKelas' => true,
         ]);
@@ -107,7 +82,12 @@ class AbsensiModulController extends Controller
 
         $siswa = Siswa::query()->findOrFail((int) $data['siswa_id']);
         abort_unless(
-            $this->absensiHarianService->userCanAccessKelas($request->user(), $siswa->kelas, $siswa->rombel),
+            $this->absensiHarianService->userCanAccessKelas(
+                $request->user(),
+                $siswa->kelas,
+                $siswa->rombel,
+                $siswa->kode_kelas
+            ),
             403,
             'Anda tidak berhak mengisi absensi untuk kelas siswa ini.'
         );
@@ -126,7 +106,6 @@ class AbsensiModulController extends Controller
             ->route('absensi-modul.input', [
                 'tanggal' => $data['tanggal'],
                 'kelas' => $request->get('kelas'),
-                'rombel' => $request->get('rombel'),
             ])
             ->with('success', 'Absensi harian tersimpan dan terhubung ke modul jurnal.');
     }
@@ -145,33 +124,15 @@ class AbsensiModulController extends Controller
             : collect();
 
         $allowedKelas = $this->absensiHarianService->allowedKelasForUser($user);
-        $kelasList = $allowedKelas->pluck('kelas')->unique()->sort()->values();
         $kelasFilter = $request->get('kelas');
-        $rombelFilter = $request->get('rombel');
-
-        if ($kelasFilter && ! $this->absensiHarianService->userCanAccessKelas($user, $kelasFilter, $rombelFilter)) {
+        if ($kelasFilter && $user->role === 'guru' && ! $allowedKelas->firstWhere('key', $kelasFilter)) {
             $kelasFilter = null;
-            $rombelFilter = null;
         }
-
-        $rombelList = Siswa::query()
-            ->where('status', Siswa::STATUS_AKTIF)
-            ->when($kelasFilter, fn ($q) => $q->where('kelas', $kelasFilter))
-            ->when(
-                $user->role === 'guru',
-                fn ($q) => $q->whereIn('kelas', $kelasList->all() ?: ['__none__'])
-            )
-            ->distinct()
-            ->orderBy('rombel')
-            ->pluck('rombel')
-            ->filter()
-            ->values();
 
         $tidakMasuk = $this->absensiHarianService->tidakMasukForUser(
             $user,
             $tanggal,
-            $kelasFilter,
-            $rombelFilter
+            $kelasFilter
         );
 
         return view('absensi-modul.hari-efektif', [
@@ -182,11 +143,8 @@ class AbsensiModulController extends Controller
             'jadwals' => $jadwals,
             'tidakMasuk' => $tidakMasuk,
             'kelasFilter' => $kelasFilter,
-            'rombelFilter' => $rombelFilter,
-            'kelasList' => $kelasList,
-            'rombelList' => $rombelList,
             'allowedKelas' => $allowedKelas,
-            'canOpenTool' => $isPengajar || $isWali || $kelasList->isNotEmpty()
+            'canOpenTool' => $isPengajar || $isWali || $allowedKelas->isNotEmpty()
                 || in_array($user->role, ['admin', 'kepala', 'staff'], true),
         ]);
     }
@@ -207,15 +165,31 @@ class AbsensiModulController extends Controller
             $selected = $assignments->firstWhere('id', (int) $request->get('wali_id')) ?? $selected;
         }
 
-        $kelas = $request->get('kelas', $selected?->kelas);
-        $rombel = $request->get('rombel', $selected?->rombel);
+        $allowedAll = $this->absensiHarianService->allowedKelasForUser($user);
+        $waliSlots = $allowedAll->where('sumber', 'wali')->values();
+        $slot = null;
+        if ($selected) {
+            $slot = $waliSlots->first(function (array $row) use ($selected) {
+                return $row['kelas'] === $selected->kelas;
+            }) ?? $waliSlots->first();
+        }
 
         // Admin/kepala tanpa filter: tampilkan semua tidak masuk hari itu.
         if ($isAdminLike && ! $request->filled('kelas') && ! $request->filled('wali_id') && ! $selected) {
             $tidakMasuk = $this->absensiHarianService->tidakMasuk($tanggal, null, null);
-        } elseif ($kelas && ($isAdminLike || $this->absensiHarianService->userCanAccessKelas($user, $kelas, $rombel))) {
+            $kelas = $request->get('kelas');
+            $rombel = $request->get('rombel');
+        } elseif ($slot) {
+            $tidakMasuk = $this->absensiHarianService->tidakMasuk($tanggal, $slot['kelas'], $slot['rombel']);
+            $kelas = $slot['kelas'];
+            $rombel = $slot['rombel'];
+        } elseif ($isAdminLike && $request->filled('kelas')) {
+            $kelas = $request->get('kelas');
+            $rombel = $request->get('rombel');
             $tidakMasuk = $this->absensiHarianService->tidakMasuk($tanggal, $kelas, $rombel);
         } else {
+            $kelas = $selected?->kelas;
+            $rombel = $selected?->rombel;
             $tidakMasuk = collect();
         }
 
@@ -232,6 +206,7 @@ class AbsensiModulController extends Controller
             'rombel' => $rombel,
             'isAdminLike' => $isAdminLike,
             'mengajarKelas' => $mengajarKelas,
+            'resolvedSlot' => $slot,
         ]);
     }
 
