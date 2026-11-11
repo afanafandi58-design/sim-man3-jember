@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Guru;
 use App\Models\User;
 use App\Services\GuruAccountService;
+use App\Support\GuruAccountSchema;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ class GuruAccountController extends Controller
 
     public function index(Request $request): View
     {
+        GuruAccountSchema::ensure();
+
         $gurus = $this->guruAccountService->paginate($request->only(['nama', 'nip', 'mapel', 'status']));
         $mapels = $this->guruAccountService->mapelOptions();
 
@@ -76,6 +79,8 @@ class GuruAccountController extends Controller
 
     public function cetak(Request $request): Response
     {
+        GuruAccountSchema::ensure();
+
         $accounts = $this->guruAccountService->getPrintableAccounts(
             $request->input('guru_ids')
         );

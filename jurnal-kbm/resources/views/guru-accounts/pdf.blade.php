@@ -43,8 +43,8 @@
     </table>
 
     <p class="note">
-        Password hanya ditampilkan untuk akun yang baru dibuat atau di-reset pada sesi admin saat ini.
-        Guru wajib segera mengganti password setelah login pertama.
+        Password awal ditampilkan hanya jika masih tersimpan sebagai teks di sistem (saat akun dibuat/di-reset).
+        Jika tidak tersimpan, kolom dikosongkan (-). Guru wajib segera mengganti password setelah login pertama.
     </p>
 </body>
 </html>

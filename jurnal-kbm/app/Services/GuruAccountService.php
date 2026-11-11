@@ -6,6 +6,7 @@ use App\Models\Guru;
 use App\Models\Jadwal;
 use App\Models\Jurnal;
 use App\Models\User;
+use App\Support\GuruAccountSchema;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
@@ -186,6 +187,8 @@ class GuruAccountService
 
     public function rememberCredential(int $guruId, string $email, string $password): void
     {
+        GuruAccountSchema::ensure();
+
         $credentials = session(self::SESSION_CREDENTIALS_KEY, []);
         $credentials[$guruId] = [
             'email' => $email,
@@ -194,6 +197,11 @@ class GuruAccountService
         ];
 
         session([self::SESSION_CREDENTIALS_KEY => $credentials]);
+
+        $user = User::query()->where('guru_id', $guruId)->first();
+        if ($user) {
+            $user->forceFill(['password_awal' => $password])->save();
+        }
     }
 
     public function getSessionCredentials(): array
@@ -203,6 +211,8 @@ class GuruAccountService
 
     public function getPrintableAccounts(?array $guruIds = null): Collection
     {
+        GuruAccountSchema::ensure();
+
         $query = Guru::query()->with('user')->orderBy('kode_guru');
 
         if (! empty($guruIds)) {
@@ -213,12 +223,22 @@ class GuruAccountService
 
         return $query->get()->map(function (Guru $guru) use ($credentials) {
             $credential = $credentials[$guru->id] ?? null;
+            $stored = trim((string) ($guru->user?->password_awal ?? ''));
+            $fromSession = trim((string) ($credential['password'] ?? ''));
+
+            // Persist plaintext that is still only in the admin session (no invent / no reset).
+            if ($stored === '' && $fromSession !== '' && $guru->user) {
+                $guru->user->forceFill(['password_awal' => $fromSession])->save();
+                $stored = $fromSession;
+            }
+
+            $password = $stored !== '' ? $stored : ($fromSession !== '' ? $fromSession : '-');
 
             return [
                 'kode_guru' => $guru->kode_guru,
                 'nama' => $guru->displayName(),
                 'username' => $guru->user?->email,
-                'password' => $credential['password'] ?? '-',
+                'password' => $password,
                 'status' => $this->accountStatusLabel($guru),
             ];
         });
