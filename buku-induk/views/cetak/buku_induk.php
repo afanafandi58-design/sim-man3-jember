@@ -16,10 +16,10 @@ $nism = trim(($sekolah['nsm'] ?? '') . ($v('nis_lokal')));
     <meta charset="utf-8">
     <title>Buku Induk — <?php echo e($v('nama')); ?></title>
     <style>
-        /* Margin kiri kertas 2 cm; kanan sisa ruang 1 kotak foto 2×3 cm (portrait) */
+        /* Margin kiri 2 cm, kanan 1.5 cm; satu kotak foto 2×3 cm portrait */
         @page {
             size: A4;
-            margin: 1.2cm 1.2cm 1.2cm 2cm;
+            margin: 1.2cm 1.5cm 1.2cm 2cm;
         }
         * { box-sizing: border-box; }
         body {
@@ -27,7 +27,7 @@ $nism = trim(($sekolah['nsm'] ?? '') . ($v('nis_lokal')));
             color: #111;
             font-size: 11pt;
             margin: 0;
-            padding: <?php echo $isPdf ? '0' : '16px 16px 16px 2cm'; ?>;
+            padding: <?php echo $isPdf ? '0' : '16px 1.5cm 16px 2cm'; ?>;
         }
         .sheet { width: 100%; }
         h1 { text-align: center; font-size: 15pt; margin: 0 0 2px; text-transform: uppercase; }
