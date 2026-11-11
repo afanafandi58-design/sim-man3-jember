@@ -1084,33 +1084,6 @@ button {
   border-color: rgba(20, 107, 88, 0.28);
 }
 
-/* News digital */
-.news-digital {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.news-digital a {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: baseline;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--line);
-  font-weight: 500;
-}
-
-.news-digital a span:last-child {
-  font-size: 0.85rem;
-  color: var(--ink-muted);
-  font-weight: 400;
-  white-space: nowrap;
-}
-
-.news-digital a:hover {
-  color: var(--green-700);
-}
-
 /* Footer */
 .site-footer {
   padding: 3rem 0 2rem;

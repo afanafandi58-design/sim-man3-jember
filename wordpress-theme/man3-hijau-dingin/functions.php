@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.37' );
+define( 'MAN3_HIJAU_VERSION', '1.5.38' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -499,7 +499,6 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 		),
 		array( 'label' => 'Berita', 'href' => home_url( '/#berita' ) ),
 		array( 'label' => 'Pengumuman', 'href' => home_url( '/pengumuman/' ) ),
-		array( 'label' => 'News Digital', 'href' => home_url( '/pengumuman/hightlight-mei/' ) ),
 		array( 'label' => 'News Mantiger', 'href' => home_url( '/news-mantiger/' ) ),
 		array( 'label' => 'PPID', 'href' => home_url( '/ppid/' ) ),
 	);

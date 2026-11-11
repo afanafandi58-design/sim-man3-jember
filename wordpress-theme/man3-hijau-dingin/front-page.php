@@ -39,12 +39,6 @@ $quick     = array(
 	array( 'label' => 'News Mantiger', 'href' => home_url( '/news-mantiger/' ) ),
 	array( 'label' => 'Survey Kepuasan', 'href' => home_url( '/#survey-kepuasan' ) ),
 );
-$news_digital = array(
-	array( 'label' => 'News Digital at Juli', 'published' => 'July 23, 2024', 'href' => home_url( '/pengumuman/hightlight-mei/' ) ),
-	array( 'label' => 'News Digital at Juni', 'published' => 'July 23, 2024', 'href' => home_url( '/pengumuman/hightlight-mei/' ) ),
-	array( 'label' => 'Highlight Mei', 'published' => 'May 6, 2026', 'href' => home_url( '/pengumuman/hightlight-mei/' ) ),
-);
-
 $wp_posts = new WP_Query(
 	array(
 		'posts_per_page' => 5,
@@ -277,23 +271,6 @@ $wp_posts = new WP_Query(
 						</a>
 					<?php endforeach; ?>
 				</div>
-			</div>
-		</div>
-	</section>
-
-	<section class="section" id="news-digital">
-		<div class="container">
-			<div class="section-head">
-				<p class="section-kicker">News Digital</p>
-				<h2 class="section-title"><?php esc_html_e( 'Highlight terbitan', 'man3-hijau-dingin' ); ?></h2>
-			</div>
-			<div class="news-digital">
-				<?php foreach ( $news_digital as $n ) : ?>
-					<a href="<?php echo esc_url( $n['href'] ); ?>">
-						<span><?php echo esc_html( $n['label'] ); ?></span>
-						<span><?php echo esc_html( sprintf( /* translators: %s date */ __( 'Diterbitkan : %s', 'man3-hijau-dingin' ), $n['published'] ) ); ?></span>
-					</a>
-				<?php endforeach; ?>
 			</div>
 		</div>
 	</section>
