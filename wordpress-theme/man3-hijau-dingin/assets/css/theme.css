@@ -1263,13 +1263,13 @@ body.admin-bar .site-header { top: 32px; }
 /* Puncak: Komite ··· Kepala; jalur komando turun dari Kepala → KTU → Waka */
 .org-head-grid {
   display: grid;
-  grid-template-columns: minmax(11rem, 18rem) 2.75rem minmax(12rem, 20rem);
+  grid-template-columns: minmax(11rem, 17rem) 4.5rem minmax(12rem, 20rem);
   justify-content: center;
   align-items: center;
-  column-gap: 0.35rem;
+  column-gap: 0.65rem;
   row-gap: 0;
   width: 100%;
-  max-width: 44rem;
+  max-width: 48rem;
 }
 .org-cell {
   display: flex;
@@ -1278,11 +1278,23 @@ body.admin-bar .site-header { top: 32px; }
 }
 .org-cell--dash {
   align-self: center;
+  align-items: center;
+  min-height: 2.5rem;
 }
+/* Garis putus-putus horizontal jelas di tengah tinggi kotak Komite–Kepala */
 .org-dash-link {
   display: block;
   width: 100%;
-  border-top: 2px dashed rgba(15, 82, 68, 0.42);
+  height: 4px;
+  border: 0;
+  border-radius: 999px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--green-800) 0 11px,
+    transparent 11px 18px
+  );
+  background-color: transparent;
+  box-shadow: 0 0 0 1px rgba(20, 107, 88, 0.12);
 }
 .org-cell--spine {
   flex-direction: column;
@@ -1469,10 +1481,13 @@ body.admin-bar .site-header { top: 32px; }
     padding: 0.35rem 0;
   }
   .org-dash-link {
-    width: 2px;
-    height: 1.35rem;
-    border-top: 0;
-    border-left: 2px dashed rgba(15, 82, 68, 0.42);
+    width: 3px;
+    height: 1.5rem;
+    background-image: repeating-linear-gradient(
+      180deg,
+      var(--green-700) 0 7px,
+      transparent 7px 13px
+    );
   }
   .org-level--waka {
     flex-direction: column;
