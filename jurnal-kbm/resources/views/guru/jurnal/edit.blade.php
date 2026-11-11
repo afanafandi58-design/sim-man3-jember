@@ -25,8 +25,11 @@
                     <br><span class="badge badge-info">Guru pengganti: {{ $jurnal->guru_pengganti }}</span>
                 @endif
                 <br>
-                {{ $jurnal->jadwal->mapel }} | {{ $jurnal->jadwal->kelas }} |
+                {{ $jurnal->jadwal->mapel }} | {{ $kelasDisplay ?? $jurnal->jadwal->kelas }} |
                 {{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d F Y') }}
+                @if(!empty($jurnal->jadwal->is_moving_class))
+                    <span class="badge badge-primary">Moving</span>
+                @endif
                 @if(!empty($isLocked))
                     <br><span class="badge badge-secondary mt-1">Di luar rentang pengisian (awal s.d. hari ini) — hanya lihat</span>
                 @endif
@@ -48,6 +51,13 @@
             ])
 
             @include('guru.jurnal.partials.arabic-language-support')
+
+            @include('guru.jurnal.partials.moving-kelas-form', [
+                'jadwal' => $jurnal->jadwal,
+                'canEditMoving' => $canEditMoving ?? false,
+                'groupedSiswa' => $groupedSiswa ?? collect(),
+                'selectedIds' => $selectedIds ?? [],
+            ])
 
             <div class="form-group">
                 <label>Materi Pembelajaran</label>

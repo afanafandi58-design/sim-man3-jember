@@ -5,16 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Jadwal;
 use App\Services\GuruJadwalSayaService;
 use App\Services\GuruService;
+use App\Services\MovingKelasService;
+use App\Support\JadwalMovingSchema;
 use Illuminate\Http\Request;
 
 class GuruJadwalSayaController extends Controller
 {
     public function __construct(
         private GuruJadwalSayaService $guruJadwalSayaService,
+        private MovingKelasService $movingKelasService,
     ) {}
 
     public function index(Request $request)
     {
+        JadwalMovingSchema::ensure();
         $guru = $this->guruJadwalSayaService->getGuru();
         $jadwals = $this->guruJadwalSayaService->paginateForGuru([
             'tahun_pelajaran' => $request->get('tahun_pelajaran', GuruService::DEFAULT_TAHUN_PELAJARAN),
@@ -127,5 +131,72 @@ class GuruJadwalSayaController extends Controller
                 "Reset selesai: {$result['count']} slot dikeluarkan dari daftar aktif. "
                 ."Jurnal terkait tetap ada ({$result['jurnal_tetap']} entri). Data tidak dihapus."
             );
+    }
+
+    public function toggleMoving(Request $request, Jadwal $jadwal)
+    {
+        $this->guruJadwalSayaService->assertOwnership($jadwal);
+        $this->guruJadwalSayaService->assertActiveSlot($jadwal);
+
+        $validated = $request->validate([
+            'enabled' => 'required|boolean',
+        ]);
+
+        $this->movingKelasService->setMovingFlag($jadwal, (bool) $validated['enabled']);
+
+        $msg = $validated['enabled']
+            ? 'Slot ditandai sebagai moving class. Atur nama kelas dan siswa di halaman Kelas Moving.'
+            : 'Penanda moving class dihapus dari slot ini. Daftar siswa gabungan dikosongkan; rombel/siswa master tetap utuh.';
+
+        return redirect()
+            ->route('guru.jadwal-saya.index')
+            ->with('success', $msg);
+    }
+
+    public function movingForm(Jadwal $jadwal)
+    {
+        $this->guruJadwalSayaService->assertOwnership($jadwal);
+        $this->guruJadwalSayaService->assertActiveSlot($jadwal);
+        $this->movingKelasService->assertCanManage($jadwal);
+        JadwalMovingSchema::ensure();
+
+        if (! $jadwal->is_moving_class) {
+            return redirect()
+                ->route('guru.jadwal-saya.index')
+                ->with('warning', 'Tandai slot sebagai moving class terlebih dahulu.');
+        }
+
+        $guru = $this->guruJadwalSayaService->getGuru();
+        $groupedSiswa = $this->movingKelasService->candidateSiswaGrouped();
+        $selectedIds = $this->movingKelasService->selectedSiswaIds($jadwal);
+
+        return view('guru.jadwal-saya.moving', compact(
+            'guru',
+            'jadwal',
+            'groupedSiswa',
+            'selectedIds',
+        ));
+    }
+
+    public function movingStore(Request $request, Jadwal $jadwal)
+    {
+        $this->guruJadwalSayaService->assertOwnership($jadwal);
+        $this->guruJadwalSayaService->assertActiveSlot($jadwal);
+
+        $validated = $request->validate([
+            'moving_kelas_nama' => 'required|string|min:2|max:150',
+            'siswa_ids' => 'required|array|min:1',
+            'siswa_ids.*' => 'integer|exists:siswas,id',
+        ]);
+
+        $this->movingKelasService->saveRoster(
+            $jadwal,
+            $validated['moving_kelas_nama'],
+            $validated['siswa_ids'],
+        );
+
+        return redirect()
+            ->route('guru.jadwal-saya.moving', $jadwal)
+            ->with('success', 'Kelas moving disimpan. Nama dan siswa akan dipakai saat isi jurnal slot ini.');
     }
 }

@@ -21,11 +21,14 @@ class Jadwal extends Model
         'tahun_pelajaran',
         'semester',
         'is_locked',
+        'is_moving_class',
+        'moving_kelas_nama',
         'archived_at',
     ];
 
     protected $casts = [
         'is_locked' => 'boolean',
+        'is_moving_class' => 'boolean',
         'archived_at' => 'datetime',
     ];
 
@@ -39,12 +42,28 @@ class Jadwal extends Model
         return $this->archived_at !== null;
     }
 
+    public function isMovingClass(): bool
+    {
+        return (bool) $this->is_moving_class;
+    }
+
     /**
      * Relasi ke Guru
      */
     public function guru()
     {
         return $this->belongsTo(Guru::class);
+    }
+
+    public function movingSiswaLinks()
+    {
+        return $this->hasMany(JadwalMovingSiswa::class);
+    }
+
+    public function movingSiswas()
+    {
+        return $this->belongsToMany(Siswa::class, 'jadwal_moving_siswas')
+            ->withTimestamps();
     }
 
     public function polaJadwal()

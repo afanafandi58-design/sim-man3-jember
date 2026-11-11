@@ -11,8 +11,10 @@ use App\Services\GuruJurnalService;
 use App\Services\JurnalJamSelectionService;
 use App\Services\JurnalAttachmentService;
 use App\Services\KodeKelasResolverService;
+use App\Services\MovingKelasService;
 use App\Services\OperationalDateService;
 use App\Services\SiswaService;
+use App\Support\JadwalMovingSchema;
 use App\Support\TitikESchema;
 use Illuminate\Http\Request;
 
@@ -27,11 +29,13 @@ class GuruJurnalController extends Controller
         private KodeKelasResolverService $kodeKelasResolverService,
         private OperationalDateService $operationalDate,
         private JurnalJamSelectionService $jamSelectionService,
+        private MovingKelasService $movingKelasService,
     ) {}
 
     public function create(Jadwal $jadwal, Request $request)
     {
         TitikESchema::ensure();
+        JadwalMovingSchema::ensure();
         $this->guruJurnalService->assertJadwalAccess($jadwal);
 
         $tanggal = (string) $request->query('tanggal', $this->operationalDate->today()->toDateString());
@@ -57,6 +61,14 @@ class GuruJurnalController extends Controller
         $defaultPengganti = ! $isOwner
             ? (auth()->user()->guru?->nama ?? auth()->user()->name)
             : old('guru_pengganti');
+        $canEditMoving = $isOwner && $jadwal->isMovingClass();
+        $groupedSiswa = $jadwal->isMovingClass()
+            ? $this->movingKelasService->candidateSiswaGrouped()
+            : collect();
+        $selectedIds = $jadwal->isMovingClass()
+            ? $this->movingKelasService->selectedSiswaIds($jadwal)
+            : [];
+        $kelasDisplay = $this->movingKelasService->displayKelasLabel($jadwal);
 
         $prefill = $this->absensiHarianService->prefillMapForKelas(
             $tanggal,
@@ -86,12 +98,17 @@ class GuruJurnalController extends Controller
             'absensiMap',
             'keteranganMap',
             'tidakMasukHarian',
+            'canEditMoving',
+            'groupedSiswa',
+            'selectedIds',
+            'kelasDisplay',
         ));
     }
 
     public function edit(Jurnal $jurnal)
     {
         TitikESchema::ensure();
+        JadwalMovingSchema::ensure();
         $this->guruJurnalService->assertJurnalAccess($jurnal);
         $jurnal->load(['jadwal.guru', 'absensiSiswas.siswa', 'attachments']);
 
@@ -105,9 +122,19 @@ class GuruJurnalController extends Controller
         $isOwner = $this->guruJurnalService->isJadwalOwner($jurnal->jadwal);
         $jurnalRulesNotice = $this->operationalDate->jurnalRulesNotice();
         $isLocked = $jurnal->isLocked();
+        $jadwal = $jurnal->jadwal;
+        $canEditMoving = $isOwner && $jadwal->isMovingClass() && ! $isLocked;
+        $groupedSiswa = $jadwal->isMovingClass()
+            ? $this->movingKelasService->candidateSiswaGrouped()
+            : collect();
+        $selectedIds = $jadwal->isMovingClass()
+            ? $this->movingKelasService->selectedSiswaIds($jadwal)
+            : [];
+        $kelasDisplay = $this->movingKelasService->displayKelasLabel($jadwal);
 
         return view('guru.jurnal.edit', compact(
             'jurnal',
+            'jadwal',
             'siswas',
             'kelasMeta',
             'absensiMap',
@@ -118,12 +145,17 @@ class GuruJurnalController extends Controller
             'isOwner',
             'jurnalRulesNotice',
             'isLocked',
+            'canEditMoving',
+            'groupedSiswa',
+            'selectedIds',
+            'kelasDisplay',
         ));
     }
 
     public function update(Request $request, Jurnal $jurnal)
     {
         TitikESchema::ensure();
+        JadwalMovingSchema::ensure();
         $data = $request->validate([
             'materi' => 'required',
             'jp_selected' => 'required|array|min:1',
@@ -135,6 +167,9 @@ class GuruJurnalController extends Controller
             'status_kbm' => 'required|in:Selesai,Belum Selesai,Guru Pengganti,Libur',
             'guru_pengganti' => 'nullable|string|max:150',
             'catatan' => 'nullable',
+            'moving_kelas_nama' => 'nullable|string|min:2|max:150',
+            'siswa_ids' => 'nullable|array',
+            'siswa_ids.*' => 'integer|exists:siswas,id',
             'absensi.siswa' => 'nullable|array',
             'absensi.siswa.*' => 'in:Hadir,Sakit,Izin,Alpha',
             'absensi.keterangan' => 'nullable|array',
@@ -147,7 +182,10 @@ class GuruJurnalController extends Controller
             'attachment_captions.*' => JurnalAttachmentService::captionFieldRules(),
         ]);
 
+        $this->maybeSaveMovingRoster($request, $jurnal->jadwal);
+
         $absensiInput = $request->input('absensi');
+        unset($data['moving_kelas_nama'], $data['siswa_ids']);
         $data = $this->mergeJamSelection($data, $jurnal->jadwal);
 
         $this->guruJurnalService->update($jurnal, $data, $absensiInput);
@@ -172,6 +210,7 @@ class GuruJurnalController extends Controller
     public function store(Request $request)
     {
         TitikESchema::ensure();
+        JadwalMovingSchema::ensure();
         $data = $request->validate([
             'jadwal_id' => 'required|exists:jadwals,id',
             'tanggal' => 'required|date',
@@ -185,6 +224,9 @@ class GuruJurnalController extends Controller
             'status_kbm' => 'required|in:Selesai,Belum Selesai,Guru Pengganti,Libur',
             'guru_pengganti' => 'nullable|string|max:150',
             'catatan' => 'nullable',
+            'moving_kelas_nama' => 'nullable|string|min:2|max:150',
+            'siswa_ids' => 'nullable|array',
+            'siswa_ids.*' => 'integer|exists:siswas,id',
             'absensi.siswa' => 'nullable|array',
             'absensi.siswa.*' => 'in:Hadir,Sakit,Izin,Alpha',
             'absensi.keterangan' => 'nullable|array',
@@ -198,6 +240,8 @@ class GuruJurnalController extends Controller
         $this->operationalDate->assertJurnalFillableDate($data['tanggal']);
         $absensiInput = $request->input('absensi');
         $jadwal = Jadwal::findOrFail($data['jadwal_id']);
+        $this->maybeSaveMovingRoster($request, $jadwal);
+        unset($data['moving_kelas_nama'], $data['siswa_ids']);
         $data = $this->mergeJamSelection($data, $jadwal);
 
         $jurnal = $this->guruJurnalService->create($data, $absensiInput);
@@ -233,5 +277,28 @@ class GuruJurnalController extends Controller
             'jam_mulai' => $resolved['jam_mulai'],
             'jam_selesai' => $resolved['jam_selesai'],
         ]);
+    }
+
+    private function maybeSaveMovingRoster(Request $request, Jadwal $jadwal): void
+    {
+        if (! $jadwal->isMovingClass()) {
+            return;
+        }
+
+        if (! $this->guruJurnalService->isJadwalOwner($jadwal)) {
+            return;
+        }
+
+        if (! $request->filled('moving_kelas_nama') && ! $request->filled('siswa_ids')) {
+            return;
+        }
+
+        $this->movingKelasService->saveRoster(
+            $jadwal,
+            (string) $request->input('moving_kelas_nama', $jadwal->moving_kelas_nama),
+            $request->input('siswa_ids', []),
+        );
+
+        $jadwal->refresh();
     }
 }

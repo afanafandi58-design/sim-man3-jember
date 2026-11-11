@@ -8,6 +8,8 @@ use App\Services\GuruService;
 use App\Services\JadwalMasterDataService;
 use App\Services\JadwalScheduleService;
 use App\Services\JurnalJamSelectionService;
+use App\Services\MovingKelasService;
+use App\Support\JadwalMovingSchema;
 use App\Models\Guru;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -20,6 +22,7 @@ class JadwalController extends Controller
         private JurnalJamSelectionService $jamSelectionService,
         private AdminJadwalService $adminJadwalService,
         private GuruService $guruService,
+        private MovingKelasService $movingKelasService,
     ) {}
 
     public function index(Request $request)
@@ -109,6 +112,7 @@ class JadwalController extends Controller
 
     public function edit(Jadwal $jadwal)
     {
+        JadwalMovingSchema::ensure();
         $gurus = Guru::orderBy('nama')->get();
 
         return view('jadwal.edit', array_merge(
@@ -126,6 +130,7 @@ class JadwalController extends Controller
 
     public function update(Request $request, Jadwal $jadwal)
     {
+        JadwalMovingSchema::ensure();
         $validated = $request->validate([
             'guru_id' => 'required|exists:gurus,id',
             'kelas' => 'required',
@@ -135,6 +140,7 @@ class JadwalController extends Controller
             'jam_ke_akhir' => 'nullable|integer|min:0|gte:jam_ke',
             'tahun_pelajaran' => 'required',
             'semester' => 'required',
+            'is_moving_class' => 'nullable|boolean',
         ]);
 
         $payload = $this->jadwalMasterDataService->mergeJamRangeIntoData($validated);
@@ -165,6 +171,10 @@ class JadwalController extends Controller
             'tahun_pelajaran' => $payload['tahun_pelajaran'],
             'semester' => $payload['semester'],
         ]);
+        $this->movingKelasService->setMovingFlag(
+            $jadwal->fresh(),
+            (bool) $request->boolean('is_moving_class'),
+        );
         $this->guruService->syncJumlahJamMengajar(Guru::findOrFail($payload['guru_id']));
 
         return redirect()->route('jadwals.index')

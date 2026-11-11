@@ -51,6 +51,13 @@ Route::middleware(['auth', 'role:guru'])->group(function () {
         ->name('guru.jadwal-saya.reset-aktif');
     Route::get('/guru/jadwal-saya/{jadwal}/perbaikan', [GuruJadwalSayaController::class, 'perbaikanForm'])->name('guru.jadwal-saya.perbaikan');
     Route::post('/guru/jadwal-saya/{jadwal}/perbaikan', [GuruJadwalSayaController::class, 'perbaikanStore'])->name('guru.jadwal-saya.perbaikan.store');
+    Route::post('/guru/jadwal-saya/{jadwal}/moving-toggle', [GuruJadwalSayaController::class, 'toggleMoving'])
+        ->middleware('throttle:20,1')
+        ->name('guru.jadwal-saya.moving-toggle');
+    Route::get('/guru/jadwal-saya/{jadwal}/moving', [GuruJadwalSayaController::class, 'movingForm'])->name('guru.jadwal-saya.moving');
+    Route::post('/guru/jadwal-saya/{jadwal}/moving', [GuruJadwalSayaController::class, 'movingStore'])
+        ->middleware('throttle:20,1')
+        ->name('guru.jadwal-saya.moving.store');
     Route::get('/guru/jurnal/{jadwal}/create', [GuruJurnalController::class, 'create'])->name('guru.jurnal.create');
     Route::post('/guru/jurnal/store', [GuruJurnalController::class, 'store'])->name('guru.jurnal.store');
     Route::get('/guru/jurnal/{jurnal}/edit', [GuruJurnalController::class, 'edit'])->name('guru.jurnal.edit');

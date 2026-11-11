@@ -50,6 +50,28 @@
             </div>
 
             <div class="form-group">
+                <div class="custom-control custom-checkbox">
+                    <input type="hidden" name="is_moving_class" value="0">
+                    <input type="checkbox"
+                           class="custom-control-input"
+                           id="is_moving_class"
+                           name="is_moving_class"
+                           value="1"
+                           @checked(old('is_moving_class', $jadwal->is_moving_class ?? false))>
+                    <label class="custom-control-label" for="is_moving_class">
+                        Tandai sebagai <strong>moving class</strong>
+                        (gabungan siswa dari rombel existing; tidak mengganti data siswa)
+                    </label>
+                </div>
+                @if(!empty($jadwal->is_moving_class) && $jadwal->moving_kelas_nama)
+                    <small class="text-muted d-block mt-1">
+                        Nama moving saat ini: {{ $jadwal->moving_kelas_nama }}.
+                        Guru pemilik mengatur daftar siswa lewat portal guru.
+                    </small>
+                @endif
+            </div>
+
+            <div class="form-group">
                 <label>Mapel</label>
                 <input type="text"
                        name="mapel"

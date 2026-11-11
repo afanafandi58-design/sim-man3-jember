@@ -53,7 +53,11 @@
 
             <tr>
                 <th>Kelas</th>
-                <td>: {{ $jadwal->kelas }}</td>
+                <td>: {{ $kelasDisplay ?? $jadwal->kelas }}
+                    @if(!empty($jadwal->is_moving_class))
+                        <span class="badge badge-primary">Moving</span>
+                    @endif
+                </td>
             </tr>
 
             <tr>
@@ -141,6 +145,13 @@
 </div>
 
             @include('guru.jurnal.partials.arabic-language-support')
+
+            @include('guru.jurnal.partials.moving-kelas-form', [
+                'jadwal' => $jadwal,
+                'canEditMoving' => $canEditMoving ?? false,
+                'groupedSiswa' => $groupedSiswa ?? collect(),
+                'selectedIds' => $selectedIds ?? [],
+            ])
 
             <div class="form-group">
 

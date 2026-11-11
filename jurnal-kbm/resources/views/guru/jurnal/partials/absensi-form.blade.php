@@ -11,7 +11,12 @@
         </h3>
         <div class="card-tools">
             <span class="badge badge-info">
-                Kelas {{ $kelasMeta['kelas'] }} | Rombel {{ $kelasMeta['rombel'] }} | {{ $kelasMeta['kode_kelas'] }}
+                @if(!empty($jadwal?->is_moving_class) || !empty($jurnal?->jadwal?->is_moving_class))
+                    Moving: {{ $kelasDisplay ?? ($jadwal->moving_kelas_nama ?? $jurnal->jadwal->moving_kelas_nama ?? $jadwal->kelas ?? $jurnal->jadwal->kelas) }}
+                    · {{ $siswas->count() }} siswa
+                @else
+                    Kelas {{ $kelasMeta['kelas'] }} | Rombel {{ $kelasMeta['rombel'] }} | {{ $kelasMeta['kode_kelas'] }}
+                @endif
             </span>
         </div>
     </div>

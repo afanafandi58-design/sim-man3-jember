@@ -104,7 +104,7 @@
                         <th>TP</th>
                         <th>Semester</th>
                         <th>Status</th>
-                        <th width="160">Aksi</th>
+                        <th width="200">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -129,16 +129,44 @@
                             <td>{{ $jadwal->semester }}</td>
                             <td><span class="badge {{ $statusClass }}">{{ $statusLabel }}</span></td>
                             <td>
-                                @if($jadwal->is_locked && ! $jadwal->pendingPerbaikanRequest)
-                                    <a href="{{ route('guru.jadwal-saya.perbaikan', $jadwal) }}"
-                                       class="btn btn-warning btn-sm">
-                                        <i class="fas fa-edit"></i> Perbaiki Slot
-                                    </a>
-                                @elseif($jadwal->pendingPerbaikanRequest)
-                                    <span class="text-muted small">Menunggu admin</span>
-                                @else
-                                    <span class="text-muted small">—</span>
-                                @endif
+                                <div class="btn-group-vertical btn-group-sm">
+                                    @if($jadwal->is_locked && ! $jadwal->pendingPerbaikanRequest)
+                                        <a href="{{ route('guru.jadwal-saya.perbaikan', $jadwal) }}"
+                                           class="btn btn-warning btn-sm mb-1">
+                                            <i class="fas fa-edit"></i> Perbaiki Slot
+                                        </a>
+                                    @elseif($jadwal->pendingPerbaikanRequest)
+                                        <span class="text-muted small mb-1">Menunggu admin</span>
+                                    @endif
+
+                                    @if(!empty($jadwal->is_moving_class))
+                                        <span class="badge badge-primary mb-1">
+                                            MOVING
+                                            @if($jadwal->moving_kelas_nama)
+                                                · {{ \Illuminate\Support\Str::limit($jadwal->moving_kelas_nama, 18) }}
+                                            @endif
+                                        </span>
+                                        <a href="{{ route('guru.jadwal-saya.moving', $jadwal) }}"
+                                           class="btn btn-outline-primary btn-sm mb-1">
+                                            <i class="fas fa-users"></i> Atur Kelas Moving
+                                        </a>
+                                        <form action="{{ route('guru.jadwal-saya.moving-toggle', $jadwal) }}" method="POST"
+                                              onsubmit="return confirm('Hapus penanda moving class dari slot ini? Daftar gabungan dikosongkan; data rombel/siswa tetap ada.');">
+                                            @csrf
+                                            <input type="hidden" name="enabled" value="0">
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">Lepas Moving</button>
+                                        </form>
+                                    @else
+                                        <form action="{{ route('guru.jadwal-saya.moving-toggle', $jadwal) }}" method="POST"
+                                              onsubmit="return confirm('Tandai slot ini sebagai moving class?');">
+                                            @csrf
+                                            <input type="hidden" name="enabled" value="1">
+                                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-exchange-alt"></i> Tandai Moving
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

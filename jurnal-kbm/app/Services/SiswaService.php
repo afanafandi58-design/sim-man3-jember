@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Jadwal;
 use App\Models\Siswa;
+use App\Support\JadwalMovingSchema;
 use Illuminate\Database\Eloquent\Collection;
 
 class SiswaService
@@ -17,6 +18,22 @@ class SiswaService
      */
     public function forJadwal(Jadwal $jadwal): Collection
     {
+        JadwalMovingSchema::ensure();
+
+        if ($jadwal->isMovingClass()) {
+            $ids = $jadwal->movingSiswaLinks()->pluck('siswa_id');
+
+            if ($ids->isEmpty()) {
+                return new Collection;
+            }
+
+            return Siswa::query()
+                ->aktif()
+                ->whereIn('id', $ids->all())
+                ->orderBy('nama')
+                ->get();
+        }
+
         $meta = $this->kodeKelasResolverService->resolveMeta($jadwal);
 
         $query = Siswa::query()
