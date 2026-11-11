@@ -220,14 +220,25 @@ class AbsensiHarianService
             })
             ->filter();
 
-        return $fromJadwal
-            ->concat($fromWali)
+        // Wali dulu agar assignment tidak tertimpa key yang sama dari jadwal ajar.
+        return $fromWali
+            ->concat($fromJadwal)
             ->unique(fn (array $row) => $row['key'])
             ->sortBy([
                 fn (array $row) => $row['kelas'],
                 fn (array $row) => $row['rombel'] ?? '',
             ])
             ->values();
+    }
+
+    /** Resolve satu assignment wali ke slot kelas/rombel siswa. */
+    public function resolveWaliAssignmentSlot(WaliKelas $assignment): ?array
+    {
+        return $this->resolveKelasSlot(
+            (string) $assignment->kelas,
+            $assignment->rombel ? (string) $assignment->rombel : null,
+            'wali'
+        );
     }
 
     /** @return Collection<int, string> */

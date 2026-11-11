@@ -166,13 +166,9 @@ class AbsensiModulController extends Controller
         }
 
         $allowedAll = $this->absensiHarianService->allowedKelasForUser($user);
-        $waliSlots = $allowedAll->where('sumber', 'wali')->values();
-        $slot = null;
-        if ($selected) {
-            $slot = $waliSlots->first(function (array $row) use ($selected) {
-                return $row['kelas'] === $selected->kelas;
-            }) ?? $waliSlots->first();
-        }
+        $slot = $selected
+            ? $this->absensiHarianService->resolveWaliAssignmentSlot($selected)
+            : null;
 
         // Admin/kepala tanpa filter: tampilkan semua tidak masuk hari itu.
         if ($isAdminLike && ! $request->filled('kelas') && ! $request->filled('wali_id') && ! $selected) {
