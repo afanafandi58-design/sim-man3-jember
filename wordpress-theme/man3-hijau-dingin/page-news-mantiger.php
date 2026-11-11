@@ -49,8 +49,8 @@ $ig    = 'https://www.instagram.com/mantiger.official/';
 									<img
 										src="<?php echo esc_url( $item['thumb'] ); ?>"
 										alt="<?php echo esc_attr( $item['title'] ); ?>"
-										width="720"
-										height="450"
+										width="480"
+										height="640"
 										loading="lazy"
 									/>
 								<?php else : ?>
