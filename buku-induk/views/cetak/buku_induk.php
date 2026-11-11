@@ -16,10 +16,10 @@ $nism = trim(($sekolah['nsm'] ?? '') . ($v('nis_lokal')));
     <meta charset="utf-8">
     <title>Buku Induk — <?php echo e($v('nama')); ?></title>
     <style>
-        /* Margin kiri kertas 2 cm; kanan sisa ruang kotak foto 2×3 cm (pas foto portrait) */
+        /* Margin kiri 2 cm, kanan 1.5 cm; satu kotak foto 2×3 cm portrait */
         @page {
             size: A4;
-            margin: 1.2cm 1.2cm 1.2cm 2cm;
+            margin: 1.2cm 1.5cm 1.2cm 2cm;
         }
         * { box-sizing: border-box; }
         body {
@@ -27,7 +27,7 @@ $nism = trim(($sekolah['nsm'] ?? '') . ($v('nis_lokal')));
             color: #111;
             font-size: 11pt;
             margin: 0;
-            padding: <?php echo $isPdf ? '0' : '16px 16px 16px 2cm'; ?>;
+            padding: <?php echo $isPdf ? '0' : '16px 1.5cm 16px 2cm'; ?>;
         }
         .sheet { width: 100%; }
         h1 { text-align: center; font-size: 15pt; margin: 0 0 2px; text-transform: uppercase; }
@@ -35,21 +35,25 @@ $nism = trim(($sekolah['nsm'] ?? '') . ($v('nis_lokal')));
         table.meta { width: 100%; margin-bottom: 10px; border-collapse: collapse; }
         table.meta td { padding: 2px 0; vertical-align: top; }
         table.meta td.k { width: 7.2cm; } /* label meta dipersempit → nilai bergeser kiri */
-        table.form { width: 100%; border-collapse: collapse; }
-        table.form td { padding: 3px 4px; vertical-align: top; border-bottom: 1px dotted #999; }
+        table.form { width: 100%; border-collapse: collapse; margin: 0; }
+        table.form td { padding: 2px 4px; vertical-align: top; border-bottom: 1px dotted #999; }
         table.form td.num { width: 1.1cm; white-space: nowrap; }
         table.form td.label { width: 5.8cm; } /* sebelumnya ~42%; digeser kiri sesuai acuan */
         table.form td.val { width: auto; }
-        .section { margin-top: 10px; font-weight: bold; clear: none; }
+        /* Judul section rapat ke baris data berikutnya (tanpa gap float) */
+        .section { margin: 10px 0 1px; padding: 0; font-weight: bold; line-height: 1.2; }
+        .section-first { margin-top: 0; }
         .block { margin: 0; padding: 0; }
-        .block:after { content: ""; display: table; clear: both; }
-        /* Kotak kosong foto ditempel manual — 2 cm (lebar) × 3 cm (tinggi), pas foto */
+        /* Satu kotak foto kosong — 2 cm × 3 cm portrait, kanan atas sejajar A. Siswa */
+        table.siswa-wrap { width: 100%; border-collapse: collapse; margin: 0; }
+        table.siswa-wrap > tbody > tr > td { vertical-align: top; padding: 0; border: none; }
+        table.siswa-wrap td.siswa-main { padding-right: 8px; }
+        table.siswa-wrap td.siswa-foto { width: 2.2cm; }
         .foto-box {
-            float: right;
             width: 2cm;
             height: 3cm;
             border: 1px solid #111;
-            margin: 2px 0 8px 10px;
+            margin: 0;
             padding: 0;
             background: transparent;
         }
@@ -93,24 +97,31 @@ $nism = trim(($sekolah['nsm'] ?? '') . ($v('nis_lokal')));
 </table>
 
 <div class="block">
-    <div class="foto-box" title="Tempel foto siswa"></div>
-    <div class="section">A. Siswa</div>
-    <table class="form">
-        <tr><td class="num">1</td><td class="label">Nama lengkap</td><td class="val"><?php echo e($v('nama')); ?></td></tr>
-        <tr><td class="num">2</td><td class="label">Jenis kelamin</td><td class="val"><?php echo e($v('jenis_kelamin')); ?></td></tr>
-        <tr><td class="num">3</td><td class="label">Tempat, tanggal lahir</td><td class="val"><?php
-            $ttl = trim($v('tempat_lahir'));
-            $tgl = format_tanggal_id($v('tanggal_lahir'));
-            echo e($ttl . ($ttl && $tgl ? ', ' : '') . $tgl);
-        ?></td></tr>
-        <tr><td class="num">4</td><td class="label">Anak ke</td><td class="val"><?php echo e($v('anak_ke')); ?></td></tr>
-        <tr><td class="num">5</td><td class="label">Status dalam keluarga</td><td class="val"><?php echo e($v('status_keluarga')); ?></td></tr>
-        <tr><td class="num">6</td><td class="label">Alamat</td><td class="val"><?php echo e($v('alamat')); ?></td></tr>
+    <table class="siswa-wrap">
+        <tr>
+            <td class="siswa-main">
+                <div class="section section-first">A. Siswa</div>
+                <table class="form">
+                    <tr><td class="num">1</td><td class="label">Nama lengkap</td><td class="val"><?php echo e($v('nama')); ?></td></tr>
+                    <tr><td class="num">2</td><td class="label">Jenis kelamin</td><td class="val"><?php echo e($v('jenis_kelamin')); ?></td></tr>
+                    <tr><td class="num">3</td><td class="label">Tempat, tanggal lahir</td><td class="val"><?php
+                        $ttl = trim($v('tempat_lahir'));
+                        $tgl = format_tanggal_id($v('tanggal_lahir'));
+                        echo e($ttl . ($ttl && $tgl ? ', ' : '') . $tgl);
+                    ?></td></tr>
+                    <tr><td class="num">4</td><td class="label">Anak ke</td><td class="val"><?php echo e($v('anak_ke')); ?></td></tr>
+                    <tr><td class="num">5</td><td class="label">Status dalam keluarga</td><td class="val"><?php echo e($v('status_keluarga')); ?></td></tr>
+                    <tr><td class="num">6</td><td class="label">Alamat</td><td class="val"><?php echo e($v('alamat')); ?></td></tr>
+                </table>
+            </td>
+            <td class="siswa-foto">
+                <div class="foto-box" title="Tempel foto siswa"></div>
+            </td>
+        </tr>
     </table>
 </div>
 
 <div class="block">
-    <div class="foto-box" title="Tempel foto siswa"></div>
     <div class="section">B. Orang tua / wali</div>
     <table class="form">
         <tr><td class="num">7.1</td><td class="label">Nama ayah</td><td class="val"><?php echo e($v('nama_ayah')); ?></td></tr>
@@ -146,7 +157,6 @@ $nism = trim(($sekolah['nsm'] ?? '') . ($v('nis_lokal')));
 </div>
 
 <div class="block">
-    <div class="foto-box" title="Tempel foto siswa"></div>
     <div class="section">D. Meninggalkan madrasah</div>
     <table class="form">
         <tr><td class="num">19</td><td class="label">Pada tanggal</td><td class="val"><?php echo e(format_tanggal_id($v('keluar_tanggal'))); ?></td></tr>
