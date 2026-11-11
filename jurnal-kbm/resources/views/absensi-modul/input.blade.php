@@ -31,8 +31,8 @@
             <select name="kelas" class="form-control mr-3">
                 <option value="">Semua kelas saya</option>
                 @foreach(($kelasOptions ?? collect()) as $opt)
-                    <option value="{{ $opt['key'] }}" @selected(($filters['kelas'] ?? '') == $opt['key'])>
-                        {{ $opt['label'] }}@if(($opt['sumber'] ?? '') === 'wali') · wali@endif
+                    <option value="{{ $opt['key'] }}" @selected(($filters['kelas'] ?? '') === $opt['key'])>
+                        {{ $opt['label'] }}{{ ($opt['sumber'] ?? '') === 'wali' ? ' · wali' : '' }}
                     </option>
                 @endforeach
             </select>
