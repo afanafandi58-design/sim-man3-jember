@@ -181,6 +181,10 @@ class AbsensiModulController extends Controller
             $rombel = $request->get('rombel');
         } elseif ($slot) {
             $tidakMasuk = $this->absensiHarianService->tidakMasuk($tanggal, $slot['kelas'], $slot['rombel']);
+            // Jika rombel assignment tidak tepat cocok, tetap tampilkan tingkat kelas wali.
+            if ($tidakMasuk->isEmpty() && ! empty($slot['rombel'])) {
+                $tidakMasuk = $this->absensiHarianService->tidakMasuk($tanggal, $slot['kelas'], null);
+            }
             $kelas = $slot['kelas'];
             $rombel = $slot['rombel'];
         } elseif ($isAdminLike && $request->filled('kelas')) {
