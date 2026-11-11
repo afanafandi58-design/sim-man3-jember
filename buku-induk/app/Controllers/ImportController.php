@@ -18,8 +18,40 @@ class ImportController
             'success' => flash('success'),
             'error' => flash('error'),
             'result' => isset($_SESSION['import_result']) ? $_SESSION['import_result'] : null,
+            'template_columns' => ExcelImportService::templateColumnHeaders(),
         ]);
         unset($_SESSION['import_result']);
+    }
+
+    public function downloadTemplate(): void
+    {
+        require_login();
+
+        $static = dirname(__DIR__, 2) . '/public/assets/templates/template-impor-siswa.xlsx';
+        if (is_file($static) && filesize($static) > 0) {
+            $this->streamXlsx($static, 'template-impor-siswa-man3-jember.xlsx');
+            return;
+        }
+
+        try {
+            $tmp = sys_get_temp_dir() . '/buku-induk-template-' . uniqid('', true) . '.xlsx';
+            ExcelImportService::writeTemplateFile($tmp);
+            $this->streamXlsx($tmp, 'template-impor-siswa-man3-jember.xlsx');
+            @unlink($tmp);
+        } catch (\Throwable $e) {
+            flash('error', 'Gagal membuat template: ' . $e->getMessage());
+            redirect('/import');
+        }
+    }
+
+    private function streamXlsx(string $path, string $downloadName): void
+    {
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $downloadName . '"');
+        header('Content-Length: ' . (string) filesize($path));
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+        readfile($path);
+        exit;
     }
 
     public function upload(): void

@@ -35,6 +35,7 @@ $routes = [
     'POST /siswa/store' => ['App\\Controllers\\SiswaController', 'store'],
 
     'GET /import' => ['App\\Controllers\\ImportController', 'form'],
+    'GET /import/template' => ['App\\Controllers\\ImportController', 'downloadTemplate'],
     'POST /import' => ['App\\Controllers\\ImportController', 'upload'],
 
     'GET /settings' => ['App\\Controllers\\SettingsController', 'form'],

@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Models\Siswa;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ExcelImportService
 {
@@ -50,10 +52,159 @@ class ExcelImportService
             'diterima di kelas' => 'mutasi_diterima_kelas',
             'alamat sekolah asal' => 'alamat_sekolah_asal',
             'surat mutasi nomor' => 'mutasi_surat_nomor',
+            // Alias lama Excel makro (duplikat "Pada Tanggal" → mutasi)
             'pada tanggal' => 'mutasi_tanggal',
+            'pada tanggal mutasi' => 'mutasi_tanggal',
+            'tanggal mutasi' => 'mutasi_tanggal',
+            'mutasi tanggal' => 'mutasi_tanggal',
             'alasan' => 'keluar_alasan',
+            'alasan keluar' => 'keluar_alasan',
             'nomor surat mutasi' => 'keluar_surat_nomor',
+            'tanggal keluar' => 'keluar_tanggal',
+            'pada tanggal keluar' => 'keluar_tanggal',
+            'keluar tanggal' => 'keluar_tanggal',
+            'keterangan keluar' => 'keluar_keterangan',
+            'keluar keterangan' => 'keluar_keterangan',
         ];
+    }
+
+    /**
+     * Header resmi template impor (urutan kolom) — selaras headerMap / field DB.
+     *
+     * @return list<string>
+     */
+    public static function templateColumnHeaders(): array
+    {
+        return [
+            'Nis Lokal',
+            'NISN',
+            'Nama',
+            'Jenis Kelamin',
+            'Tempat Lahir',
+            'Tanggal Lahir',
+            'Alamat Siswa',
+            'Agama',
+            'Status Keluarga',
+            'Anak Ke',
+            'Nomor HP',
+            'Sekolah Asal',
+            'Tanggal Terima',
+            'Tingkat Awal',
+            'Nama Ayah',
+            'Nama Ibu',
+            'Pekerjaan Ayah',
+            'Pekerjaan Ibu',
+            'Alamat Orang Tua',
+            'Nama Wali',
+            'Pekerjaan Wali',
+            'Alamat Wali',
+            'Agama Ayah',
+            'Agama Ibu',
+            'Agama Wali',
+            'HP Wali',
+            'Nomor Ijazah',
+            'Nilai Ujian Akhir',
+            'Mutasi Dari',
+            'Diterima Di Kelas',
+            'Pada Tanggal Mutasi',
+            'Surat Mutasi Nomor',
+            'Alamat Sekolah Asal',
+            'Tanggal Keluar',
+            'Alasan',
+            'Nomor Surat Mutasi',
+            'Keterangan Keluar',
+        ];
+    }
+
+    /**
+     * Baris contoh realistis MAN 3 Jember (bukan kosong).
+     *
+     * @return list<string|int>
+     */
+    public static function templateSampleRow(): array
+    {
+        return [
+            '2526001',
+            '0051234567',
+            'Ahmad Fauzan Pratama',
+            'Laki-laki',
+            'Jember',
+            '15-03-2009',
+            'Jl. MH Thamrin No. 12, Kec. Jombang, Kab. Jember',
+            'Islam',
+            'Anak Kandung',
+            2,
+            '081234567890',
+            'MTsN 2 Jember',
+            '15-07-2024',
+            'X.A',
+            'H. Samsul Arifin',
+            'Siti Aminah',
+            'Petani',
+            'Ibu Rumah Tangga',
+            'Jl. MH Thamrin No. 12, Kec. Jombang, Kab. Jember',
+            '',
+            '',
+            '',
+            'Islam',
+            'Islam',
+            '',
+            '',
+            'MTs-2024/131/089',
+            '85.50',
+            '',
+            '',
+            '',
+            '',
+            'Jl. Argopuro No. 45, Kab. Jember',
+            '',
+            '',
+            '',
+            '',
+        ];
+    }
+
+    /**
+     * Bangun Spreadsheet template sheet DATA_SISWA.
+     */
+    public static function buildTemplateSpreadsheet(): Spreadsheet
+    {
+        if (!class_exists(Spreadsheet::class)) {
+            throw new \RuntimeException('Library PhpSpreadsheet belum terpasang. Jalankan composer install.');
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('DATA_SISWA');
+
+        $headers = self::templateColumnHeaders();
+        $sample = self::templateSampleRow();
+
+        foreach ($headers as $i => $header) {
+            $sheet->setCellValueByColumnAndRow($i + 1, 1, $header);
+        }
+        foreach ($sample as $i => $value) {
+            $sheet->setCellValueByColumnAndRow($i + 1, 2, $value);
+        }
+
+        $sheet->getStyle('A1:' . $sheet->getHighestColumn() . '1')->getFont()->setBold(true);
+        foreach (range(1, count($headers)) as $col) {
+            $sheet->getColumnDimensionByColumn($col)->setAutoSize(true);
+        }
+        $sheet->freezePane('A2');
+
+        return $spreadsheet;
+    }
+
+    /**
+     * Tulis file .xlsx template ke path tujuan.
+     */
+    public static function writeTemplateFile(string $path): void
+    {
+        $spreadsheet = self::buildTemplateSpreadsheet();
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($path);
+        $spreadsheet->disconnectWorksheets();
     }
 
     private static function normalizeHeader($value): string
