@@ -20,7 +20,7 @@ class CetakController
         }
         $sekolah = Sekolah::get();
         $pdf = new PdfService();
-        $html = $pdf->renderBukuIndukHtml($siswa, $sekolah);
+        $html = $pdf->renderBukuIndukHtml($siswa, $sekolah, false);
         // Mode cetak browser (tombol PDF terpisah)
         header('Content-Type: text/html; charset=utf-8');
         echo $html;
@@ -36,7 +36,7 @@ class CetakController
         }
         $sekolah = Sekolah::get();
         $pdf = new PdfService();
-        $html = $pdf->renderBukuIndukHtml($siswa, $sekolah);
+        $html = $pdf->renderBukuIndukHtml($siswa, $sekolah, true);
         $filename = 'Buku_Induk_' . preg_replace('/[^0-9A-Za-z_-]/', '_', (string) $siswa['nis_lokal']) . '.pdf';
         $pdf->outputPdf($html, $filename);
         exit;
