@@ -109,17 +109,18 @@ function man3_popup_get_settings() {
  * @param array<string,mixed> $s Settings.
  * @return array<int,array<string,mixed>>
  */
-function man3_popup_get_active_slides( $s = null ) {
+function man3_popup_get_active_slides( $s = null, $size = 'large' ) {
 	if ( null === $s ) {
 		$s = man3_popup_get_settings();
 	}
-	$out = array();
+	$size = is_string( $size ) && $size ? $size : 'large';
+	$out  = array();
 	foreach ( (array) $s['slides'] as $row ) {
 		if ( empty( $row['active'] ) || empty( $row['image_id'] ) ) {
 			continue;
 		}
-		$url = wp_get_attachment_image_url( (int) $row['image_id'], 'large' );
-		if ( ! $url ) {
+		$url = wp_get_attachment_image_url( (int) $row['image_id'], $size );
+		if ( ! $url && 'full' !== $size ) {
 			$url = wp_get_attachment_image_url( (int) $row['image_id'], 'full' );
 		}
 		if ( ! $url ) {
@@ -567,7 +568,7 @@ function man3_popup_render() {
 		return;
 	}
 
-	$slides = man3_popup_get_active_slides( $s );
+	$slides = man3_popup_get_active_slides( $s, 'full' );
 	if ( ! $slides ) {
 		return;
 	}

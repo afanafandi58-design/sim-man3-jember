@@ -3091,15 +3091,15 @@ body.admin-bar .site-header { top: 32px; }
 .man3-info-welcome__card {
   position: relative;
   z-index: 1;
-  width: min(100%, 34rem);
-  max-height: min(92vh, 44rem);
+  width: min(100%, 52rem); /* lebar pasti — hindari collapse width:auto di dalam fit-content */
+  max-height: min(94vh, 52rem);
   overflow: auto;
   border-radius: 1.15rem;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 250, 246, 0.98));
   border: 1px solid rgba(15, 81, 50, 0.14);
   box-shadow: 0 24px 48px rgba(4, 36, 30, 0.22);
-  padding: 1.15rem 1.15rem 1.05rem;
+  padding: 1.05rem 1.05rem 1rem;
   outline: none;
   animation: man3WelcomeIn 0.32s ease;
 }
@@ -3143,24 +3143,34 @@ body.admin-bar .site-header { top: 32px; }
   position: relative;
   border-radius: 0.85rem;
   overflow: hidden;
-  background: rgba(15, 81, 50, 0.04);
+  background: #fff;
   border: 1px solid rgba(15, 81, 50, 0.08);
+  line-height: 0;
 }
 .man3-info-welcome__slide {
   margin: 0;
   display: none;
+  line-height: 0;
 }
 .man3-info-welcome__slide.is-active {
   display: block;
 }
+.man3-info-welcome__slide a {
+  display: block;
+  line-height: 0;
+}
+/* Tinggi mengikuti rasio alami foto — tanpa area kosong besar */
 .man3-info-welcome__slide img {
   display: block;
-  width: 100%;
-  height: auto;
-  max-height: min(62vh, 28rem);
+  width: auto;
+  max-width: 100%;
+  height: auto !important;
+  max-height: min(75vh, 40rem);
+  margin: 0 auto;
   object-fit: contain;
   object-position: center;
-  background: #f4faf6;
+  background: transparent;
+  aspect-ratio: auto;
 }
 .man3-info-welcome__nav {
   position: absolute;
@@ -3218,6 +3228,8 @@ body.admin-bar .site-header { top: 32px; }
   justify-content: space-between;
   gap: 0.75rem 1rem;
   margin-top: 0.95rem;
+  width: 100%;
+  min-width: min(100%, 20rem);
 }
 .man3-info-welcome__hide {
   display: inline-flex;
@@ -3244,12 +3256,14 @@ body.man3-info-welcome-open {
   }
   .man3-info-welcome__card {
     width: 100%;
-    max-height: 88vh;
+    max-width: 100%;
+    max-height: 90vh;
     border-radius: 1rem 1rem 0.65rem 0.65rem;
-    padding: 1rem 0.9rem 0.9rem;
+    padding: 0.9rem 0.75rem 0.85rem;
   }
   .man3-info-welcome__slide img {
-    max-height: min(52vh, 22rem);
+    max-width: 100%;
+    max-height: min(58vh, 26rem);
   }
   .man3-info-welcome__foot {
     flex-direction: column;
