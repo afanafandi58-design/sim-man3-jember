@@ -304,9 +304,9 @@ function man3_popup_admin_page() {
 	$active_now = man3_popup_is_active( $s );
 	?>
 	<div class="wrap">
-		<h1><?php esc_html_e( 'Popup Informasi → Slide atas', 'man3-hijau-dingin' ); ?></h1>
+		<h1><?php esc_html_e( 'Popup Informasi', 'man3-hijau-dingin' ); ?></h1>
 		<p class="description">
-			<?php esc_html_e( 'Foto informasi tampil sebagai slider otomatis di bawah menu beranda (bukan popup yang memblokir halaman). Hero kegiatan tetap terpisah. Urutkan baris dari atas ke bawah = urutan slide.', 'man3-hijau-dingin' ); ?>
+			<?php esc_html_e( 'Foto aktif dipakai untuk dua tempat di beranda: (1) popup informasi saat pertama masuk, (2) strip #info-slide di bawah menu. Hero kegiatan tetap terpisah. Urutkan baris dari atas ke bawah = urutan slide.', 'man3-hijau-dingin' ); ?>
 			<?php if ( $active_now ) : ?>
 				<strong style="color:#0f5132;"> <?php esc_html_e( 'Status sekarang: AKTIF di beranda.', 'man3-hijau-dingin' ); ?></strong>
 			<?php else : ?>
@@ -317,11 +317,11 @@ function man3_popup_admin_page() {
 			<?php wp_nonce_field( 'man3_popup_save_action', 'man3_popup_nonce' ); ?>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><?php esc_html_e( 'Aktifkan slide', 'man3-hijau-dingin' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Aktifkan', 'man3-hijau-dingin' ); ?></th>
 					<td>
 						<label>
 							<input type="checkbox" name="enabled" value="1" <?php checked( ! empty( $s['enabled'] ) ); ?> />
-							<?php esc_html_e( 'Tampilkan strip foto di bawah menu beranda', 'man3-hijau-dingin' ); ?>
+							<?php esc_html_e( 'Tampilkan popup awal + strip foto di bawah menu beranda', 'man3-hijau-dingin' ); ?>
 						</label>
 					</td>
 				</tr>
@@ -552,8 +552,110 @@ function man3_popup_render_strip() {
 }
 
 /**
- * Legacy modal dihapus — tidak render di footer.
+ * Popup informasi awal (selain strip #info-slide).
  */
 function man3_popup_render() {
-	// No-op: diganti strip di alur halaman.
+	if ( is_admin() || wp_doing_ajax() || is_feed() ) {
+		return;
+	}
+	if ( ! is_front_page() && ! is_home() ) {
+		return;
+	}
+
+	$s = man3_popup_get_settings();
+	if ( ! man3_popup_is_active( $s ) ) {
+		return;
+	}
+
+	$slides = man3_popup_get_active_slides( $s );
+	if ( ! $slides ) {
+		return;
+	}
+
+	$count    = count( $slides );
+	$interval = (int) $s['interval'];
+	$heading  = $s['title'] ? $s['title'] : __( 'Informasi', 'man3-hijau-dingin' );
+	?>
+	<div
+		class="man3-info-welcome"
+		id="info-welcome"
+		data-info-welcome
+		data-info-welcome-interval="<?php echo esc_attr( (string) $interval ); ?>"
+		hidden
+	>
+		<div class="man3-info-welcome__backdrop" data-info-welcome-dismiss></div>
+		<div
+			class="man3-info-welcome__card"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="info-welcome-title"
+			tabindex="-1"
+		>
+			<button type="button" class="man3-info-welcome__close" data-info-welcome-dismiss aria-label="<?php esc_attr_e( 'Tutup', 'man3-hijau-dingin' ); ?>">
+				<span aria-hidden="true">×</span>
+			</button>
+			<p class="man3-info-welcome__eyebrow" id="info-welcome-title"><?php echo esc_html( $heading ); ?></p>
+			<div class="man3-info-welcome__stage" data-info-welcome-stage>
+				<?php foreach ( $slides as $i => $slide ) : ?>
+					<figure
+						class="man3-info-welcome__slide<?php echo 0 === $i ? ' is-active' : ''; ?>"
+						data-info-welcome-slide="<?php echo esc_attr( (string) $i ); ?>"
+						<?php echo 0 === $i ? '' : ' hidden'; ?>
+					>
+						<?php if ( ! empty( $slide['link'] ) ) : ?>
+							<a href="<?php echo esc_url( $slide['link'] ); ?>">
+								<img
+									src="<?php echo esc_url( $slide['url'] ); ?>"
+									alt="<?php echo esc_attr( $slide['alt'] ); ?>"
+									<?php echo 0 === $i ? 'loading="eager"' : 'loading="lazy"'; ?>
+									decoding="async"
+								/>
+							</a>
+						<?php else : ?>
+							<img
+								src="<?php echo esc_url( $slide['url'] ); ?>"
+								alt="<?php echo esc_attr( $slide['alt'] ); ?>"
+								<?php echo 0 === $i ? 'loading="eager"' : 'loading="lazy"'; ?>
+								decoding="async"
+							/>
+						<?php endif; ?>
+					</figure>
+				<?php endforeach; ?>
+				<?php if ( $count > 1 ) : ?>
+					<div class="man3-info-welcome__nav" role="group" aria-label="<?php esc_attr_e( 'Navigasi foto popup', 'man3-hijau-dingin' ); ?>">
+						<button type="button" class="man3-info-welcome__arrow" data-info-welcome-prev aria-label="<?php esc_attr_e( 'Foto sebelumnya', 'man3-hijau-dingin' ); ?>">
+							<span aria-hidden="true">‹</span>
+						</button>
+						<button type="button" class="man3-info-welcome__arrow" data-info-welcome-next aria-label="<?php esc_attr_e( 'Foto berikutnya', 'man3-hijau-dingin' ); ?>">
+							<span aria-hidden="true">›</span>
+						</button>
+					</div>
+					<div class="man3-info-welcome__dots" role="tablist" aria-label="<?php esc_attr_e( 'Pilih foto', 'man3-hijau-dingin' ); ?>">
+						<?php for ( $i = 0; $i < $count; $i++ ) : ?>
+							<button
+								type="button"
+								class="man3-info-welcome__dot<?php echo 0 === $i ? ' is-active' : ''; ?>"
+								data-info-welcome-dot="<?php echo esc_attr( (string) $i ); ?>"
+								role="tab"
+								aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
+								aria-label="<?php echo esc_attr( sprintf( /* translators: %d photo number */ __( 'Foto %d', 'man3-hijau-dingin' ), $i + 1 ) ); ?>"
+							></button>
+						<?php endfor; ?>
+					</div>
+				<?php endif; ?>
+			</div>
+			<div class="man3-info-welcome__foot">
+				<label class="man3-info-welcome__hide">
+					<input type="checkbox" data-info-welcome-hide-today />
+					<span><?php esc_html_e( 'Jangan tampilkan lagi hari ini', 'man3-hijau-dingin' ); ?></span>
+				</label>
+				<button type="button" class="btn btn-solid man3-info-welcome__done" data-info-welcome-dismiss>
+					<?php esc_html_e( 'Tutup', 'man3-hijau-dingin' ); ?>
+				</button>
+			</div>
+		</div>
+	</div>
+	<?php
 }
+/* Priority < 20 agar markup ada sebelum theme.js di footer. */
+add_action( 'wp_footer', 'man3_popup_render', 5 );

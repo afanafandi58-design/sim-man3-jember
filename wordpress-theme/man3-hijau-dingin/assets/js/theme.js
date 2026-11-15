@@ -269,6 +269,112 @@
     start();
   })();
 
+  /* Popup informasi awal — sekali saat masuk, hide hari ini opsional */
+  function initMan3InfoWelcome() {
+    var root = document.querySelector('[data-info-welcome]');
+    if (!root) return;
+
+    var storageKey = 'man3InfoPopupHideDate';
+    var today = new Date();
+    var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+    var todayKey = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
+
+    try {
+      if (window.localStorage && localStorage.getItem(storageKey) === todayKey) {
+        return;
+      }
+    } catch (e) {}
+
+    var slides = Array.prototype.slice.call(root.querySelectorAll('[data-info-welcome-slide]'));
+    var dots = Array.prototype.slice.call(root.querySelectorAll('[data-info-welcome-dot]'));
+    var prevBtn = root.querySelector('[data-info-welcome-prev]');
+    var nextBtn = root.querySelector('[data-info-welcome-next]');
+    var hideToday = root.querySelector('[data-info-welcome-hide-today]');
+    var card = root.querySelector('.man3-info-welcome__card');
+    var index = 0;
+    var interval = parseInt(root.getAttribute('data-info-welcome-interval') || '5000', 10);
+    if (isNaN(interval) || interval < 3000) interval = 5000;
+    var timer = null;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function goTo(next) {
+      if (slides.length < 2) return;
+      var n = ((next % slides.length) + slides.length) % slides.length;
+      if (n === index) return;
+      slides[index].classList.remove('is-active');
+      slides[index].setAttribute('hidden', 'hidden');
+      slides[n].classList.add('is-active');
+      slides[n].removeAttribute('hidden');
+      if (dots.length) {
+        if (dots[index]) {
+          dots[index].classList.remove('is-active');
+          dots[index].setAttribute('aria-selected', 'false');
+        }
+        if (dots[n]) {
+          dots[n].classList.add('is-active');
+          dots[n].setAttribute('aria-selected', 'true');
+        }
+      }
+      index = n;
+    }
+
+    function stop() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+    function start() {
+      if (reduceMotion || slides.length < 2) return;
+      stop();
+      timer = setInterval(function () {
+        goTo(index + 1);
+      }, interval);
+    }
+
+    function close() {
+      stop();
+      if (hideToday && hideToday.checked) {
+        try {
+          if (window.localStorage) localStorage.setItem(storageKey, todayKey);
+        } catch (e) {}
+      }
+      root.setAttribute('hidden', 'hidden');
+      document.body.classList.remove('man3-info-welcome-open');
+    }
+
+    function open() {
+      root.removeAttribute('hidden');
+      document.body.classList.add('man3-info-welcome-open');
+      if (card && typeof card.focus === 'function') {
+        try { card.focus({ preventScroll: true }); } catch (e) { card.focus(); }
+      }
+      start();
+    }
+
+    Array.prototype.forEach.call(root.querySelectorAll('[data-info-welcome-dismiss]'), function (el) {
+      el.addEventListener('click', close);
+    });
+    if (prevBtn) prevBtn.addEventListener('click', function () { goTo(index - 1); start(); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { goTo(index + 1); start(); });
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        goTo(parseInt(dot.getAttribute('data-info-welcome-dot') || '0', 10));
+        start();
+      });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !root.hasAttribute('hidden')) close();
+    });
+
+    window.setTimeout(open, 280);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMan3InfoWelcome);
+  } else {
+    initMan3InfoWelcome();
+  }
+
   /* Slide informasi — strip di bawah menu (bukan modal) */
   function initMan3InfoStrip() {
     var root = document.querySelector('[data-info-slider]');
