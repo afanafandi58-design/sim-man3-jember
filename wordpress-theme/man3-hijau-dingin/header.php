@@ -17,14 +17,18 @@
 <header class="site-header">
 	<div class="container header-inner">
 		<a class="brand" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
-			<?php if ( has_custom_logo() ) : ?>
-				<?php
-				$logo_id = get_theme_mod( 'custom_logo' );
-				echo wp_get_attachment_image( $logo_id, 'full', false, array( 'width' => 56, 'height' => 56, 'alt' => '' ) );
-				?>
-			<?php else : ?>
-				<img src="<?php echo esc_url( man3_hijau_asset( 'images/logo.png' ) ); ?>" alt="" width="56" height="56" />
-			<?php endif; ?>
+			<?php
+			/* Badge persegi (bukan logo lebar WordPress) agar sejajar tinggi dua baris nama. */
+			$brand_logo = man3_hijau_asset( 'images/logo-man3-badge.png' );
+			?>
+			<img
+				class="brand-logo"
+				src="<?php echo esc_url( $brand_logo ); ?>"
+				alt=""
+				width="88"
+				height="88"
+				decoding="async"
+			/>
 			<span class="brand-text">
 				<span class="brand-name"><?php bloginfo( 'name' ); ?></span>
 				<span class="brand-sub"><?php echo esc_html( get_bloginfo( 'description' ) ? get_bloginfo( 'description' ) : 'Cerdas Kreatif' ); ?></span>

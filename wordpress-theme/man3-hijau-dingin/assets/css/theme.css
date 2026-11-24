@@ -98,9 +98,12 @@ button {
   flex-shrink: 0;
 }
 
-.brand img {
-  width: 3.5rem;
-  height: 3.5rem;
+.brand img,
+.brand-logo {
+  /* Kotak lebih besar dari tinggi teks: badge punya padding di file. */
+  width: 5.5rem;
+  height: 5.5rem;
+  max-width: none;
   object-fit: contain;
   object-position: center;
   flex-shrink: 0;
@@ -132,9 +135,10 @@ button {
 }
 
 @media (max-width: 979px) {
-  .brand img {
-    width: 3rem;
-    height: 3rem;
+  .brand img,
+  .brand-logo {
+    width: 4.25rem;
+    height: 4.25rem;
   }
 }
 
