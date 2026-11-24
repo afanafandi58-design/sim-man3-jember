@@ -3805,10 +3805,15 @@ body.man3-info-welcome-open {
 .section-beranda-split {
   padding-top: 1.5rem;
 }
+/* Lebar hampir full layar (sisa jarak kecil dari tepi), tidak terbatas --max 1120px. */
+.section-beranda-split > .container.beranda-split {
+  width: calc(100% - 2.5rem);
+  max-width: none;
+}
 .beranda-split {
   display: grid;
-  grid-template-columns: minmax(13.5rem, 16.5rem) minmax(0, 1fr);
-  gap: 1.35rem 1.75rem;
+  grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
+  gap: 1.35rem 1.85rem;
   align-items: start;
 }
 .beranda-main {
