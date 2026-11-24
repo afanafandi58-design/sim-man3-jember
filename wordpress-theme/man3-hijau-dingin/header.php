@@ -20,10 +20,10 @@
 			<?php if ( has_custom_logo() ) : ?>
 				<?php
 				$logo_id = get_theme_mod( 'custom_logo' );
-				echo wp_get_attachment_image( $logo_id, 'full', false, array( 'width' => 44, 'height' => 44, 'alt' => '' ) );
+				echo wp_get_attachment_image( $logo_id, 'full', false, array( 'width' => 56, 'height' => 56, 'alt' => '' ) );
 				?>
 			<?php else : ?>
-				<img src="<?php echo esc_url( man3_hijau_asset( 'images/logo.png' ) ); ?>" alt="" width="44" height="44" />
+				<img src="<?php echo esc_url( man3_hijau_asset( 'images/logo.png' ) ); ?>" alt="" width="56" height="56" />
 			<?php endif; ?>
 			<span class="brand-text">
 				<span class="brand-name"><?php bloginfo( 'name' ); ?></span>
