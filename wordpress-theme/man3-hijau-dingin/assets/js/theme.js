@@ -634,4 +634,68 @@
       prestasiStart();
     }
   }
+
+  /* Video sidebar — slide satu kartu (sumber Galeri Video) */
+  var videoSide = document.querySelector('[data-video-ticker]');
+  if (videoSide) {
+    var vItems = Array.prototype.slice.call(videoSide.querySelectorAll('[data-video-item]'));
+    var vDots = Array.prototype.slice.call(videoSide.querySelectorAll('[data-video-dot]'));
+    var vPrev = videoSide.querySelector('[data-video-prev]');
+    var vNext = videoSide.querySelector('[data-video-next]');
+    if (vItems.length >= 2) {
+      var vIndex = 0;
+      var vInterval = parseInt(videoSide.getAttribute('data-video-interval') || '6000', 10);
+      if (isNaN(vInterval) || vInterval < 2800) vInterval = 6000;
+      var vTimer = null;
+      var vReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function videoGo(next) {
+        var n = ((next % vItems.length) + vItems.length) % vItems.length;
+        if (n === vIndex) return;
+        vItems[vIndex].classList.remove('is-active');
+        vItems[vIndex].setAttribute('aria-hidden', 'true');
+        vItems[n].classList.add('is-active');
+        vItems[n].setAttribute('aria-hidden', 'false');
+        var activeImg = vItems[n].querySelector('.video-sidebar-thumb img');
+        if (activeImg && activeImg.dataset && activeImg.dataset.src && !activeImg.getAttribute('src')) {
+          activeImg.src = activeImg.dataset.src;
+        }
+        if (vDots.length) {
+          if (vDots[vIndex]) {
+            vDots[vIndex].classList.remove('is-active');
+            vDots[vIndex].setAttribute('aria-selected', 'false');
+          }
+          if (vDots[n]) {
+            vDots[n].classList.add('is-active');
+            vDots[n].setAttribute('aria-selected', 'true');
+          }
+        }
+        vIndex = n;
+      }
+
+      function videoStart() {
+        if (vReduce || vTimer) return;
+        vTimer = setInterval(function () {
+          videoGo(vIndex + 1);
+        }, vInterval);
+      }
+      function videoStop() {
+        if (vTimer) {
+          clearInterval(vTimer);
+          vTimer = null;
+        }
+      }
+
+      if (vNext) vNext.addEventListener('click', function () { videoGo(vIndex + 1); videoStop(); videoStart(); });
+      if (vPrev) vPrev.addEventListener('click', function () { videoGo(vIndex - 1); videoStop(); videoStart(); });
+      vDots.forEach(function (dot, i) {
+        dot.addEventListener('click', function () { videoGo(i); videoStop(); videoStart(); });
+      });
+      videoSide.addEventListener('mouseenter', videoStop);
+      videoSide.addEventListener('mouseleave', videoStart);
+      videoSide.addEventListener('focusin', videoStop);
+      videoSide.addEventListener('focusout', videoStart);
+      videoStart();
+    }
+  }
 })();

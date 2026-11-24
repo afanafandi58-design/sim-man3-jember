@@ -201,11 +201,16 @@ $wp_posts = new WP_Query(
 
 	<section class="section section-beranda-split" id="berita">
 		<div class="container beranda-split">
-			<?php
-			if ( function_exists( 'man3_prestasi_render_ticker' ) ) {
-				man3_prestasi_render_ticker();
-			}
-			?>
+			<div class="beranda-aside">
+				<?php
+				if ( function_exists( 'man3_prestasi_render_ticker' ) ) {
+					man3_prestasi_render_ticker();
+				}
+				if ( function_exists( 'man3_video_render_sidebar_ticker' ) ) {
+					man3_video_render_sidebar_ticker();
+				}
+				?>
+			</div>
 			<div class="beranda-main">
 				<div class="section-head">
 					<p class="section-kicker"><?php esc_html_e( 'Berita Terbaru', 'man3-hijau-dingin' ); ?></p>

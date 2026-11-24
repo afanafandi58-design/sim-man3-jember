@@ -78,8 +78,12 @@ function man3_video_meta_box_render( $post ) {
 	$url     = get_post_meta( $post->ID, '_man3_video_url', true );
 	$summary = get_post_meta( $post->ID, '_man3_video_summary', true );
 	$date    = get_post_meta( $post->ID, '_man3_video_date', true );
+	$home    = get_post_meta( $post->ID, '_man3_video_home', true );
 	if ( ! $source ) {
 		$source = 'youtube';
+	}
+	if ( '' === $home ) {
+		$home = '1';
 	}
 	?>
 	<p>
@@ -100,6 +104,12 @@ function man3_video_meta_box_render( $post ) {
 	<p>
 		<label for="man3_video_summary"><strong><?php esc_html_e( 'Ringkasan (bahasa Indonesia)', 'man3-hijau-dingin' ); ?></strong></label>
 		<textarea class="widefat" rows="4" id="man3_video_summary" name="man3_video_summary"><?php echo esc_textarea( $summary ); ?></textarea>
+	</p>
+	<p>
+		<label>
+			<input type="checkbox" name="man3_video_home" value="1" <?php checked( $home, '1' ); ?> />
+			<?php esc_html_e( 'Aktif di beranda', 'man3-hijau-dingin' ); ?>
+		</label>
 	</p>
 	<p class="description"><?php esc_html_e( 'Opsional: set Gambar Unggulan sebagai thumbnail. Jika kosong, thumbnail YouTube otomatis dipakai.', 'man3-hijau-dingin' ); ?></p>
 	<?php
@@ -131,6 +141,7 @@ function man3_video_meta_save( $post_id ) {
 	if ( isset( $_POST['man3_video_date'] ) ) {
 		update_post_meta( $post_id, '_man3_video_date', sanitize_text_field( wp_unslash( $_POST['man3_video_date'] ) ) );
 	}
+	update_post_meta( $post_id, '_man3_video_home', isset( $_POST['man3_video_home'] ) ? '1' : '0' );
 }
 add_action( 'save_post_man3_video', 'man3_video_meta_save' );
 
@@ -142,9 +153,10 @@ function man3_video_columns( $cols ) {
 	foreach ( $cols as $k => $v ) {
 		$new[ $k ] = $v;
 		if ( 'title' === $k ) {
-			$new['man3_source']  = __( 'Sumber', 'man3-hijau-dingin' );
-			$new['man3_vdate']   = __( 'Tanggal', 'man3-hijau-dingin' );
-			$new['man3_vurl']    = __( 'URL', 'man3-hijau-dingin' );
+			$new['man3_source'] = __( 'Sumber', 'man3-hijau-dingin' );
+			$new['man3_vdate']  = __( 'Tanggal', 'man3-hijau-dingin' );
+			$new['man3_vhome']  = __( 'Beranda', 'man3-hijau-dingin' );
+			$new['man3_vurl']   = __( 'URL', 'man3-hijau-dingin' );
 		}
 	}
 	return $new;
@@ -157,6 +169,10 @@ function man3_video_column_content( $col, $post_id ) {
 	}
 	if ( 'man3_vdate' === $col ) {
 		echo esc_html( (string) get_post_meta( $post_id, '_man3_video_date', true ) );
+	}
+	if ( 'man3_vhome' === $col ) {
+		$home = get_post_meta( $post_id, '_man3_video_home', true );
+		echo ( '0' === $home ) ? '—' : '✓';
 	}
 	if ( 'man3_vurl' === $col ) {
 		$url = get_post_meta( $post_id, '_man3_video_url', true );
@@ -349,6 +365,7 @@ function man3_video_do_seed() {
 		update_post_meta( $pid, '_man3_video_url', $row['url'] );
 		update_post_meta( $pid, '_man3_video_summary', $row['summary'] );
 		update_post_meta( $pid, '_man3_video_date', $row['date'] );
+		update_post_meta( $pid, '_man3_video_home', '1' );
 	}
 
 	$page = get_page_by_path( 'video' );
@@ -483,9 +500,13 @@ function man3_video_get_items() {
 		$url     = get_post_meta( $p->ID, '_man3_video_url', true );
 		$summary = get_post_meta( $p->ID, '_man3_video_summary', true );
 		$date    = get_post_meta( $p->ID, '_man3_video_date', true );
+		$home    = get_post_meta( $p->ID, '_man3_video_home', true );
 		$yt      = man3_video_youtube_id( $url );
 		$ig      = man3_video_instagram_code( $url );
-		$thumb   = get_the_post_thumbnail_url( $p, 'large' );
+		$thumb   = get_the_post_thumbnail_url( $p, 'medium_large' );
+		if ( ! $thumb ) {
+			$thumb = get_the_post_thumbnail_url( $p, 'large' );
+		}
 		if ( ! $thumb && $yt ) {
 			$thumb = 'https://i.ytimg.com/vi/' . $yt . '/hqdefault.jpg';
 		}
@@ -496,10 +517,145 @@ function man3_video_get_items() {
 			'url'     => $url,
 			'summary' => $summary,
 			'date'    => $date,
+			'home'    => ( '0' === $home ) ? '0' : '1',
 			'yt_id'   => $yt,
 			'ig_code' => $ig,
-			'thumb'   => $thumb,
+			'thumb'   => $thumb ? $thumb : '',
 		);
 	}
 	return $out;
+}
+
+/**
+ * Video aktif untuk slide sidebar beranda.
+ *
+ * @return array<int,array<string,mixed>>
+ */
+function man3_video_get_home_items() {
+	$items = man3_video_get_items();
+	$home  = array();
+	foreach ( $items as $item ) {
+		if ( '1' === $item['home'] && ! empty( $item['url'] ) ) {
+			$home[] = $item;
+		}
+	}
+	return $home;
+}
+
+/**
+ * Satu kali: tandai semua video terbit sebagai aktif di beranda (bisa diubah admin).
+ */
+function man3_video_migrate_home_flags() {
+	if ( get_option( 'man3_video_home_flag_v1' ) ) {
+		return;
+	}
+	$posts = get_posts(
+		array(
+			'post_type'      => 'man3_video',
+			'posts_per_page' => 100,
+			'post_status'    => 'publish',
+			'fields'         => 'ids',
+		)
+	);
+	foreach ( $posts as $pid ) {
+		$cur = get_post_meta( (int) $pid, '_man3_video_home', true );
+		if ( '' === $cur ) {
+			update_post_meta( (int) $pid, '_man3_video_home', '1' );
+		}
+	}
+	update_option( 'man3_video_home_flag_v1', 1 );
+}
+add_action( 'init', 'man3_video_migrate_home_flags', 30 );
+
+/**
+ * Kartu slide Video di sidebar kiri beranda (di bawah Prestasi Siswa).
+ */
+function man3_video_render_sidebar_ticker() {
+	$items = man3_video_get_home_items();
+	if ( ! $items ) {
+		return;
+	}
+	$count = count( $items );
+	?>
+	<aside
+		class="video-sidebar"
+		id="beranda-video"
+		aria-labelledby="beranda-video-title"
+		data-video-ticker
+		data-video-interval="6000"
+	>
+		<div class="video-sidebar-inner">
+			<div class="video-sidebar-head">
+				<p class="section-kicker"><?php esc_html_e( 'Galeri video', 'man3-hijau-dingin' ); ?></p>
+				<h2 class="video-sidebar-title" id="beranda-video-title"><?php esc_html_e( 'Video', 'man3-hijau-dingin' ); ?></h2>
+			</div>
+			<div class="video-sidebar-viewport" aria-live="polite">
+				<div class="video-sidebar-track" data-video-track>
+					<?php foreach ( $items as $i => $item ) : ?>
+						<article
+							class="video-sidebar-card<?php echo 0 === $i ? ' is-active' : ''; ?>"
+							data-video-item="<?php echo esc_attr( (string) $i ); ?>"
+							aria-hidden="<?php echo 0 === $i ? 'false' : 'true'; ?>"
+						>
+							<?php if ( $item['thumb'] ) : ?>
+								<a
+									class="video-sidebar-thumb"
+									href="<?php echo esc_url( $item['url'] ); ?>"
+									target="_blank"
+									rel="noreferrer"
+									aria-label="<?php echo esc_attr( sprintf( /* translators: %s video title */ __( 'Tonton: %s', 'man3-hijau-dingin' ), $item['title'] ) ); ?>"
+								>
+									<img
+										src="<?php echo esc_url( $item['thumb'] ); ?>"
+										alt="<?php echo esc_attr( $item['title'] ); ?>"
+										width="480"
+										height="270"
+										loading="eager"
+										decoding="async"
+										data-no-lazy="1"
+										data-skip-lazy="1"
+										class="skip-lazy"
+									/>
+									<span class="video-sidebar-play" aria-hidden="true">▶</span>
+								</a>
+							<?php endif; ?>
+							<div class="video-sidebar-body">
+								<p class="video-sidebar-nama">
+									<a href="<?php echo esc_url( $item['url'] ); ?>" target="_blank" rel="noreferrer">
+										<?php echo esc_html( $item['title'] ); ?>
+									</a>
+								</p>
+								<?php if ( ! empty( $item['summary'] ) ) : ?>
+									<p class="video-sidebar-ket"><?php echo esc_html( wp_trim_words( $item['summary'], 18, '…' ) ); ?></p>
+								<?php endif; ?>
+							</div>
+						</article>
+					<?php endforeach; ?>
+				</div>
+			</div>
+			<?php if ( $count > 1 ) : ?>
+				<div class="video-sidebar-controls">
+					<button type="button" class="video-sidebar-arrow video-sidebar-arrow--prev" data-video-prev aria-label="<?php esc_attr_e( 'Video sebelumnya', 'man3-hijau-dingin' ); ?>">
+						<span aria-hidden="true">‹</span>
+					</button>
+					<div class="video-sidebar-dots" role="tablist" aria-label="<?php esc_attr_e( 'Navigasi video', 'man3-hijau-dingin' ); ?>">
+						<?php foreach ( $items as $i => $item ) : ?>
+							<button
+								type="button"
+								class="video-sidebar-dot<?php echo 0 === $i ? ' is-active' : ''; ?>"
+								data-video-dot="<?php echo esc_attr( (string) $i ); ?>"
+								role="tab"
+								aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
+								aria-label="<?php echo esc_attr( sprintf( /* translators: %d */ __( 'Video %d', 'man3-hijau-dingin' ), $i + 1 ) ); ?>"
+							></button>
+						<?php endforeach; ?>
+					</div>
+					<button type="button" class="video-sidebar-arrow video-sidebar-arrow--next" data-video-next aria-label="<?php esc_attr_e( 'Video berikutnya', 'man3-hijau-dingin' ); ?>">
+						<span aria-hidden="true">›</span>
+					</button>
+				</div>
+			<?php endif; ?>
+		</div>
+	</aside>
+	<?php
 }
