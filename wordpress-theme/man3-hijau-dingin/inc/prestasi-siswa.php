@@ -364,7 +364,13 @@ function man3_prestasi_get_items() {
 			$nama  = __( 'Prestasi', 'man3-hijau-dingin' );
 		}
 		$raw   = $p->post_excerpt ? $p->post_excerpt : wp_strip_all_tags( $p->post_content );
-		$thumb = get_the_post_thumbnail_url( $p, 'thumbnail' );
+		$thumb = get_the_post_thumbnail_url( $p, 'medium' );
+		if ( ! $thumb ) {
+			$thumb = get_the_post_thumbnail_url( $p, 'medium_large' );
+		}
+		if ( ! $thumb ) {
+			$thumb = get_the_post_thumbnail_url( $p, 'full' );
+		}
 		$out[] = array(
 			'id'      => (int) $p->ID,
 			'nama'    => $nama,
@@ -408,7 +414,17 @@ function man3_prestasi_render_ticker() {
 						>
 							<?php if ( $item['thumb'] ) : ?>
 								<div class="prestasi-photo">
-									<img src="<?php echo esc_url( $item['thumb'] ); ?>" alt="" width="72" height="72" loading="lazy" />
+									<img
+										src="<?php echo esc_url( $item['thumb'] ); ?>"
+										alt="<?php echo esc_attr( $item['nama'] ); ?>"
+										width="240"
+										height="240"
+										loading="eager"
+										decoding="async"
+										data-no-lazy="1"
+										data-skip-lazy="1"
+										class="skip-lazy"
+									/>
 								</div>
 							<?php endif; ?>
 							<div class="prestasi-body">

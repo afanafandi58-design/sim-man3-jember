@@ -591,6 +591,11 @@
         pItems[pIndex].setAttribute('aria-hidden', 'true');
         pItems[n].classList.add('is-active');
         pItems[n].setAttribute('aria-hidden', 'false');
+        /* Pastikan foto slide aktif sudah termuat (hindari placeholder lazy). */
+        var activeImg = pItems[n].querySelector('.prestasi-photo img');
+        if (activeImg && activeImg.dataset && activeImg.dataset.src && !activeImg.getAttribute('src')) {
+          activeImg.src = activeImg.dataset.src;
+        }
         if (pDots.length) {
           if (pDots[pIndex]) {
             pDots[pIndex].classList.remove('is-active');
