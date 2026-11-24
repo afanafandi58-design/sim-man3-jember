@@ -3636,27 +3636,27 @@ body.man3-info-welcome-open {
 }
 .zi-setia {
   margin: 1.35rem 0 0;
-  max-width: 48rem;
-  padding: 1.15rem 1.25rem 1.15rem;
+  max-width: 52rem;
+  padding: 1.25rem 1.35rem 1.25rem;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(15, 81, 50, 0.12);
   box-shadow: 0 10px 24px rgba(15, 81, 50, 0.05);
   display: grid;
-  gap: 1.15rem;
+  gap: 1.35rem;
   font-size: 1.1rem;
   line-height: 1.75;
   color: var(--ink);
 }
 .zi-setia-item {
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
-  gap: 0.85rem 1rem;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 0.9rem 1.15rem;
   align-items: start;
 }
 .zi-setia-art {
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 7rem;
+  height: 7rem;
   flex-shrink: 0;
 }
 .zi-setia-art img {
@@ -3664,6 +3664,7 @@ body.man3-info-welcome-open {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border-radius: 1rem;
   animation: ziSetiaFloat 5.5s ease-in-out infinite;
 }
 .zi-setia-item:nth-child(2) .zi-setia-art img { animation-delay: 0.4s; }
@@ -3672,10 +3673,11 @@ body.man3-info-welcome-open {
 .zi-setia-item:nth-child(5) .zi-setia-art img { animation-delay: 1.6s; }
 @keyframes ziSetiaFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-5px); }
 }
 .zi-setia-body p {
   margin: 0;
+  padding-top: 0.2rem;
 }
 .zi-setia strong {
   color: var(--green-900);
@@ -3685,17 +3687,16 @@ body.man3-info-welcome-open {
   .zi-setia {
     font-size: 1.05rem;
     line-height: 1.7;
-    padding: 1rem 1.05rem 1.05rem;
-    gap: 1rem;
+    padding: 1.05rem 1.05rem 1.1rem;
+    gap: 1.2rem;
   }
   .zi-setia-item {
-    grid-template-columns: 1fr;
-    justify-items: start;
-    gap: 0.55rem;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: 0.75rem 0.9rem;
   }
   .zi-setia-art {
-    width: 3.75rem;
-    height: 3.75rem;
+    width: 5.5rem;
+    height: 5.5rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {

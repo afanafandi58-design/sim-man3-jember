@@ -1,13 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="t">
-  <title id="t">Toleran — orang berbeda saling menghargai</title>
-  <circle cx="60" cy="60" r="56" fill="#eefaf5"/>
-  <!-- left person taller -->
-  <circle cx="42" cy="42" r="9" fill="#0f5244"/>
-  <path d="M42 52c-11 4-16 16-16 28h32c0-12-5-24-16-28z" fill="#146b58"/>
-  <!-- right person shorter, lighter green -->
-  <circle cx="78" cy="48" r="8" fill="#2a9f84"/>
-  <path d="M78 57c-10 3-14 14-14 25h28c0-11-4-22-14-25z" fill="#4db89a"/>
-  <!-- heart / respect between -->
-  <path d="M60 50c2-4 8-4 8 1 0 5-8 10-8 10s-8-5-8-10c0-5 6-5 8-1z" fill="#0f5244"/>
-  <path d="M48 78c4 6 12 8 12 8s8-2 12-8" fill="none" stroke="#7dcfb6" stroke-width="3" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <rect width="160" height="160" rx="28" fill="#eefaf5"/>
+  <ellipse cx="80" cy="140" rx="54" ry="7" fill="#b4e6d5" opacity=".55"/>
+  <!-- taller person left (dark) -->
+  <circle cx="52" cy="48" r="14" fill="#0f5244"/>
+  <path d="M32 72c3-16 12-24 20-24s18 10 20 26v40H32V72z" fill="#146b58"/>
+  <path d="M40 112l-4 22M64 112l4 22" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- shorter person right (lighter) -->
+  <circle cx="110" cy="58" r="13" fill="#4db89a"/>
+  <path d="M92 80c3-14 10-20 18-20s16 8 18 22v32H92V80z" fill="#2a9f84"/>
+  <path d="M98 112l-3 22M122 112l3 22" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- waving / greeting arms -->
+  <path d="M70 88h18" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <path d="M92 86c6-10 14-12 18-8" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- smile arcs -->
+  <path d="M46 50c2 4 8 4 10 0" stroke="#eefaf5" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M104 60c2 3 8 3 10 0" stroke="#0f5244" stroke-width="2.5" stroke-linecap="round" opacity=".45"/>
+  <!-- small heart between -->
+  <path d="M80 72c1.5-3 6-3 6 1 0 4-6 8-6 8s-6-4-6-8c0-4 4.5-4 6-1z" fill="#146b58"/>
 </svg>

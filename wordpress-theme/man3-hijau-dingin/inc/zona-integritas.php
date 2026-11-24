@@ -113,7 +113,7 @@ function man3_zi_render_setia( $text ) {
 		if ( $matched && isset( $arts[ $matched ] ) && function_exists( 'man3_hijau_asset' ) ) {
 			$art = $arts[ $matched ];
 			echo '<div class="zi-setia-art" aria-hidden="false">';
-			echo '<img src="' . esc_url( man3_hijau_asset( $art['file'] ) ) . '" alt="' . esc_attr( $art['alt'] ) . '" width="112" height="112" loading="lazy" decoding="async" />';
+			echo '<img src="' . esc_url( man3_hijau_asset( $art['file'] ) ) . '" alt="' . esc_attr( $art['alt'] ) . '" width="160" height="160" loading="lazy" decoding="async" />';
 			echo '</div>';
 		}
 		echo '<div class="zi-setia-body">';

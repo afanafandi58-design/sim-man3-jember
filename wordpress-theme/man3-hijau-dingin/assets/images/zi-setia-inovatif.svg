@@ -1,13 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="t">
-  <title id="t">Inovatif — ide dan pembaruan</title>
-  <circle cx="60" cy="60" r="56" fill="#eefaf5"/>
-  <!-- bulb -->
-  <path d="M60 22c-14 0-24 11-24 24 0 9 5 16 12 20v6h24v-6c7-4 12-11 12-20 0-13-10-24-24-24z" fill="#4db89a" stroke="#0f5244" stroke-width="2.5"/>
-  <rect x="48" y="72" width="24" height="10" rx="2" fill="#146b58"/>
-  <path d="M52 82h16v4c0 3-2 6-8 6s-8-3-8-6v-4z" fill="#0f5244"/>
-  <path d="M54 58h12M57 50h6" stroke="#eefaf5" stroke-width="2.5" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <rect width="160" height="160" rx="28" fill="#eefaf5"/>
+  <ellipse cx="80" cy="140" rx="54" ry="7" fill="#b4e6d5" opacity=".55"/>
+  <!-- person -->
+  <circle cx="58" cy="70" r="14" fill="#146b58"/>
+  <path d="M40 94c3-16 11-24 18-24s16 10 18 26v28H40V94z" fill="#2a9f84"/>
+  <path d="M48 122l-4 14M68 122l4 14" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- arm holding bulb -->
+  <path d="M74 100l22-18" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- big bulb -->
+  <path d="M112 42c-12 0-20 9-20 20 0 7 4 13 10 16v5h20v-5c6-3 10-9 10-16 0-11-8-20-20-20z" fill="#4db89a" stroke="#0f5244" stroke-width="2.5"/>
+  <rect x="102" y="83" width="20" height="8" rx="2" fill="#146b58"/>
+  <path d="M106 91h12v3c0 2.5-2 5-6 5s-6-2.5-6-5v-3z" fill="#0f5244"/>
+  <path d="M106 68h12M109 60h6" stroke="#eefaf5" stroke-width="2.5" stroke-linecap="round"/>
   <!-- rays -->
   <g stroke="#2a9f84" stroke-width="3" stroke-linecap="round">
-    <path d="M60 12v6M88 34l5-5M32 34l-5-5M96 58h6M18 58h6"/>
+    <path d="M112 22v8M134 36l6-6M90 36l-6-6M140 58h8M84 58h-8"/>
   </g>
 </svg>
