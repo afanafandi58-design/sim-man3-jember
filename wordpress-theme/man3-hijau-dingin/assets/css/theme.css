@@ -1369,6 +1369,15 @@ body.admin-bar .site-header { top: 32px; }
 .alignwide, .alignfull { max-width: none; }
 .entry-content { max-width: var(--max); margin-inline: auto; padding: 2rem 1rem 4rem; }
 .entry-content h1, .entry-content h2 { font-family: var(--font-display); color: var(--green-950); }
+.entry-content--visi {
+  max-width: 48rem;
+  padding-top: 0.75rem;
+}
+.page-visi-misi .section-title {
+  font-size: clamp(1.85rem, 3.5vw, 2.45rem);
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+}
 
 /* ——— Struktur Organisasi ——— */
 .org-page {
@@ -4194,4 +4203,118 @@ body.man3-info-welcome-open {
 .video-sidebar-dot.is-active {
   background: var(--green-700, #0f5132);
   width: 0.85rem;
+}
+
+/* ——— Halaman Visi Misi (konten halaman WP) ——— */
+.entry-content .vm-page,
+.entry-content .vm-container {
+  max-width: 42rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 2.25rem;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--ink);
+}
+.entry-content .vm-page .vm-lead,
+.entry-content .vm-container > .vm-header > p:last-child {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+.entry-content .vm-section {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.35rem 1.4rem 1.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+  box-shadow: 0 10px 24px rgba(15, 81, 50, 0.05);
+}
+.entry-content .vm-heading,
+.entry-content .vm-page h2,
+.entry-content .vm-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 2.4vw, 1.75rem);
+  line-height: 1.3;
+  color: var(--green-900);
+  font-weight: 700;
+}
+.entry-content .vm-quote {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.7;
+  color: var(--green-950);
+  font-weight: 550;
+}
+.entry-content .vm-intro {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: var(--ink);
+}
+.entry-content .vm-list {
+  margin: 0;
+  padding: 0 0 0 1.35rem;
+  display: grid;
+  gap: 0.85rem;
+}
+.entry-content .vm-list li {
+  padding-left: 0.35rem;
+  line-height: 1.7;
+  font-size: 1.08rem;
+  color: var(--ink);
+}
+.entry-content .vm-list--plain {
+  list-style: disc;
+}
+.entry-content .vm-tagline {
+  margin: 0.25rem 0 0;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+/* Markup lama (jika masih tersimpan): sembunyikan ikon emoji, rapikan kartu. */
+.entry-content .vm-header h1,
+.entry-content .vm-header h2 {
+  display: none;
+}
+.entry-content .vm-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+.entry-content .vm-card {
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 81, 50, 0.1);
+}
+.entry-content .vm-card .vm-icon {
+  display: none !important;
+}
+.entry-content .vm-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  color: var(--green-800);
+}
+.entry-content .vm-footer h3 {
+  display: none;
+}
+@media (max-width: 720px) {
+  .entry-content .vm-page,
+  .entry-content .vm-container {
+    gap: 1.5rem;
+    font-size: 1.05rem;
+  }
+  .entry-content .vm-section {
+    padding: 1.1rem 1rem 1.2rem;
+  }
+  .entry-content .vm-list {
+    padding-left: 1.15rem;
+    gap: 0.75rem;
+  }
 }
