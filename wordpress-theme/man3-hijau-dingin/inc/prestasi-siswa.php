@@ -377,7 +377,7 @@ function man3_prestasi_get_items() {
 }
 
 /**
- * Markup pita prestasi beranda (di atas berita).
+ * Markup sidebar kiri prestasi beranda (slide nama + juara).
  */
 function man3_prestasi_render_ticker() {
 	$items = man3_prestasi_get_items();
@@ -386,67 +386,65 @@ function man3_prestasi_render_ticker() {
 	}
 	$count = count( $items );
 	?>
-	<section
-		class="section section-prestasi"
+	<aside
+		class="prestasi-sidebar"
 		id="prestasi-siswa"
 		aria-labelledby="prestasi-title"
 		data-prestasi-ticker
 		data-prestasi-interval="5500"
 	>
-		<div class="container">
-			<div class="prestasi-ribbon">
-				<div class="prestasi-ribbon-head">
-					<p class="section-kicker"><?php esc_html_e( 'Siswa berprestasi', 'man3-hijau-dingin' ); ?></p>
-					<h2 class="prestasi-title" id="prestasi-title"><?php esc_html_e( 'Prestasi Siswa', 'man3-hijau-dingin' ); ?></h2>
-				</div>
-				<div class="prestasi-viewport" aria-live="polite">
-					<div class="prestasi-track" data-prestasi-track>
-						<?php foreach ( $items as $i => $item ) : ?>
-							<article
-								class="prestasi-card<?php echo 0 === $i ? ' is-active' : ''; ?>"
-								data-prestasi-item="<?php echo esc_attr( (string) $i ); ?>"
-								aria-hidden="<?php echo 0 === $i ? 'false' : 'true'; ?>"
-							>
-								<?php if ( $item['thumb'] ) : ?>
-									<div class="prestasi-photo">
-										<img src="<?php echo esc_url( $item['thumb'] ); ?>" alt="" width="72" height="72" loading="lazy" />
-									</div>
-								<?php endif; ?>
-								<div class="prestasi-body">
-									<p class="prestasi-nama"><?php echo esc_html( $item['nama'] ); ?></p>
-									<p class="prestasi-juara"><?php echo esc_html( $item['juara'] ); ?></p>
-									<?php if ( $item['ket'] && $item['ket'] !== $item['juara'] ) : ?>
-										<p class="prestasi-ket"><?php echo esc_html( $item['ket'] ); ?></p>
-									<?php endif; ?>
+		<div class="prestasi-sidebar-inner">
+			<div class="prestasi-sidebar-head">
+				<p class="section-kicker"><?php esc_html_e( 'Siswa berprestasi', 'man3-hijau-dingin' ); ?></p>
+				<h2 class="prestasi-title" id="prestasi-title"><?php esc_html_e( 'Prestasi Siswa', 'man3-hijau-dingin' ); ?></h2>
+			</div>
+			<div class="prestasi-viewport" aria-live="polite">
+				<div class="prestasi-track" data-prestasi-track>
+					<?php foreach ( $items as $i => $item ) : ?>
+						<article
+							class="prestasi-card<?php echo 0 === $i ? ' is-active' : ''; ?>"
+							data-prestasi-item="<?php echo esc_attr( (string) $i ); ?>"
+							aria-hidden="<?php echo 0 === $i ? 'false' : 'true'; ?>"
+						>
+							<?php if ( $item['thumb'] ) : ?>
+								<div class="prestasi-photo">
+									<img src="<?php echo esc_url( $item['thumb'] ); ?>" alt="" width="72" height="72" loading="lazy" />
 								</div>
-							</article>
+							<?php endif; ?>
+							<div class="prestasi-body">
+								<p class="prestasi-nama"><?php echo esc_html( $item['nama'] ); ?></p>
+								<p class="prestasi-juara"><?php echo esc_html( $item['juara'] ); ?></p>
+								<?php if ( $item['ket'] && $item['ket'] !== $item['juara'] ) : ?>
+									<p class="prestasi-ket"><?php echo esc_html( $item['ket'] ); ?></p>
+								<?php endif; ?>
+							</div>
+						</article>
+					<?php endforeach; ?>
+				</div>
+			</div>
+			<?php if ( $count > 1 ) : ?>
+				<div class="prestasi-controls">
+					<button type="button" class="prestasi-arrow prestasi-arrow--prev" data-prestasi-prev aria-label="<?php esc_attr_e( 'Prestasi sebelumnya', 'man3-hijau-dingin' ); ?>">
+						<span aria-hidden="true">‹</span>
+					</button>
+					<div class="prestasi-dots" role="tablist" aria-label="<?php esc_attr_e( 'Navigasi prestasi', 'man3-hijau-dingin' ); ?>">
+						<?php foreach ( $items as $i => $item ) : ?>
+							<button
+								type="button"
+								class="prestasi-dot<?php echo 0 === $i ? ' is-active' : ''; ?>"
+								data-prestasi-dot="<?php echo esc_attr( (string) $i ); ?>"
+								role="tab"
+								aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
+								aria-label="<?php echo esc_attr( sprintf( /* translators: %d */ __( 'Prestasi %d', 'man3-hijau-dingin' ), $i + 1 ) ); ?>"
+							></button>
 						<?php endforeach; ?>
 					</div>
+					<button type="button" class="prestasi-arrow prestasi-arrow--next" data-prestasi-next aria-label="<?php esc_attr_e( 'Prestasi berikutnya', 'man3-hijau-dingin' ); ?>">
+						<span aria-hidden="true">›</span>
+					</button>
 				</div>
-				<?php if ( $count > 1 ) : ?>
-					<div class="prestasi-controls">
-						<button type="button" class="prestasi-arrow prestasi-arrow--prev" data-prestasi-prev aria-label="<?php esc_attr_e( 'Prestasi sebelumnya', 'man3-hijau-dingin' ); ?>">
-							<span aria-hidden="true">‹</span>
-						</button>
-						<div class="prestasi-dots" role="tablist" aria-label="<?php esc_attr_e( 'Navigasi prestasi', 'man3-hijau-dingin' ); ?>">
-							<?php foreach ( $items as $i => $item ) : ?>
-								<button
-									type="button"
-									class="prestasi-dot<?php echo 0 === $i ? ' is-active' : ''; ?>"
-									data-prestasi-dot="<?php echo esc_attr( (string) $i ); ?>"
-									role="tab"
-									aria-selected="<?php echo 0 === $i ? 'true' : 'false'; ?>"
-									aria-label="<?php echo esc_attr( sprintf( /* translators: %d */ __( 'Prestasi %d', 'man3-hijau-dingin' ), $i + 1 ) ); ?>"
-								></button>
-							<?php endforeach; ?>
-						</div>
-						<button type="button" class="prestasi-arrow prestasi-arrow--next" data-prestasi-next aria-label="<?php esc_attr_e( 'Prestasi berikutnya', 'man3-hijau-dingin' ); ?>">
-							<span aria-hidden="true">›</span>
-						</button>
-					</div>
-				<?php endif; ?>
-			</div>
+			<?php endif; ?>
 		</div>
-	</section>
+	</aside>
 	<?php
 }

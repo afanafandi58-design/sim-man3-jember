@@ -199,52 +199,53 @@ $wp_posts = new WP_Query(
 		</div>
 	</section>
 
-	<?php
-	if ( function_exists( 'man3_prestasi_render_ticker' ) ) {
-		man3_prestasi_render_ticker();
-	}
-	?>
-
-	<section class="section" id="berita">
-		<div class="container">
-			<div class="section-head">
-				<p class="section-kicker"><?php esc_html_e( 'Berita Terbaru', 'man3-hijau-dingin' ); ?></p>
-				<h2 class="section-title"><?php esc_html_e( 'Kabar dari MAN 3 Jember', 'man3-hijau-dingin' ); ?></h2>
-			</div>
-			<div class="berita-list">
-				<?php if ( $wp_posts->have_posts() ) : ?>
-					<?php
-					while ( $wp_posts->have_posts() ) :
-						$wp_posts->the_post();
-						$thumb = get_the_post_thumbnail_url( get_the_ID(), 'medium_large' );
-						if ( ! $thumb ) {
-							$thumb = man3_hijau_asset( 'images/berita-istisqa.jpg' );
-						}
-						?>
-						<a class="berita-item" href="<?php the_permalink(); ?>">
-							<img src="<?php echo esc_url( $thumb ); ?>" alt="" loading="lazy" />
-							<div class="berita-body">
-								<p class="berita-date"><?php echo esc_html( get_the_date() ); ?></p>
-								<h3><?php the_title(); ?></h3>
-								<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 28 ) ); ?></p>
-								<span class="more"><?php esc_html_e( 'Baca selengkapnya →', 'man3-hijau-dingin' ); ?></span>
-							</div>
-						</a>
-					<?php endwhile; ?>
-					<?php wp_reset_postdata(); ?>
-				<?php else : ?>
-					<?php foreach ( man3_hijau_fallback_berita() as $item ) : ?>
-						<a class="berita-item" href="<?php echo esc_url( $item['link'] ); ?>">
-							<img src="<?php echo esc_url( $item['image'] ); ?>" alt="" loading="lazy" />
-							<div class="berita-body">
-								<p class="berita-date"><?php echo esc_html( $item['date'] ); ?></p>
-								<h3><?php echo esc_html( $item['title'] ); ?></h3>
-								<p><?php echo esc_html( $item['excerpt'] ); ?></p>
-								<span class="more"><?php esc_html_e( 'Baca selengkapnya →', 'man3-hijau-dingin' ); ?></span>
-							</div>
-						</a>
-					<?php endforeach; ?>
-				<?php endif; ?>
+	<section class="section section-beranda-split" id="berita">
+		<div class="container beranda-split">
+			<?php
+			if ( function_exists( 'man3_prestasi_render_ticker' ) ) {
+				man3_prestasi_render_ticker();
+			}
+			?>
+			<div class="beranda-main">
+				<div class="section-head">
+					<p class="section-kicker"><?php esc_html_e( 'Berita Terbaru', 'man3-hijau-dingin' ); ?></p>
+					<h2 class="section-title"><?php esc_html_e( 'Kabar dari MAN 3 Jember', 'man3-hijau-dingin' ); ?></h2>
+				</div>
+				<div class="berita-list">
+					<?php if ( $wp_posts->have_posts() ) : ?>
+						<?php
+						while ( $wp_posts->have_posts() ) :
+							$wp_posts->the_post();
+							$thumb = get_the_post_thumbnail_url( get_the_ID(), 'medium_large' );
+							if ( ! $thumb ) {
+								$thumb = man3_hijau_asset( 'images/berita-istisqa.jpg' );
+							}
+							?>
+							<a class="berita-item" href="<?php the_permalink(); ?>">
+								<img src="<?php echo esc_url( $thumb ); ?>" alt="" loading="lazy" />
+								<div class="berita-body">
+									<p class="berita-date"><?php echo esc_html( get_the_date() ); ?></p>
+									<h3><?php the_title(); ?></h3>
+									<p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 28 ) ); ?></p>
+									<span class="more"><?php esc_html_e( 'Baca selengkapnya →', 'man3-hijau-dingin' ); ?></span>
+								</div>
+							</a>
+						<?php endwhile; ?>
+						<?php wp_reset_postdata(); ?>
+					<?php else : ?>
+						<?php foreach ( man3_hijau_fallback_berita() as $item ) : ?>
+							<a class="berita-item" href="<?php echo esc_url( $item['link'] ); ?>">
+								<img src="<?php echo esc_url( $item['image'] ); ?>" alt="" loading="lazy" />
+								<div class="berita-body">
+									<p class="berita-date"><?php echo esc_html( $item['date'] ); ?></p>
+									<h3><?php echo esc_html( $item['title'] ); ?></h3>
+									<p><?php echo esc_html( $item['excerpt'] ); ?></p>
+									<span class="more"><?php esc_html_e( 'Baca selengkapnya →', 'man3-hijau-dingin' ); ?></span>
+								</div>
+							</a>
+						<?php endforeach; ?>
+					<?php endif; ?>
+				</div>
 			</div>
 		</div>
 	</section>
