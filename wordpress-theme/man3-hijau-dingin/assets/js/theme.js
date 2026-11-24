@@ -569,4 +569,64 @@
   } else {
     initMan3FotoGallery();
   }
+
+  /* Prestasi siswa — slide vertikal satu kartu */
+  var prestasi = document.querySelector('[data-prestasi-ticker]');
+  if (prestasi) {
+    var pItems = Array.prototype.slice.call(prestasi.querySelectorAll('[data-prestasi-item]'));
+    var pDots = Array.prototype.slice.call(prestasi.querySelectorAll('[data-prestasi-dot]'));
+    var pPrev = prestasi.querySelector('[data-prestasi-prev]');
+    var pNext = prestasi.querySelector('[data-prestasi-next]');
+    if (pItems.length >= 2) {
+      var pIndex = 0;
+      var pInterval = parseInt(prestasi.getAttribute('data-prestasi-interval') || '5500', 10);
+      if (isNaN(pInterval) || pInterval < 2800) pInterval = 5500;
+      var pTimer = null;
+      var pReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function prestasiGo(next) {
+        var n = ((next % pItems.length) + pItems.length) % pItems.length;
+        if (n === pIndex) return;
+        pItems[pIndex].classList.remove('is-active');
+        pItems[pIndex].setAttribute('aria-hidden', 'true');
+        pItems[n].classList.add('is-active');
+        pItems[n].setAttribute('aria-hidden', 'false');
+        if (pDots.length) {
+          if (pDots[pIndex]) {
+            pDots[pIndex].classList.remove('is-active');
+            pDots[pIndex].setAttribute('aria-selected', 'false');
+          }
+          if (pDots[n]) {
+            pDots[n].classList.add('is-active');
+            pDots[n].setAttribute('aria-selected', 'true');
+          }
+        }
+        pIndex = n;
+      }
+
+      function prestasiStart() {
+        if (pReduce || pTimer) return;
+        pTimer = setInterval(function () {
+          prestasiGo(pIndex + 1);
+        }, pInterval);
+      }
+      function prestasiStop() {
+        if (pTimer) {
+          clearInterval(pTimer);
+          pTimer = null;
+        }
+      }
+
+      if (pNext) pNext.addEventListener('click', function () { prestasiGo(pIndex + 1); prestasiStop(); prestasiStart(); });
+      if (pPrev) pPrev.addEventListener('click', function () { prestasiGo(pIndex - 1); prestasiStop(); prestasiStart(); });
+      pDots.forEach(function (dot, i) {
+        dot.addEventListener('click', function () { prestasiGo(i); prestasiStop(); prestasiStart(); });
+      });
+      prestasi.addEventListener('mouseenter', prestasiStop);
+      prestasi.addEventListener('mouseleave', prestasiStart);
+      prestasi.addEventListener('focusin', prestasiStop);
+      prestasi.addEventListener('focusout', prestasiStart);
+      prestasiStart();
+    }
+  }
 })();

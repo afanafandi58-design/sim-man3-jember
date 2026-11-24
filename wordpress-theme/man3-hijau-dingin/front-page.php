@@ -199,6 +199,12 @@ $wp_posts = new WP_Query(
 		</div>
 	</section>
 
+	<?php
+	if ( function_exists( 'man3_prestasi_render_ticker' ) ) {
+		man3_prestasi_render_ticker();
+	}
+	?>
+
 	<section class="section" id="berita">
 		<div class="container">
 			<div class="section-head">
