@@ -9,6 +9,7 @@ get_header();
 
 $flyers = function_exists( 'man3_zi_get_flyers' ) ? man3_zi_get_flyers() : array();
 $berita = function_exists( 'man3_zi_get_berita' ) ? man3_zi_get_berita() : array();
+$setia  = function_exists( 'man3_zi_get_setia_text' ) ? man3_zi_get_setia_text() : '';
 ?>
 <main id="main" class="site-main page-zona-integritas">
 	<section class="section page-hero-org zi-hero">
@@ -16,6 +17,9 @@ $berita = function_exists( 'man3_zi_get_berita' ) ? man3_zi_get_berita() : array
 			<p class="eyebrow"><?php esc_html_e( 'Zona Integritas', 'man3-hijau-dingin' ); ?></p>
 			<h1 class="section-title"><?php esc_html_e( 'ZI', 'man3-hijau-dingin' ); ?></h1>
 			<p class="zi-lead"><?php esc_html_e( 'Informasi dan berita khusus Zona Integritas MAN 3 Jember.', 'man3-hijau-dingin' ); ?></p>
+			<?php if ( $setia ) : ?>
+				<p class="zi-setia"><?php echo esc_html( $setia ); ?></p>
+			<?php endif; ?>
 		</div>
 	</section>
 

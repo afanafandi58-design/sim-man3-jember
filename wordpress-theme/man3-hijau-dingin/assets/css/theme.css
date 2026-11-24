@@ -3634,6 +3634,25 @@ body.man3-info-welcome-open {
   color: var(--ink-muted);
   line-height: 1.55;
 }
+.zi-setia {
+  margin: 1.35rem 0 0;
+  max-width: 46rem;
+  padding: 1.15rem 1.25rem 1.25rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+  box-shadow: 0 10px 24px rgba(15, 81, 50, 0.05);
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: var(--ink);
+}
+@media (max-width: 720px) {
+  .zi-setia {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    padding: 1rem 1.05rem 1.1rem;
+  }
+}
 .zi-section-title {
   margin: 0 0 1.15rem;
   font-family: var(--font-display, Fraunces, Georgia, serif);

@@ -26,13 +26,57 @@ function man3_zi_admin_menu() {
 add_action( 'admin_menu', 'man3_zi_admin_menu' );
 
 /**
- * Landing singkat di sidebar ZI.
+ * Teks default slogan SETIA (satu paragraf).
+ *
+ * @return string
+ */
+function man3_zi_setia_default_text() {
+	return 'SETIA adalah semangat Zona Integritas MAN 3 Jember. Sinergis berarti kepala madrasah, guru, tenaga kependidikan, siswa, orang tua, komite, dan mitra bekerja dalam satu arah. Efektif berarti setiap layanan dan kegiatan tepat sasaran, tertib, dan bisa dipertanggungjawabkan. Toleran berarti warga madrasah saling menghargai perbedaan dan menjaga suasana belajar yang aman. Inovatif berarti berani memperbaiki cara kerja agar layanan semakin baik. Amanah berarti jabatan, anggaran, dan kepercayaan masyarakat dijaga dengan jujur, bebas dari gratifikasi dan penyalahgunaan. Dengan SETIA, seluruh stakeholder menjaga madrasah yang bersih, melayani, dan bebas dari korupsi.';
+}
+
+/**
+ * Ambil teks SETIA dari opsi; kosong = tidak tampil.
+ *
+ * @return string
+ */
+function man3_zi_get_setia_text() {
+	$raw = get_option( 'man3_zi_setia_text', null );
+	if ( null === $raw ) {
+		return man3_zi_setia_default_text();
+	}
+	return trim( (string) $raw );
+}
+
+/**
+ * Simpan teks SETIA dari form admin landing ZI.
+ */
+function man3_zi_save_setia_text() {
+	if ( ! isset( $_POST['man3_zi_setia_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['man3_zi_setia_nonce'] ) ), 'man3_zi_setia_save' ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		return;
+	}
+	$text = isset( $_POST['man3_zi_setia_text'] ) ? sanitize_textarea_field( wp_unslash( $_POST['man3_zi_setia_text'] ) ) : '';
+	update_option( 'man3_zi_setia_text', $text, false );
+	add_settings_error( 'man3_zi_setia', 'man3_zi_setia_saved', __( 'Penjelasan SETIA disimpan.', 'man3-hijau-dingin' ), 'updated' );
+}
+add_action( 'admin_init', 'man3_zi_save_setia_text' );
+
+/**
+ * Landing singkat di sidebar ZI (+ kotak teks SETIA).
  */
 function man3_zi_admin_landing() {
 	if ( ! current_user_can( 'edit_posts' ) ) {
 		return;
 	}
 	$page = home_url( '/zi/' );
+	$setia = man3_zi_get_setia_text();
+	if ( null === get_option( 'man3_zi_setia_text', null ) ) {
+		$setia = man3_zi_setia_default_text();
+	} else {
+		$setia = (string) get_option( 'man3_zi_setia_text', '' );
+	}
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'ZI — Zona Integritas', 'man3-hijau-dingin' ); ?></h1>
@@ -42,6 +86,24 @@ function man3_zi_admin_landing() {
 			<li><a href="<?php echo esc_url( admin_url( 'edit.php?post_type=man3_zi_berita' ) ); ?>"><?php esc_html_e( 'Berita ZI', 'man3-hijau-dingin' ); ?></a> — <?php esc_html_e( 'judul, isi, gambar, tanggal', 'man3-hijau-dingin' ); ?></li>
 			<li><a href="<?php echo esc_url( $page ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Lihat halaman publik', 'man3-hijau-dingin' ); ?></a></li>
 		</ul>
+
+		<hr />
+		<h2><?php esc_html_e( 'Penjelasan slogan SETIA', 'man3-hijau-dingin' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Satu paragraf di bawah judul halaman ZI, sebelum flyer. Kosongkan agar tidak tampil di situs.', 'man3-hijau-dingin' ); ?></p>
+		<?php settings_errors( 'man3_zi_setia' ); ?>
+		<form method="post" action="">
+			<?php wp_nonce_field( 'man3_zi_setia_save', 'man3_zi_setia_nonce' ); ?>
+			<textarea
+				name="man3_zi_setia_text"
+				id="man3_zi_setia_text"
+				rows="8"
+				class="large-text"
+				style="max-width: 52rem;"
+			><?php echo esc_textarea( $setia ); ?></textarea>
+			<p>
+				<button type="submit" class="button button-primary"><?php esc_html_e( 'Simpan SETIA', 'man3-hijau-dingin' ); ?></button>
+			</p>
+		</form>
 	</div>
 	<?php
 }
