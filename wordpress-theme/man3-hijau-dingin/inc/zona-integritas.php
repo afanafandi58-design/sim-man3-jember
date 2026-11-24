@@ -48,7 +48,37 @@ function man3_zi_get_setia_text() {
 }
 
 /**
- * Render HTML SETIA: tiap blok (pisah baris kosong) jadi <p>; kata kunci dibold.
+ * Peta ilustrasi kartun SETIA (SVG di tema).
+ *
+ * @return array<string,array{file:string,alt:string}>
+ */
+function man3_zi_setia_art_map() {
+	return array(
+		'Sinergis' => array(
+			'file' => 'images/zi-setia-sinergis.svg',
+			'alt'  => __( 'Ilustrasi Sinergis: beberapa orang bergandengan menuju satu arah', 'man3-hijau-dingin' ),
+		),
+		'Efektif'  => array(
+			'file' => 'images/zi-setia-efektif.svg',
+			'alt'  => __( 'Ilustrasi Efektif: sasaran yang tepat', 'man3-hijau-dingin' ),
+		),
+		'Toleran'  => array(
+			'file' => 'images/zi-setia-toleran.svg',
+			'alt'  => __( 'Ilustrasi Toleran: orang berbeda saling menghargai', 'man3-hijau-dingin' ),
+		),
+		'Inovatif' => array(
+			'file' => 'images/zi-setia-inovatif.svg',
+			'alt'  => __( 'Ilustrasi Inovatif: lampu ide dan pembaruan', 'man3-hijau-dingin' ),
+		),
+		'Amanah'   => array(
+			'file' => 'images/zi-setia-amanah.svg',
+			'alt'  => __( 'Ilustrasi Amanah: perisai amanat yang dijaga', 'man3-hijau-dingin' ),
+		),
+	);
+}
+
+/**
+ * Render HTML SETIA: tiap blok jadi baris ilustrasi + paragraf; kata kunci dibold.
  *
  * @param string $text Teks mentah dari admin.
  */
@@ -61,25 +91,38 @@ function man3_zi_render_setia( $text ) {
 	if ( ! is_array( $parts ) ) {
 		$parts = array( $text );
 	}
-	$keys = array( 'Sinergis', 'Efektif', 'Toleran', 'Inovatif', 'Amanah' );
+	$arts = man3_zi_setia_art_map();
+	$keys = array_keys( $arts );
 	echo '<div class="zi-setia">';
 	foreach ( $parts as $part ) {
 		$part = trim( (string) $part );
 		if ( '' === $part ) {
 			continue;
 		}
-		$bolded = false;
+		$matched = '';
+		$rest    = $part;
 		foreach ( $keys as $key ) {
 			if ( 0 === stripos( $part, $key ) ) {
-				$rest = substr( $part, strlen( $key ) );
-				echo '<p><strong>' . esc_html( $key ) . '</strong>' . esc_html( $rest ) . '</p>';
-				$bolded = true;
+				$matched = $key;
+				$rest    = substr( $part, strlen( $key ) );
 				break;
 			}
 		}
-		if ( ! $bolded ) {
+		$slug = $matched ? strtolower( $matched ) : 'lain';
+		echo '<article class="zi-setia-item zi-setia-item--' . esc_attr( $slug ) . '">';
+		if ( $matched && isset( $arts[ $matched ] ) && function_exists( 'man3_hijau_asset' ) ) {
+			$art = $arts[ $matched ];
+			echo '<div class="zi-setia-art" aria-hidden="false">';
+			echo '<img src="' . esc_url( man3_hijau_asset( $art['file'] ) ) . '" alt="' . esc_attr( $art['alt'] ) . '" width="112" height="112" loading="lazy" decoding="async" />';
+			echo '</div>';
+		}
+		echo '<div class="zi-setia-body">';
+		if ( $matched ) {
+			echo '<p><strong>' . esc_html( $matched ) . '</strong>' . esc_html( $rest ) . '</p>';
+		} else {
 			echo '<p>' . esc_html( $part ) . '</p>';
 		}
+		echo '</div></article>';
 	}
 	echo '</div>';
 }

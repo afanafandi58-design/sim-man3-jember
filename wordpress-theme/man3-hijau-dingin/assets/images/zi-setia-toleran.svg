@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="t">
+  <title id="t">Toleran — orang berbeda saling menghargai</title>
+  <circle cx="60" cy="60" r="56" fill="#eefaf5"/>
+  <!-- left person taller -->
+  <circle cx="42" cy="42" r="9" fill="#0f5244"/>
+  <path d="M42 52c-11 4-16 16-16 28h32c0-12-5-24-16-28z" fill="#146b58"/>
+  <!-- right person shorter, lighter green -->
+  <circle cx="78" cy="48" r="8" fill="#2a9f84"/>
+  <path d="M78 57c-10 3-14 14-14 25h28c0-11-4-22-14-25z" fill="#4db89a"/>
+  <!-- heart / respect between -->
+  <path d="M60 50c2-4 8-4 8 1 0 5-8 10-8 10s-8-5-8-10c0-5 6-5 8-1z" fill="#0f5244"/>
+  <path d="M48 78c4 6 12 8 12 8s8-2 12-8" fill="none" stroke="#7dcfb6" stroke-width="3" stroke-linecap="round"/>
+</svg>
