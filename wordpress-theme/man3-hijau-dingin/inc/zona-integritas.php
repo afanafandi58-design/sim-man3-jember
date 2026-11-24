@@ -26,12 +26,12 @@ function man3_zi_admin_menu() {
 add_action( 'admin_menu', 'man3_zi_admin_menu' );
 
 /**
- * Teks default slogan SETIA (satu paragraf).
+ * Teks default SETIA — lima paragraf (pisah baris kosong).
  *
  * @return string
  */
 function man3_zi_setia_default_text() {
-	return 'SETIA adalah semangat Zona Integritas MAN 3 Jember. Sinergis berarti kepala madrasah, guru, tenaga kependidikan, siswa, orang tua, komite, dan mitra bekerja dalam satu arah. Efektif berarti setiap layanan dan kegiatan tepat sasaran, tertib, dan bisa dipertanggungjawabkan. Toleran berarti warga madrasah saling menghargai perbedaan dan menjaga suasana belajar yang aman. Inovatif berarti berani memperbaiki cara kerja agar layanan semakin baik. Amanah berarti jabatan, anggaran, dan kepercayaan masyarakat dijaga dengan jujur, bebas dari gratifikasi dan penyalahgunaan. Dengan SETIA, seluruh stakeholder menjaga madrasah yang bersih, melayani, dan bebas dari korupsi.';
+	return "Sinergis berarti kepala madrasah, guru, tenaga kependidikan, siswa, orang tua, komite, dan mitra Zona Integritas MAN 3 Jember bekerja dalam satu arah. Setiap pihak tahu perannya dan saling menguatkan agar program ZI berjalan bersama, bukan sendiri-sendiri.\n\nEfektif berarti setiap layanan dan kegiatan madrasah tepat sasaran, tertib, dan bisa dipertanggungjawabkan. Waktu, tenaga, dan anggaran dipakai untuk hasil yang nyata bagi siswa dan warga madrasah.\n\nToleran berarti warga madrasah saling menghargai perbedaan pendapat, latar belakang, dan cara beribadah yang tetap dalam koridor madrasah. Suasana belajar dijaga aman, santun, dan terbuka bagi seluruh stakeholder.\n\nInovatif berarti guru, tenaga kependidikan, dan siswa berani memperbaiki cara kerja dan cara belajar. Pembaruan itu memudahkan layanan, memperkuat integritas, dan membuat program ZI lebih mudah diikuti.\n\nAmanah berarti jabatan, anggaran, dan kepercayaan masyarakat dijaga dengan jujur. Kepala madrasah, guru, tenaga kependidikan, siswa, orang tua, dan komite menolak gratifikasi serta penyalahgunaan wewenang, sehingga MAN 3 Jember tetap bersih, melayani, dan bebas dari korupsi.";
 }
 
 /**
@@ -46,6 +46,59 @@ function man3_zi_get_setia_text() {
 	}
 	return trim( (string) $raw );
 }
+
+/**
+ * Render HTML SETIA: tiap blok (pisah baris kosong) jadi <p>; kata kunci dibold.
+ *
+ * @param string $text Teks mentah dari admin.
+ */
+function man3_zi_render_setia( $text ) {
+	$text = trim( (string) $text );
+	if ( '' === $text ) {
+		return;
+	}
+	$parts = preg_split( '/\R\s*\R/u', $text );
+	if ( ! is_array( $parts ) ) {
+		$parts = array( $text );
+	}
+	$keys = array( 'Sinergis', 'Efektif', 'Toleran', 'Inovatif', 'Amanah' );
+	echo '<div class="zi-setia">';
+	foreach ( $parts as $part ) {
+		$part = trim( (string) $part );
+		if ( '' === $part ) {
+			continue;
+		}
+		$bolded = false;
+		foreach ( $keys as $key ) {
+			if ( 0 === stripos( $part, $key ) ) {
+				$rest = substr( $part, strlen( $key ) );
+				echo '<p><strong>' . esc_html( $key ) . '</strong>' . esc_html( $rest ) . '</p>';
+				$bolded = true;
+				break;
+			}
+		}
+		if ( ! $bolded ) {
+			echo '<p>' . esc_html( $part ) . '</p>';
+		}
+	}
+	echo '</div>';
+}
+
+/**
+ * Sekali: ganti teks SETIA lama (satu paragraf) ke lima paragraf baru.
+ */
+function man3_zi_migrate_setia_v2() {
+	if ( get_option( 'man3_zi_setia_text_v2' ) ) {
+		return;
+	}
+	$cur = get_option( 'man3_zi_setia_text', null );
+	$old_start = 'SETIA adalah semangat Zona Integritas';
+	if ( null === $cur || 0 === strpos( (string) $cur, $old_start ) ) {
+		update_option( 'man3_zi_setia_text', man3_zi_setia_default_text(), false );
+	}
+	update_option( 'man3_zi_setia_text_v2', 1, false );
+}
+add_action( 'init', 'man3_zi_migrate_setia_v2', 25 );
 
 /**
  * Simpan teks SETIA dari form admin landing ZI.
@@ -89,14 +142,14 @@ function man3_zi_admin_landing() {
 
 		<hr />
 		<h2><?php esc_html_e( 'Penjelasan slogan SETIA', 'man3-hijau-dingin' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Satu paragraf di bawah judul halaman ZI, sebelum flyer. Kosongkan agar tidak tampil di situs.', 'man3-hijau-dingin' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Lima paragraf (Sinergis, Efektif, Toleran, Inovatif, Amanah) di bawah judul halaman ZI, sebelum flyer. Pisahkan tiap paragraf dengan baris kosong. Kosongkan agar tidak tampil di situs.', 'man3-hijau-dingin' ); ?></p>
 		<?php settings_errors( 'man3_zi_setia' ); ?>
 		<form method="post" action="">
 			<?php wp_nonce_field( 'man3_zi_setia_save', 'man3_zi_setia_nonce' ); ?>
 			<textarea
 				name="man3_zi_setia_text"
 				id="man3_zi_setia_text"
-				rows="8"
+				rows="14"
 				class="large-text"
 				style="max-width: 52rem;"
 			><?php echo esc_textarea( $setia ); ?></textarea>

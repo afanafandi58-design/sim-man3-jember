@@ -3637,20 +3637,30 @@ body.man3-info-welcome-open {
 .zi-setia {
   margin: 1.35rem 0 0;
   max-width: 46rem;
-  padding: 1.15rem 1.25rem 1.25rem;
+  padding: 1.15rem 1.25rem 1.15rem;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(15, 81, 50, 0.12);
   box-shadow: 0 10px 24px rgba(15, 81, 50, 0.05);
+  display: grid;
+  gap: 1.05rem;
   font-size: 1.1rem;
   line-height: 1.75;
   color: var(--ink);
+}
+.zi-setia p {
+  margin: 0;
+}
+.zi-setia strong {
+  color: var(--green-900);
+  font-weight: 700;
 }
 @media (max-width: 720px) {
   .zi-setia {
     font-size: 1.05rem;
     line-height: 1.7;
-    padding: 1rem 1.05rem 1.1rem;
+    padding: 1rem 1.05rem 1.05rem;
+    gap: 0.9rem;
   }
 }
 .zi-section-title {
