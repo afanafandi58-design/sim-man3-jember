@@ -3905,6 +3905,134 @@ body.man3-info-welcome-open {
   }
 }
 
+/* ——— Pengumuman ——— */
+.pengumuman-lead {
+  margin: 0.75rem 0 0;
+  max-width: 38rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+}
+.pengumuman-count {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+  color: var(--green-900);
+}
+.pengumuman-empty {
+  max-width: 36rem;
+  padding: 1.25rem 1.35rem;
+  border-radius: 0.85rem;
+  background: rgba(20, 107, 88, 0.06);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+}
+.pengumuman-empty p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.55;
+}
+.pengumuman-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.pengumuman-card {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: 1rem 1.25rem;
+  padding: 1rem 1.15rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+  box-shadow: 0 10px 24px rgba(15, 81, 50, 0.07);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.pengumuman-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(15, 81, 50, 0.11);
+}
+.pengumuman-card--no-media {
+  grid-template-columns: 1fr;
+}
+.pengumuman-media {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(20, 107, 88, 0.18), rgba(15, 81, 50, 0.08));
+  aspect-ratio: 16 / 10;
+  align-self: start;
+}
+.pengumuman-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pengumuman-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.pengumuman-date {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--green-900);
+  letter-spacing: 0.01em;
+}
+.pengumuman-title {
+  margin: 0;
+  font-family: var(--font-display, Fraunces, Georgia, serif);
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  line-height: 1.3;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.pengumuman-excerpt {
+  margin: 0;
+  color: var(--ink-muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.pengumuman-more summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--green-900);
+}
+.pengumuman-full {
+  margin-top: 0.55rem;
+  color: var(--ink-muted);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.pengumuman-full p:first-child {
+  margin-top: 0;
+}
+.pengumuman-file {
+  margin: 0.35rem 0 0;
+}
+.pengumuman-file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--green-900);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+@media (max-width: 720px) {
+  .pengumuman-card {
+    grid-template-columns: 1fr;
+    padding: 0.95rem 1rem;
+  }
+  .pengumuman-media {
+    max-width: 100%;
+  }
+  .pengumuman-title {
+    font-size: 1.15rem;
+  }
+}
+
 /* ——— Prestasi Siswa (sidebar kiri beranda) ——— */
 .section-beranda-split {
   padding-top: 1.5rem;
