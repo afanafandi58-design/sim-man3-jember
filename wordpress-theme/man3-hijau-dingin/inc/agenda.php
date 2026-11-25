@@ -480,6 +480,27 @@ function man3_agenda_run_seed() {
 
 	man3_agenda_ensure_flyer_attachment();
 
+	/* Nonaktifkan agenda lama di luar daftar resmi (jangan tampil di /agenda/). */
+	$legacy = get_posts(
+		array(
+			'post_type'      => 'agenda',
+			'posts_per_page' => 100,
+			'post_status'    => array( 'publish', 'draft', 'private' ),
+			'fields'         => 'ids',
+		)
+	);
+	$seed_keys = array();
+	foreach ( man3_agenda_seed_rows() as $row ) {
+		$seed_keys[ $row['key'] ] = true;
+	}
+	foreach ( $legacy as $lid ) {
+		$key = get_post_meta( (int) $lid, '_man3_agenda_seed_key', true );
+		if ( $key && isset( $seed_keys[ $key ] ) ) {
+			continue;
+		}
+		update_post_meta( (int) $lid, '_man3_agenda_active', '0' );
+	}
+
 	foreach ( man3_agenda_seed_rows() as $row ) {
 		$existing = get_posts(
 			array(
