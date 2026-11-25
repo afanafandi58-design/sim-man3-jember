@@ -3905,6 +3905,120 @@ body.man3-info-welcome-open {
   }
 }
 
+/* ——— Agenda ——— */
+.agenda-lead {
+  margin: 0.75rem 0 0;
+  max-width: 38rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+}
+.section-agenda-flyer {
+  padding-top: 0;
+  padding-bottom: 0.5rem;
+}
+.agenda-flyer {
+  margin: 0 auto;
+  max-width: min(42rem, 100%);
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+  box-shadow: 0 12px 28px rgba(15, 81, 50, 0.08);
+}
+.agenda-flyer img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
+}
+.agenda-list-heading {
+  margin: 0 0 1rem;
+  font-family: var(--font-display, Fraunces, Georgia, serif);
+  font-size: clamp(1.25rem, 2.4vw, 1.55rem);
+  color: var(--ink);
+}
+.agenda-empty {
+  max-width: 36rem;
+  padding: 1.25rem 1.35rem;
+  border-radius: 0.85rem;
+  background: rgba(20, 107, 88, 0.06);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+}
+.agenda-empty p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.55;
+}
+.agenda-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  counter-reset: none;
+}
+.agenda-card {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0.85rem 1rem;
+  padding: 1rem 1.15rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+  box-shadow: 0 8px 20px rgba(15, 81, 50, 0.06);
+}
+.agenda-num {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--green-900);
+  background: rgba(20, 107, 88, 0.12);
+}
+.agenda-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.agenda-tanggal {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--green-900);
+  letter-spacing: 0.01em;
+}
+.agenda-title {
+  margin: 0;
+  font-family: var(--font-display, Fraunces, Georgia, serif);
+  font-size: clamp(1.1rem, 2.1vw, 1.35rem);
+  line-height: 1.3;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.agenda-desc {
+  margin: 0;
+  color: var(--ink-muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 720px) {
+  .agenda-flyer {
+    padding: 0.55rem 0.65rem;
+    border-radius: 0.75rem;
+  }
+  .agenda-card {
+    grid-template-columns: 2.15rem minmax(0, 1fr);
+    padding: 0.9rem 0.95rem;
+  }
+}
+
 /* ——— Pengumuman ——— */
 .pengumuman-lead {
   margin: 0.75rem 0 0;
