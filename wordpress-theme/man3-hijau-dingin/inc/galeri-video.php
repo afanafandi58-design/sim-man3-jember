@@ -477,7 +477,51 @@ function man3_video_ensure_menu() {
 }
 
 /**
- * Ambil daftar video untuk tampilan depan.
+ * Backfill tanggal unggah yang kosong (dari tanggal tayang YouTube yang diketahui / post_date).
+ * Tidak mengubah judul, URL, atau ringkasan.
+ */
+function man3_video_backfill_missing_dates() {
+	if ( get_option( 'man3_video_dates_v159' ) ) {
+		return;
+	}
+
+	/* Tanggal unggah YouTube aktual untuk item tanpa meta tanggal. */
+	$known_yt = array(
+		'h4ogrg4tOog' => '2026-11-25', /* Eco-Theology */
+		'Aw4cYduPAlQ' => '2026-11-05', /* Animasi ZI */
+	);
+
+	$posts = get_posts(
+		array(
+			'post_type'      => 'man3_video',
+			'posts_per_page' => 100,
+			'post_status'    => array( 'publish', 'draft', 'private' ),
+			'fields'         => 'ids',
+		)
+	);
+	foreach ( $posts as $pid ) {
+		$cur = trim( (string) get_post_meta( (int) $pid, '_man3_video_date', true ) );
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $cur ) ) {
+			continue;
+		}
+		$url = (string) get_post_meta( (int) $pid, '_man3_video_url', true );
+		$yt  = man3_video_youtube_id( $url );
+		if ( $yt && isset( $known_yt[ $yt ] ) ) {
+			update_post_meta( (int) $pid, '_man3_video_date', $known_yt[ $yt ] );
+			continue;
+		}
+		$fallback = get_the_date( 'Y-m-d', (int) $pid );
+		if ( $fallback ) {
+			update_post_meta( (int) $pid, '_man3_video_date', $fallback );
+		}
+	}
+
+	update_option( 'man3_video_dates_v159', 1, false );
+}
+add_action( 'init', 'man3_video_backfill_missing_dates', 32 );
+
+/**
+ * Ambil daftar video untuk tampilan depan — terbaru di atas (tanggal unggah DESC).
  *
  * @return array<int,array<string,mixed>>
  */
@@ -485,13 +529,10 @@ function man3_video_get_items() {
 	$posts = get_posts(
 		array(
 			'post_type'      => 'man3_video',
-			'posts_per_page' => 50,
+			'posts_per_page' => 100,
 			'post_status'    => 'publish',
-			'orderby'        => array(
-				'meta_value' => 'DESC',
-				'menu_order' => 'ASC',
-			),
-			'meta_key'       => '_man3_video_date',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
 		)
 	);
 	$out = array();
@@ -499,11 +540,14 @@ function man3_video_get_items() {
 		$source  = get_post_meta( $p->ID, '_man3_video_source', true ) ?: 'youtube';
 		$url     = get_post_meta( $p->ID, '_man3_video_url', true );
 		$summary = get_post_meta( $p->ID, '_man3_video_summary', true );
-		$date    = get_post_meta( $p->ID, '_man3_video_date', true );
-		$home    = get_post_meta( $p->ID, '_man3_video_home', true );
-		$yt      = man3_video_youtube_id( $url );
-		$ig      = man3_video_instagram_code( $url );
-		$thumb   = get_the_post_thumbnail_url( $p, 'medium_large' );
+		$date    = trim( (string) get_post_meta( $p->ID, '_man3_video_date', true ) );
+		if ( ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ) {
+			$date = get_the_date( 'Y-m-d', $p );
+		}
+		$home  = get_post_meta( $p->ID, '_man3_video_home', true );
+		$yt    = man3_video_youtube_id( $url );
+		$ig    = man3_video_instagram_code( $url );
+		$thumb = get_the_post_thumbnail_url( $p, 'medium_large' );
 		if ( ! $thumb ) {
 			$thumb = get_the_post_thumbnail_url( $p, 'large' );
 		}
@@ -523,6 +567,19 @@ function man3_video_get_items() {
 			'thumb'   => $thumb ? $thumb : '',
 		);
 	}
+
+	usort(
+		$out,
+		static function ( $a, $b ) {
+			$da = isset( $a['date'] ) ? (string) $a['date'] : '';
+			$db = isset( $b['date'] ) ? (string) $b['date'] : '';
+			if ( $da === $db ) {
+				return (int) $b['id'] - (int) $a['id'];
+			}
+			return strcmp( $db, $da ); /* DESC: terbaru di atas */
+		}
+	);
+
 	return $out;
 }
 
