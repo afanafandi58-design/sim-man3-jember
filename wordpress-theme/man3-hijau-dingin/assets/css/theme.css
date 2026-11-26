@@ -1053,17 +1053,41 @@ button {
   color: var(--green-700);
 }
 
-/* Visi + quick links */
-.visi-block {
+/* Link Terkait (kiri) + Akses cepat (kanan) */
+.visi-block,
+.links-duo {
   display: grid;
   gap: 2rem;
 }
 
 @media (min-width: 860px) {
-  .visi-block {
-    grid-template-columns: 1.1fr 0.9fr;
+  .visi-block,
+  .links-duo {
+    grid-template-columns: 1fr 1fr;
     align-items: start;
   }
+}
+
+.links-duo-col .section-title {
+  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+}
+
+.links-empty {
+  padding: 1rem 1.1rem;
+  border-radius: 0.85rem;
+  background: rgba(20, 107, 88, 0.06);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+}
+
+.links-empty p {
+  margin: 0;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+/* Visi Misi di bawah blok link */
+#visi-misi .visi-panel {
+  max-width: 44rem;
 }
 
 .visi-panel {
@@ -1085,6 +1109,9 @@ button {
 }
 
 @media (min-width: 560px) {
+  .links-duo .links-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .links-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1102,6 +1129,7 @@ button {
   font-size: 0.92rem;
   color: var(--green-900);
   transition: background 0.2s ease, border-color 0.2s ease;
+  overflow-wrap: anywhere;
 }
 
 .links-grid a:hover {

@@ -255,23 +255,31 @@ $wp_posts = new WP_Query(
 		</div>
 	</section>
 
-	<section class="section" id="visi-misi">
-		<div class="container visi-block">
-			<div>
+	<?php
+	$link_terkait = function_exists( 'man3_link_terkait_get_items' ) ? man3_link_terkait_get_items() : array();
+	?>
+	<section class="section" id="link-akses" aria-label="<?php esc_attr_e( 'Link terkait dan akses cepat', 'man3-hijau-dingin' ); ?>">
+		<div class="container visi-block links-duo">
+			<div class="links-duo-col links-duo-terkait">
 				<div class="section-head">
-					<p class="section-kicker"><?php esc_html_e( 'Visi Misi', 'man3-hijau-dingin' ); ?></p>
-					<h2 class="section-title">VISI MISI MAN 3 JEMBER</h2>
+					<p class="section-kicker"><?php esc_html_e( 'Tautan', 'man3-hijau-dingin' ); ?></p>
+					<h2 class="section-title"><?php esc_html_e( 'Link Terkait', 'man3-hijau-dingin' ); ?></h2>
 				</div>
-				<div class="visi-panel">
-					<p>
-						Membiasakan civitas akademika berperilaku sesuai ajaran islam dan norma yang berlaku di masyarakat — mewujudkan generasi cerdas, kreatif, beriman, dan saling percaya.
-					</p>
-					<a class="btn btn-outline" href="<?php echo esc_url( home_url( '/visi-misi-man-3-jember/' ) ); ?>">
-						<?php esc_html_e( 'Baca Visi Misi lengkap', 'man3-hijau-dingin' ); ?>
-					</a>
-				</div>
+				<?php if ( $link_terkait ) : ?>
+					<div class="links-grid">
+						<?php foreach ( $link_terkait as $link ) : ?>
+							<a href="<?php echo esc_url( $link['href'] ); ?>" target="_blank" rel="noopener noreferrer">
+								<?php echo esc_html( $link['label'] ); ?>
+							</a>
+						<?php endforeach; ?>
+					</div>
+				<?php else : ?>
+					<div class="links-empty">
+						<p><?php esc_html_e( 'Belum ada tautan aktif. Tambahkan dari admin → Link Terkait.', 'man3-hijau-dingin' ); ?></p>
+					</div>
+				<?php endif; ?>
 			</div>
-			<div>
+			<div class="links-duo-col links-duo-akses">
 				<div class="section-head">
 					<p class="section-kicker"><?php esc_html_e( 'Info Madrasah', 'man3-hijau-dingin' ); ?></p>
 					<h2 class="section-title"><?php esc_html_e( 'Akses cepat', 'man3-hijau-dingin' ); ?></h2>
@@ -283,6 +291,23 @@ $wp_posts = new WP_Query(
 						</a>
 					<?php endforeach; ?>
 				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="section" id="visi-misi">
+		<div class="container">
+			<div class="section-head">
+				<p class="section-kicker"><?php esc_html_e( 'Visi Misi', 'man3-hijau-dingin' ); ?></p>
+				<h2 class="section-title">VISI MISI MAN 3 JEMBER</h2>
+			</div>
+			<div class="visi-panel">
+				<p>
+					Membiasakan civitas akademika berperilaku sesuai ajaran islam dan norma yang berlaku di masyarakat — mewujudkan generasi cerdas, kreatif, beriman, dan saling percaya.
+				</p>
+				<a class="btn btn-outline" href="<?php echo esc_url( home_url( '/visi-misi-man-3-jember/' ) ); ?>">
+					<?php esc_html_e( 'Baca Visi Misi lengkap', 'man3-hijau-dingin' ); ?>
+				</a>
 			</div>
 		</div>
 	</section>
