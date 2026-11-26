@@ -295,23 +295,6 @@ $wp_posts = new WP_Query(
 		</div>
 	</section>
 
-	<section class="section" id="visi-misi">
-		<div class="container">
-			<div class="section-head">
-				<p class="section-kicker"><?php esc_html_e( 'Visi Misi', 'man3-hijau-dingin' ); ?></p>
-				<h2 class="section-title">VISI MISI MAN 3 JEMBER</h2>
-			</div>
-			<div class="visi-panel">
-				<p>
-					Membiasakan civitas akademika berperilaku sesuai ajaran islam dan norma yang berlaku di masyarakat — mewujudkan generasi cerdas, kreatif, beriman, dan saling percaya.
-				</p>
-				<a class="btn btn-outline" href="<?php echo esc_url( home_url( '/visi-misi-man-3-jember/' ) ); ?>">
-					<?php esc_html_e( 'Baca Visi Misi lengkap', 'man3-hijau-dingin' ); ?>
-				</a>
-			</div>
-		</div>
-	</section>
-
 	<?php
 	if ( function_exists( 'man3_survey_render_section' ) ) {
 		man3_survey_render_section();
