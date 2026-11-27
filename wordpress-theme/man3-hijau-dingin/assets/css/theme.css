@@ -173,21 +173,27 @@ button {
   cursor: pointer;
 }
 
-/* Desktop menengah (~1280px): rapatkan gap agar wordmark tidak bertabrakan dengan Beranda. Logo tetap. */
+/* Desktop menengah (~1280px): menu ke baris kedua agar wordmark tidak bertabrakan dengan Beranda. Logo tetap. */
 @media (min-width: 980px) and (max-width: 1360px) {
   .header-inner {
-    gap: 0.65rem;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem 0.75rem;
   }
   .brand {
-    margin-right: 0.25rem;
+    flex: 0 0 auto;
+    max-width: calc(100% - 1rem);
   }
   .nav-desktop {
-    gap: 0.05rem 0.08rem;
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    gap: 0.1rem 0.2rem;
+    padding-bottom: 0.15rem;
   }
   .nav-desktop > a.nav-link,
   .nav-desktop > .nav-item > summary {
-    padding: 0.34rem 0.36rem;
-    font-size: 1.02rem;
+    padding: 0.34rem 0.42rem;
+    font-size: 1.05rem;
   }
 }
 
@@ -3675,6 +3681,10 @@ body.man3-info-welcome-open {
 }
 
 /* ——— PMBM ——— */
+.page-pmbm .pmbm-hero.section {
+  padding-top: 2.75rem;
+  padding-bottom: 2.75rem;
+}
 .pmbm-lead {
   margin: 0.75rem 0 0;
   max-width: 36rem;
