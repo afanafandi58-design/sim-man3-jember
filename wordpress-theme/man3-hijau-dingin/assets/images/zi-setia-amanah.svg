@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <rect width="160" height="160" rx="28" fill="#eefaf5"/>
+  <ellipse cx="80" cy="140" rx="54" ry="7" fill="#b4e6d5" opacity=".55"/>
+  <!-- person -->
+  <circle cx="52" cy="58" r="14" fill="#0f5244"/>
+  <path d="M34 82c3-16 11-24 18-24s16 10 18 26v30H34V82z" fill="#146b58"/>
+  <path d="M42 114l-4 18M62 114l4 18" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- arms holding shield -->
+  <path d="M68 96h16" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- large shield -->
+  <path d="M108 36l28 10v24c0 20-12 34-28 40-16-6-28-20-28-40V46z" fill="#2a9f84" stroke="#0f5244" stroke-width="2.8" stroke-linejoin="round"/>
+  <path d="M108 46l18 7v18c0 13-8 23-18 27-10-4-18-14-18-27V53z" fill="#4db89a"/>
+  <path d="M98 66l10 10 16-18" stroke="#eefaf5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

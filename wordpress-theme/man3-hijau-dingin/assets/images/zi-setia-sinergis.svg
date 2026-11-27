@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <rect width="160" height="160" rx="28" fill="#eefaf5"/>
+  <!-- ground -->
+  <ellipse cx="80" cy="138" rx="58" ry="8" fill="#b4e6d5" opacity=".55"/>
+  <!-- person 1 -->
+  <circle cx="38" cy="58" r="12" fill="#0f5244"/>
+  <path d="M22 78c2-12 10-18 16-18s14 6 16 18v28H22V78z" fill="#146b58"/>
+  <path d="M26 106l-4 26M50 106l4 26" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- person 2 -->
+  <circle cx="66" cy="52" r="12" fill="#146b58"/>
+  <path d="M50 72c2-12 10-18 16-18s14 6 16 18v30H50V72z" fill="#2a9f84"/>
+  <path d="M54 102l-3 28M78 102l3 28" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- person 3 -->
+  <circle cx="94" cy="54" r="12" fill="#0f5244"/>
+  <path d="M78 74c2-12 10-18 16-18s14 6 16 18v28H78V74z" fill="#146b58"/>
+  <path d="M82 102l-3 28M106 102l3 28" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- person 4 -->
+  <circle cx="122" cy="58" r="12" fill="#2a9f84"/>
+  <path d="M106 78c2-12 10-18 16-18s14 6 16 18v26h-32V78z" fill="#4db89a"/>
+  <path d="M110 104l-3 26M134 104l3 26" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- linked arms -->
+  <path d="M48 86h12M76 84h12M104 86h12" stroke="#0f5244" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- direction arrow -->
+  <path d="M128 40h18m0 0l-7-6m7 6l-7 6" stroke="#146b58" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

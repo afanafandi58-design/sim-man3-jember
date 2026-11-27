@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <rect width="160" height="160" rx="28" fill="#eefaf5"/>
+  <ellipse cx="80" cy="140" rx="54" ry="7" fill="#b4e6d5" opacity=".55"/>
+  <!-- target -->
+  <circle cx="118" cy="58" r="28" fill="#daf4eb" stroke="#146b58" stroke-width="4"/>
+  <circle cx="118" cy="58" r="18" fill="none" stroke="#2a9f84" stroke-width="4"/>
+  <circle cx="118" cy="58" r="8" fill="#0f5244"/>
+  <!-- person running toward target -->
+  <circle cx="48" cy="70" r="13" fill="#146b58"/>
+  <path d="M36 88c3-14 10-20 12-20s12 8 14 22l6 28H34l2-30z" fill="#2a9f84"/>
+  <path d="M42 118l-10 18M58 116l14 16" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- arm pointing / reaching -->
+  <path d="M60 92l28-10" stroke="#0f5244" stroke-width="5" stroke-linecap="round"/>
+  <!-- small dart at bullseye -->
+  <path d="M98 72l16-12" stroke="#0f5244" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M114 60l8-2-2 8-6-6z" fill="#4db89a" stroke="#0f5244" stroke-width="1.5"/>
+</svg>
