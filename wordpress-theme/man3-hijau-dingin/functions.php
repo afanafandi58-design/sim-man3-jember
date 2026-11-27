@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MAN3_HIJAU_VERSION', '1.5.61' );
+define( 'MAN3_HIJAU_VERSION', '1.5.62' );
 
 $man3_org_inc = get_template_directory() . '/inc/struktur-organisasi.php';
 if ( file_exists( $man3_org_inc ) ) {
@@ -84,6 +84,11 @@ if ( file_exists( $man3_zi_inc ) ) {
 $man3_ppid_inc = get_template_directory() . '/inc/ppid.php';
 if ( file_exists( $man3_ppid_inc ) ) {
 	require_once $man3_ppid_inc;
+}
+
+$man3_pmbm_inc = get_template_directory() . '/inc/pmbm.php';
+if ( file_exists( $man3_pmbm_inc ) ) {
+	require_once $man3_pmbm_inc;
 }
 
 $man3_survey_inc = get_template_directory() . '/inc/survey-kepuasan.php';
@@ -532,6 +537,7 @@ function man3_hijau_fallback_nav( $mobile = false ) {
 		array( 'label' => 'Pengumuman', 'href' => home_url( '/pengumuman/' ) ),
 		array( 'label' => 'News Mantiger', 'href' => home_url( '/news-mantiger/' ) ),
 		array( 'label' => 'PPID', 'href' => home_url( '/ppid/' ) ),
+		array( 'label' => 'PMBM', 'href' => home_url( '/pmbm/' ) ),
 	);
 
 	foreach ( $items as $item ) {

@@ -3655,6 +3655,92 @@ body.man3-info-welcome-open {
   }
 }
 
+/* ——— PMBM ——— */
+.pmbm-lead {
+  margin: 0.75rem 0 0;
+  max-width: 36rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+  font-size: 1.05rem;
+}
+.section-pmbm-poster {
+  padding-top: 0;
+  padding-bottom: 0.5rem;
+}
+.pmbm-poster-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  align-items: stretch;
+}
+.pmbm-poster {
+  margin: 0 auto;
+  max-width: min(42rem, 100%);
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 81, 50, 0.12);
+  box-shadow: 0 12px 28px rgba(15, 81, 50, 0.08);
+}
+.pmbm-poster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
+}
+.pmbm-section-title {
+  margin: 0 0 1.15rem;
+  font-family: var(--font-display, Fraunces, Georgia, serif);
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  color: var(--green-900);
+}
+.pmbm-tautan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-width: 36rem;
+}
+.pmbm-tautan-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--green-900);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.pmbm-tautan-link:hover,
+.pmbm-tautan-link:focus-visible {
+  border-bottom-color: var(--green-900);
+  color: var(--green-800, #0f5132);
+}
+.pmbm-info {
+  max-width: 42rem;
+}
+.pmbm-info-body {
+  color: var(--ink);
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+.pmbm-info-body p {
+  margin: 0 0 0.9rem;
+}
+.pmbm-info-body p:last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 720px) {
+  .pmbm-poster {
+    padding: 0.55rem 0.65rem;
+  }
+}
+
 /* ——— Zona Integritas (ZI) ——— */
 .zi-lead {
   margin: 0.75rem 0 0;
